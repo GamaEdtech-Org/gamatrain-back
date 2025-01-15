@@ -11,35 +11,25 @@ using GamaEdtech.Back.Domain.Schools;
 using GamaEdtech.Back.Domain.States;
 using GamaEdtech.Back.Gateway.Rest.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using static CSharpFunctionalExtensions.Result;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
-var configuration = new ConfigurationBuilder()
-	.SetBasePath(Directory.GetCurrentDirectory())
-	.AddJsonFile("appsettings.json")
-	.AddJsonFile($"appsettings.{environment}.json", optional: true)
-	.AddEnvironmentVariables()
-	.Build();
-
-var connectionStringValue = environment == "Development"
-	? configuration.GetConnectionString("Default")
-	: configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
 
-ConnectionString connectionString = new ConnectionString(connectionStringValue);
+
+ConnectionString connectionString;
 
 if (builder.Environment.IsDevelopment())
 {
-	//connectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
+	connectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
 }
 else
 {
-	//connectionString = new ConnectionString(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!);
+	connectionString = new ConnectionString(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!);
 	//connectionString = new ConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")!);
 
 	builder.Services.AddStackExchangeRedisCache(options =>
@@ -92,3 +82,29 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+
+public class GamaEdtechDbContextFactory : IDesignTimeDbContextFactory<GamaEdtechDbContext>
+{
+	public GamaEdtechDbContext CreateDbContext(string[] args)
+	{
+		var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+		var configuration = new ConfigurationBuilder()
+			.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile($"appsettings.{environment}.json", optional: true)
+			.AddEnvironmentVariables()
+			.Build();
+
+		var connectionString = environment == "Development"
+			? configuration.GetConnectionString("Default")
+			: configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+
+		//var optionsBuilder = new DbContextOptionsBuilder<GamaEdtechDbContext>();
+		//optionsBuilder.UseSqlServer(connectionString);
+
+		return new GamaEdtechDbContext(new ConnectionString(connectionString!));
+	}
+}
