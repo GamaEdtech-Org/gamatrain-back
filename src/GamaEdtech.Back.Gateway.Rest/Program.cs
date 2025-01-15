@@ -19,17 +19,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
 
+var configuration = new ConfigurationBuilder()
+	.SetBasePath(Directory.GetCurrentDirectory())
+	.AddJsonFile("appsettings.json")
+	.AddJsonFile($"appsettings.{environment}.json", optional: true)
+	.AddEnvironmentVariables()
+	.Build();
 
-ConnectionString connectionString;
+var connectionStringValue = environment == "Development"
+	? configuration.GetConnectionString("Default")
+	: configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+
+
+ConnectionString connectionString = new ConnectionString(connectionStringValue);
 
 if (builder.Environment.IsDevelopment())
 {
-	connectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
+	//connectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
 }
 else
 {
 	//connectionString = new ConnectionString(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!);
-	connectionString = new ConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")!);
+	//connectionString = new ConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")!);
 
 	builder.Services.AddStackExchangeRedisCache(options =>
 	{
