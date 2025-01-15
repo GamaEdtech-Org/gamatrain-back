@@ -10,40 +10,37 @@ namespace GamaEdtech.Back.DataSource.Utils;
 
 public class GamaEdtechDbContext : DbContext
 {
-	private readonly ConnectionString _connectionString;
+    private readonly ConnectionString _connectionString;
 
-	public GamaEdtechDbContext(ConnectionString connectionString)
-	{
-		_connectionString = connectionString;
-	}
+    public GamaEdtechDbContext(ConnectionString connectionString)
+    {
+        _connectionString = connectionString;
+    }
 
-	public DbSet<School> Schools { get; set; }
-	public DbSet<Country> Countries { get; set; }
-	public DbSet<State> States { get; set; }
-	public DbSet<City> Cities { get; set; }
+    public DbSet<School> Schools { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<State> States { get; set; }
+    public DbSet<City> Cities { get; set; }
 
-	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-	{
-		base.OnConfiguring(optionsBuilder);
-		optionsBuilder
-			//.UseLazyLoadingProxies()
-			.UseSqlServer(
-			_connectionString.Value,
-			x => x.UseNetTopologySuite());
-	}
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder
+        //.UseLazyLoadingProxies()
+        .UseSqlServer(_connectionString.Value, x => x.UseNetTopologySuite());
+    }
 
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
-	{
-		base.OnModelCreating(modelBuilder);
-		ApplyConfigurations(modelBuilder);
-	}
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        ApplyConfigurations(modelBuilder);
+    }
 
-	private static void ApplyConfigurations(ModelBuilder modelBuilder)
-	{
-		modelBuilder.ApplyConfiguration(new SchoolConfiguration());
-		modelBuilder.ApplyConfiguration(new CountryConfiguration());
-		modelBuilder.ApplyConfiguration(new StateConfiguration());
-		modelBuilder.ApplyConfiguration(new CityConfiguration());
-	}
+    private static void ApplyConfigurations(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new SchoolConfiguration());
+        modelBuilder.ApplyConfiguration(new CountryConfiguration());
+        modelBuilder.ApplyConfiguration(new StateConfiguration());
+        modelBuilder.ApplyConfiguration(new CityConfiguration());
+    }
 }
-

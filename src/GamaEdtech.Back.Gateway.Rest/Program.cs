@@ -17,31 +17,36 @@ var builder = WebApplication.CreateBuilder(args);
 
 ConnectionString conectionString;
 
-if(builder.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment())
 {
-	conectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
+    conectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
 }
 else
 {
-	conectionString = new ConnectionString(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!);
+    conectionString = new ConnectionString(
+        builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!
+    );
 
-	builder.Services.AddStackExchangeRedisCache(options =>
-	{
-		options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
-		options.InstanceName = "SampleInstance";
-	});
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
+        options.InstanceName = "SampleInstance";
+    });
 }
 
 // Add services to the container.
 builder.Services
-	.AddControllers()
-	.ConfigureApiBehaviorOptions(options =>
-		options.InvalidModelStateResponseFactory = ModelStateValidator.Validate); ;
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(
+        options => options.InvalidModelStateResponseFactory = ModelStateValidator.Validate
+    );
+;
 
 builder.Services
-	.AddFluentValidationAutoValidation()
-	.AddFluentValidationClientsideAdapters()
-	.AddValidatorsFromAssemblyContaining<Program>(); ;
+    .AddFluentValidationAutoValidation()
+    .AddFluentValidationClientsideAdapters()
+    .AddValidatorsFromAssemblyContaining<Program>();
+;
 
 builder.Services.AddSingleton(conectionString);
 builder.Services.AddScoped<GamaEdtechDbContext>();
@@ -52,8 +57,8 @@ builder.Services.AddTransient<ICityRepository, SqlServerCityRepository>();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
 {
-	var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-	options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 var app = builder.Build();
@@ -61,9 +66,10 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
-	app.MapOpenApi();
-	app.UseSwagger();
-	app.UseSwaggerUI();
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
+
 //}
 
 app.UseHttpsRedirection();
