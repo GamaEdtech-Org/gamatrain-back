@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using GamaEdtech.Back.Domain.Schools;
 using GamaEdtech.Back.Domain.Base;
+using GamaEdtech.Back.Domain.States;
+using GamaEdtech.Back.Domain.Cities;
 
 namespace GamaEdtech.Back.DataSource.Schools;
 
@@ -39,7 +41,7 @@ internal class SchoolConfiguration : IEntityTypeConfiguration<School>
 				.HasMaxLength(500)
 				.IsRequired();
 
-			b.OwnsOne(x => x.Location, b =>
+			b.OwnsOne(address => address.Location, b =>
 			{
 				b.Property(l => l.Geography)
 					.HasColumnType("GEOGRAPHY")
@@ -47,21 +49,29 @@ internal class SchoolConfiguration : IEntityTypeConfiguration<School>
 					.IsRequired(); // Ensures the column is stored as a spatial type
 			});
 
-			b.Property(name => name.State)
-				.HasColumnName("AddressState")
-				.HasMaxLength(50)
-				.IsRequired();
-
-			b.Property(name => name.City)
-				.HasColumnName("AddressCity")
-				.HasMaxLength(50)
-				.IsRequired();
-
-			b.Property(name => name.ZipCode)
+			b.Property(address => address.ZipCode)
 				.HasColumnName("AddressZipCode")
 				.HasMaxLength(20)
 				.IsRequired();
+
+			b.Property(address => address.StateId)
+				.HasColumnName("AddressStateId");
+
+			b.HasOne<State>()
+				.WithMany()
+				.HasForeignKey(x => x.StateId)
+				.IsRequired(false);
+
+			b.Property(address => address.CityId)
+				.HasColumnName("AddressCityId");
+
+			b.HasOne<City>()
+				.WithMany()
+				.HasForeignKey(x => x.CityId)
+				.IsRequired();
 		});
+
+
 
 	}
 }

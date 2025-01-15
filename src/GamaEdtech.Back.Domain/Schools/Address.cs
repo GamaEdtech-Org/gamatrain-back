@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using GamaEdtech.Back.Domain.Base;
 
 namespace GamaEdtech.Back.Domain.Schools;
 
@@ -6,23 +7,23 @@ public class Address : ValueObject
 {
 	public string Description { get; }
 	public Location Location { get; }
-	public string State { get; }
-	public string City { get; set; }
+	public Id? StateId { get; }
+	public Id CityId { get; set; }
 	public string ZipCode { get; set; }
 
 	protected Address() { }
 
 	public Address(
-		string description,
+		string description, 
 		Location location, 
-		string state, 
-		string city, 
+		Id? stateId, 
+		Id cityId, 
 		string zipCode)
 	{
 		Description = description;
 		Location = location;
-		State = state;
-		City = city;
+		StateId = stateId;
+		CityId = cityId;
 		ZipCode = zipCode;
 	}
 
@@ -30,8 +31,8 @@ public class Address : ValueObject
 	{
 		yield return Description;
 		yield return Location;
-		yield return State;
-		yield return City; 
+		yield return StateId;
+		yield return CityId; 
 		yield return ZipCode;
 	}
 }

@@ -33,6 +33,20 @@ public class SqlServerCityRepository : ICityRepository
 			.AnyAsync();
 	}
 
+	public async Task<bool> ContainsCityInCountryWith(Id id)
+	{
+		return await _dbContext.Cities
+			.Where(x => x.CountryId == id)
+			.AnyAsync();
+	}
+
+	public async Task<bool> ContainsCityInStateWith(Id id)
+	{
+		return await _dbContext.Cities
+			.Where(x => x.StateId == id)
+			.AnyAsync();
+	}
+
 	public async Task Add(City city)
 	{
 		await _dbContext.Cities.AddAsync(city);

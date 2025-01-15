@@ -33,6 +33,13 @@ public class SqlServerStateRepository : IStateRepository
 			.AnyAsync();
 	}
 
+	public async Task<bool> ContainsStateInCountryWith(Id id)
+	{
+		return await _dbContext.States
+			.Where(x => x.CountryId == id)
+			.AnyAsync();
+	}
+
 	public async Task Add(State state)
 	{
 		await _dbContext.States.AddAsync(state);

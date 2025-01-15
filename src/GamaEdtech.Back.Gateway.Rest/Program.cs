@@ -10,29 +10,36 @@ using GamaEdtech.Back.Domain.Countries;
 using GamaEdtech.Back.Domain.Schools;
 using GamaEdtech.Back.Domain.States;
 using GamaEdtech.Back.Gateway.Rest.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using static CSharpFunctionalExtensions.Result;
 
 var builder = WebApplication.CreateBuilder(args);
 
-ConnectionString conectionString;
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
 
-if (builder.Environment.IsDevelopment())
-{
-    conectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
-}
-else
-{
-    conectionString = new ConnectionString(
-        builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!
-    );
+var connectionStringValue =
+    environment == "Development"
+        ? builder.Configuration.GetConnectionString("Default")
+        : builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
-    builder.Services.AddStackExchangeRedisCache(options =>
-    {
-        options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
-        options.InstanceName = "SampleInstance";
-    });
-}
+ConnectionString connectionString = new ConnectionString(connectionStringValue!);
+
+//if(builder.Environment.IsDevelopment())
+//{
+//	conectionString = new ConnectionString(builder.Configuration.GetConnectionString("Default")!);
+//}
+//else
+//{
+//	conectionString = new ConnectionString(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")!);
+
+//	builder.Services.AddStackExchangeRedisCache(options =>
+//	{
+//		options.Configuration = builder.Configuration["AZURE_REDIS_CONNECTIONSTRING"];
+//		options.InstanceName = "SampleInstance";
+//	});
+//}
 
 // Add services to the container.
 builder.Services
@@ -48,8 +55,12 @@ builder.Services
     .AddValidatorsFromAssemblyContaining<Program>();
 ;
 
-builder.Services.AddSingleton(conectionString);
-builder.Services.AddScoped<GamaEdtechDbContext>();
+builder.Services.AddSingleton(connectionString);
+builder.Services.AddDbContext<GamaEdtechDbContext>(
+    options => options.UseSqlServer(connectionStringValue!, x => x.UseNetTopologySuite())
+);
+
+//builder.Services.AddScoped<GamaEdtechDbContext>();
 builder.Services.AddTransient<ISchoolRepository, SqlServerSchoolRepository>();
 builder.Services.AddTransient<ICountryRepository, SqlServerCountryRepository>();
 builder.Services.AddTransient<IStateRepository, SqlServerStateRepository>();

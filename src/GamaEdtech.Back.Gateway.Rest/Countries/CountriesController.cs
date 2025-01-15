@@ -1,7 +1,10 @@
 ﻿using Dapper;
 using GamaEdtech.Back.DataSource.Utils;
 using GamaEdtech.Back.Domain.Base;
+using GamaEdtech.Back.Domain.Cities;
 using GamaEdtech.Back.Domain.Countries;
+using GamaEdtech.Back.Domain.States;
+using GamaEdtech.Back.Gateway.Rest.Common;
 using GamaEdtech.Back.Gateway.Rest.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -15,19 +18,25 @@ public class CountriesController : ControllerBase
 	private readonly ConnectionString _connectionString;
 	private readonly GamaEdtechDbContext _dbCotext;
 	private readonly ICountryRepository _countryRepository;
+	private readonly IStateRepository _stateRepository;
+	private readonly ICityRepository _cityRepository;
 
 	public CountriesController(
 		ConnectionString connectionString,
 		GamaEdtechDbContext dbCotext, 
-		ICountryRepository countryRepository)
+		ICountryRepository countryRepository,
+		IStateRepository stateRepository,
+		ICityRepository cityRepository)
 	{
 		_connectionString = connectionString;
 		_dbCotext = dbCotext;
 		_countryRepository = countryRepository;
+		_stateRepository = stateRepository;
+		_cityRepository = cityRepository;
 	}
 
 	///<summary>
-	/// Find Countries
+	/// List Countries (sort and paginate them)
 	///</summary>
 	/// 
 	///<remarks>
@@ -37,38 +46,41 @@ public class CountriesController : ControllerBase
 	///     
 	///		Query params:
 	///		{
-	///			"page": int - Positive - Default(1),
-	///			"pageSize": int - Range Between [1, 50], Default(10), 
+	///			"page": int - nullable,
+	///			"pageSize": int - nullable, 
 	///			"sortBy": "Name" or "Code" - Default("Name"),
 	///			"order": "ASC" or "DESC" - Default("ASC"),
 	///		}
 	///</remarks>
 	///
-	///<response code="200">Returns list of contries 
+	///<response code="200">Returns list of countries 
 	///						(returns empty list if no country is found based on search queries)
 	///</response>
-	///<response code="400"></response>
 	///<response code="500">Server error</response>
 	[HttpGet]
-	public async Task<IActionResult> FindContries([FromQuery] FindCountriesDto dto)
+	[PaginationTransformer]
+	[SortingTransformer(DefaultSortKey = "Name", ValidSortKeys = "Name,Code")]
+	public async Task<IActionResult> List(
+		[FromQuery] PaginationDto pagination,
+		[FromQuery] SortingDto sorting)
 	{
 		var query = @"
             SELECT [Id], [Name], [Code]
-            FROM [GamaEdtech].[dbo].[Country]
-            ORDER BY [" + dto.SortBy + "] " + dto.Order + @"
+            FROM [GamaEdtech].[dbo].[Country]" +
+            "ORDER BY [" + sorting.SortBy + "] " + sorting.Order + @"
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
 		using (var connection = new SqlConnection(_connectionString.Value))
 		{
-			var contries = await connection.QueryAsync<ContryInListDto>(
+			var countries = await connection.QueryAsync<ContryInListDto>(
 				query,
 				new 
 				{
-					Offset = (dto.Page - 1) * dto.PageSize, 
-					PageSize = dto.PageSize,
+					Offset = (pagination.Page - 1) * pagination.PageSize, 
+					PageSize = pagination.PageSize,
 				});
 
-			return Ok(Envelope.Ok(contries));
+			return Ok(Envelope.Ok(countries));
 		}
 	}
 
@@ -92,7 +104,7 @@ public class CountriesController : ControllerBase
 	///<response code="400"></response>
 	///<response code="500">Server error</response>
 	[HttpPost]
-	public async Task<IActionResult> AddCountry([FromBody] AddCountryDto dto)
+	public async Task<IActionResult> Add([FromBody] AddCountryDto dto)
 	{ 
 		if (await _countryRepository.ContainsCountrywithName(dto.Name))
 			return BadRequest(Envelope.Error("name is duplicate"));
@@ -128,8 +140,8 @@ public class CountriesController : ControllerBase
 	///<response code="400"></response>
 	///<response code="404"></response>
 	///<response code="500">Server error</response>
-	[HttpPatch("{id:guid}")]
-	public async Task<IActionResult> EditCountryInfo(
+	[HttpPut("{id:guid}")]
+	public async Task<IActionResult> EditInfo(
 		[FromRoute] int id, [FromBody] EditCountryInfoDto dto)
 	{
 		var country = await _countryRepository.GetBy(new Id(id));
@@ -161,15 +173,22 @@ public class CountriesController : ControllerBase
 	///</remarks>
 	///
 	///<response code="204"></response>
+	///<response code="400"></response>
 	///<response code="404"></response>
 	///<response code="500">Server error</response>
 	[HttpDelete("{id:int}")]
-	public async Task<IActionResult> RemoveCountry([FromRoute] int id)
+	public async Task<IActionResult> Remove([FromRoute] int id)
 	{
 		var country = await _countryRepository.GetBy(new Id(id));
 
 		if (country is null)
 			return NotFound();
+
+		if (await _stateRepository.ContainsStateInCountryWith(country.Id))
+			return BadRequest(Envelope.Error("Country has related states"));
+
+		if (await _cityRepository.ContainsCityInCountryWith(country.Id))
+			return BadRequest(Envelope.Error("Country has related cities"));
 
 		await _countryRepository.Remove(country);
 		await _dbCotext.SaveChangesAsync();
@@ -177,3 +196,5 @@ public class CountriesController : ControllerBase
 		return NoContent();
 	}
 }
+
+

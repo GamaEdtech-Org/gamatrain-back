@@ -1,12 +1,8 @@
 ﻿namespace GamaEdtech.Back.Gateway.Rest.States;
 
-public class FindStatesDto
+public class FilterStatesDto
 {
-	public int Page { get; set; } = 1;
-	public int PageSize { get; set; } = 10;
 	public int? CountryId { get; set; }
-	public string SortBy { get; set; } = "Name";
-	public string Order { get; set; } = "asc";
 }
 
 public class StateInListDto

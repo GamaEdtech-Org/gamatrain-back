@@ -24,16 +24,6 @@ public class RegisterSchoolDtoValidator : AbstractValidator<RegisterSchoolDto>
 			.NotEmpty().WithMessage("address.description is required")
 			.MaximumLength(500).WithMessage("address.description is too long");
 
-		RuleFor(x => x.Address.State)
-			.Cascade(CascadeMode.Stop).NotNull().WithMessage("address.State is required")
-			.NotEmpty().WithMessage("address.state is required")
-			.MaximumLength(50).WithMessage("address.state is too long");
-
-		RuleFor(x => x.Address.City)
-			.Cascade(CascadeMode.Stop).NotNull().WithMessage("address.city is required")
-			.NotEmpty().WithMessage("address.city is required")
-			.MaximumLength(50).WithMessage("address.city is too long");
-
 		RuleFor(x => x.Address.ZipCode)
 			.Cascade(CascadeMode.Stop).NotNull().WithMessage("address.zipCode is required")
 			.NotEmpty().WithMessage("address.zipCode is required")

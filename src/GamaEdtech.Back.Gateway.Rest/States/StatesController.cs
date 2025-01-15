@@ -1,8 +1,10 @@
 ﻿using Dapper;
 using GamaEdtech.Back.DataSource.Utils;
 using GamaEdtech.Back.Domain.Base;
+using GamaEdtech.Back.Domain.Cities;
 using GamaEdtech.Back.Domain.Countries;
 using GamaEdtech.Back.Domain.States;
+using GamaEdtech.Back.Gateway.Rest.Common;
 using GamaEdtech.Back.Gateway.Rest.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -17,17 +19,20 @@ public class StatesController : ControllerBase
 	private readonly GamaEdtechDbContext _dbContext;
 	private readonly ICountryRepository _countryRepository;
 	private readonly IStateRepository _stateRepository;
+	private readonly ICityRepository _cityRepository;
 
 	public StatesController(
 		ConnectionString connectionString,
 		GamaEdtechDbContext dbContext,
 		ICountryRepository countryRepository,
-		IStateRepository stateRepository)
+		IStateRepository stateRepository,
+		ICityRepository cityRepository)
 	{
 		_connectionString = connectionString;
 		_dbContext = dbContext;
 		_countryRepository = countryRepository;
 		_stateRepository = stateRepository;
+		_cityRepository = cityRepository;
 	}
 
 	///<summary>
@@ -41,8 +46,8 @@ public class StatesController : ControllerBase
 	///     
 	///		Query params:
 	///		{
-	///			"page": int - Positive - Default(1),
-	///			"pageSize": int - Range Between [1, 50], Default(10), 
+	///			"page": int - nullablr,
+	///			"pageSize": int - nullablr, 
 	///			"countryId": int - nullable
 	///			"sortBy": "Name" or "Code" - Default("Name"),
 	///			"order": "ASC" or "DESC" - Default("ASC"),
@@ -52,16 +57,20 @@ public class StatesController : ControllerBase
 	///<response code="200">Returns list of states 
 	///						(returns empty list if no state is found based on search queries)
 	///</response>
-	///<response code="400"></response>
 	///<response code="500">Server error</response>
 	[HttpGet]
-	public async Task<IActionResult> FindStates([FromQuery] FindStatesDto dto)
+	[PaginationTransformer]
+	[SortingTransformer(DefaultSortKey = "Name", ValidSortKeys = "Name,Code")]
+	public async Task<IActionResult> List(
+		[FromQuery] FilterStatesDto filtering,
+		[FromQuery] SortingDto sorting,
+		[FromQuery] PaginationDto pagination)
 	{
 		var query = @"
             SELECT [Id], [Name], [Code], [CountryId]
             FROM [GamaEdtech].[dbo].[State] "
-			+ (dto.CountryId.HasValue ?  @"WHERE [CountryId] = @CountryId " : " ") +
-            "ORDER BY [" + dto.SortBy + "] " + dto.Order + @"
+			+ (filtering.CountryId.HasValue ?  @"WHERE [CountryId] = @CountryId " : " ") +
+            "ORDER BY [" + sorting.SortBy + "] " + sorting.Order + @"
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
 		using (var connection = new SqlConnection(_connectionString.Value))
@@ -70,9 +79,9 @@ public class StatesController : ControllerBase
 				query,
 				new
 				{
-					CountryId = dto.CountryId,
-					Offset = (dto.Page - 1) * dto.PageSize,
-					PageSize = dto.PageSize,
+					CountryId = filtering.CountryId,
+					Offset = (pagination.Page - 1) * pagination.PageSize,
+					PageSize = pagination.PageSize,
 				});
 
 			return Ok(Envelope.Ok(contries));
@@ -142,8 +151,8 @@ public class StatesController : ControllerBase
 	///<response code="400"></response>
 	///<response code="404"></response>
 	///<response code="500">Server error</response>
-	[HttpPut("{id:int}/EditInfo")]
-	public async Task<IActionResult> EditStateInfo(
+	[HttpPut("{id:int}")]
+	public async Task<IActionResult> EditInfo(
 		[FromRoute] int id, [FromBody] EditStateInfoDto dto)
 	{
 		var state = await _stateRepository.GetBy(new Id(id));
@@ -221,15 +230,19 @@ public class StatesController : ControllerBase
 	///</remarks>
 	///
 	///<response code="204"></response>
+	///<response code="400"></response>
 	///<response code="404"></response>
 	///<response code="500">Server error</response>
 	[HttpDelete("{id:int}")]
-	public async Task<IActionResult> RemoveState([FromRoute] int id)
+	public async Task<IActionResult> Remove([FromRoute] int id)
 	{
 		var state = await _stateRepository.GetBy(new Id(id));
 
 		if (state is null)
 			return NotFound();
+
+		if (await _cityRepository.ContainsCityInStateWith(state.Id))
+			return BadRequest(Envelope.Error("State has related cities"));
 
 		await _stateRepository.Remove(state);
 		await _dbContext.SaveChangesAsync();

@@ -3,6 +3,7 @@ using GamaEdtech.Back.DataSource.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -11,9 +12,11 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Back.DataSource.Migrations
 {
     [DbContext(typeof(GamaEdtechDbContext))]
-    partial class GamaEdtechDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114142754_RenameAddress_StateIdColumnToAddressStateId")]
+    partial class RenameAddress_StateIdColumnToAddressStateId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,8 +150,7 @@ namespace GamaEdtech.Back.DataSource.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<int>("CityId")
-                                .HasColumnType("int")
-                                .HasColumnName("AddressCityId");
+                                .HasColumnType("int");
 
                             b1.Property<string>("Description")
                                 .IsRequired()

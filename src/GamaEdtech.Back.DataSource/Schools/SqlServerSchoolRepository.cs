@@ -1,4 +1,5 @@
 ﻿using GamaEdtech.Back.DataSource.Utils;
+using GamaEdtech.Back.Domain.Base;
 using GamaEdtech.Back.Domain.Schools;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,18 @@ public class SqlServerSchoolRepository : ISchoolRepository
 	public SqlServerSchoolRepository(GamaEdtechDbContext dbContext)
 	{
 		_dbContext = dbContext;
+	}
+
+	public async Task<School?> GetBy(Id id)
+	{
+		return await _dbContext.Schools.FindAsync(id);
+	}
+
+	public async Task<bool> ContainsSchoolInCityWith(Id id)
+	{
+		return await _dbContext.Schools
+			.Where(x => x.Address.CityId == id)
+			.AnyAsync();
 	}
 
 	public async Task<IReadOnlyList<School>> Find(string? namePattern = null)
@@ -41,5 +54,10 @@ public class SqlServerSchoolRepository : ISchoolRepository
 	public async Task Add(School school)
 	{
 		await _dbContext.Schools.AddAsync(school);
+	}
+
+	public async Task Remove(School school)
+	{
+		_dbContext.Schools.Remove(school);
 	}
 }

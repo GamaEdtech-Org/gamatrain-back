@@ -32,8 +32,8 @@ public class AddressDto
 {
 	public string Description { get; set; }
 	public LocationDto Location { get; set; }
-	public string State { get; set; }
-	public string City { get; set; }
+	public int? StateId { get; set; }
+	public int CityId { get; set; }
 	public string ZipCode { get; set; }
 
 }
