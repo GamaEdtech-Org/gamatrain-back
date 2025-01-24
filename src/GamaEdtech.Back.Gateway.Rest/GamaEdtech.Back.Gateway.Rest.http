@@ -1,6 +1,0 @@
-@GamaEdtech.Back.Gateway.Rest_HostAddress = http://localhost:5285
-
-GET {{GamaEdtech.Back.Gateway.Rest_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

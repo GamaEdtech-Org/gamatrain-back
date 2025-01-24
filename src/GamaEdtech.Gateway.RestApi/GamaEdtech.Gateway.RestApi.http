@@ -1,0 +1,6 @@
+@GamaEdtech.Gateway.RestApi_HostAddress = http://localhost:5285
+
+GET {{GamaEdtech.Gateway.RestApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - GamaEdtechV2
+name: Build and deploy ASP.Net Core app to Azure Web App - GamaEdtech
 
 on:
   push:
@@ -20,6 +20,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
+      
+     
+      
 
       # Install EF Core tools
       - name: Install dotnet ef
@@ -27,22 +30,28 @@ jobs:
             dotnet tool install --global dotnet-ef --version 9.*
             dotnet tool restore
 
+      
+
+
       # Run migrations for the DataSource project
       - name: Run EF Core Migrations
         run: |
-          cd src/GamaEdtech.Back.DataSource
-          dotnet ef database update -c GamaEdtechDbContext -p GamaEdtech.Back.DataSource.csproj
+          cd src/GamaEdtech.DataSource
+          dotnet ef database update   
+        env:
+          AZURE_SQL_CONNECTIONSTRING: ${{ secrets.AZURE_SQL_CONNECTIONSTRING }}
+        # dotnet ef migrations bundle-o ${{env.DOTNET_ROOT}}/myapp/migrationsbundle
 
       # Build the main project
-      - name: Build Gateway Project
+      - name: Build Rest API Project
         run: |
-          cd src/GamaEdtech.Back.Gateway.Rest
+          cd src/GamaEdtech.Gateway.RestApi
           dotnet build --configuration Release
 
       # Publish the main project
-      - name: Publish Gateway Project
+      - name: Publish Rest API Project
         run: |
-          cd src/GamaEdtech.Back.Gateway.Rest
+          cd src/GamaEdtech.Gateway.RestApi
           dotnet publish --configuration Release -o ${{env.DOTNET_ROOT}}/myapp
 
 
@@ -70,15 +79,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E7AD42DCE0E3458688EEC58144A99363 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4FAD1FFCF5D846C0B2F9EC41A93BEB1B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_70A0E0AF59F74CDB872D720B1C186289 }}
+           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1D2B4F7539B241EEAB52EAC74756448D }}
+           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8C2F716EDBCB46FA880B6A740BAE8C99 }}
+           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08A3858AB7CF495E99ECE16B280DD995 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'GamaEdtechV2'
+          app-name: 'gamaapi'
           slot-name: 'Production'
           package: .
           
