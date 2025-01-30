@@ -69,6 +69,7 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
       id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -79,15 +80,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1D2B4F7539B241EEAB52EAC74756448D }}
-           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8C2F716EDBCB46FA880B6A740BAE8C99 }}
-           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08A3858AB7CF495E99ECE16B280DD995 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F0426DD3627F4E16A744183F6707BD10 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E585A7FBF15B4C6FB17A62F70D23B4DA }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3F067EE4F6174E3988EA5DB3F14818F9 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'gamaapi'
+          app-name: 'gamacoreapp'
           slot-name: 'Production'
           package: .
           
