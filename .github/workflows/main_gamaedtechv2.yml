@@ -25,33 +25,33 @@ jobs:
       
 
       # Install EF Core tools
-      - name: Install dotnet ef
-        run: |
-            dotnet tool install --global dotnet-ef --version 9.*
-            dotnet tool restore
+      #- name: Install dotnet ef
+       # run: |
+        #    dotnet tool install --global dotnet-ef --version 9.*
+         #   dotnet tool restore
 
       
 
 
       # Run migrations for the DataSource project
-      - name: Run EF Core Migrations
-        run: |
-          cd src/GamaEdtech.DataSource
-          dotnet ef database update   
-        env:
-          AZURE_SQL_CONNECTIONSTRING: ${{ secrets.AZURE_SQL_CONNECTIONSTRING }}
+      #- name: Run EF Core Migrations
+       # run: |
+        #  cd src/GamaEdtech.DataSource
+         # dotnet ef database update   
+        #env:
+         # AZURE_SQL_CONNECTIONSTRING: ${{ secrets.AZURE_SQL_CONNECTIONSTRING }}
         # dotnet ef migrations bundle-o ${{env.DOTNET_ROOT}}/myapp/migrationsbundle
 
       # Build the main project
       - name: Build Rest API Project
         run: |
-          cd src/GamaEdtech.Gateway.RestApi
+          cd src
           dotnet build --configuration Release
 
       # Publish the main project
       - name: Publish Rest API Project
         run: |
-          cd src/GamaEdtech.Gateway.RestApi
+          cd src
           dotnet publish --configuration Release -o ${{env.DOTNET_ROOT}}/myapp
 
 

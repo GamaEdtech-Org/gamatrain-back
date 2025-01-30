@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationCore\Common\GamaEdtech.Backend.Common.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ApplicationCore\Data\GamaEdtech.Backend.Data.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ApplicationCore\Resource\GamaEdtech.Backend.Resource.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ApplicationCore\Shared\GamaEdtech.Backend.Shared.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DomainService\GamaEdtech.Backend.DomainService.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Infrastructure\GamaEdtech.Backend.Infrastructure.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

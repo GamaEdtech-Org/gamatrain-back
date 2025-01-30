@@ -1,0 +1,382 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+      <Compile Update="Data\Enumeration\LimitGroup.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LimitGroup.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\Enumeration\LimitType.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LimitType.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\Enumeration\Role.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Role.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\Enumeration\ServiceType.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ServiceType.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\ApplicationSettings\ApplicationSettingsViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ApplicationSettingsViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Audit\AuditsRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>AuditsRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Business\BusinessesRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>BusinessesRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Business\ManageBusinessesRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ManageBusinessesRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Consumer\ConsumersRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ConsumersRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Consumer\ManageConsumerRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ManageConsumerRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Facility\AddFacilityRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>AddFacilityRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Facility\FacilitiesOperationRequestViewModel.Designer.cs">
+        <DependentUpon>FacilitiesOperationRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Facility\FacilityAuditsRequestViewModel.Designer.cs">
+        <DependentUpon>FacilityAuditsRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Facility\FacilitiesRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>FacilitiesRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Facility\RemoveFacilitiesRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>RemoveFacilitiesRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\GroupService\GroupServicesRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>GroupServicesRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\GroupService\ManageGroupServiceRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ManageGroupServiceRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\AuthenticationRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>AuthenticationRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\ChangePasswordRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ChangePasswordRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\GenerateTokenRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>GenerateTokenRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\ManageUserPermissionsRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ManageUserPermissionsRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\ManageUserRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ManageUserRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\ProfileSettingsRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ProfileSettingsRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\ResetPasswordRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ResetPasswordRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Identity\UsersRequestViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>UsersRequestViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\UpdateBusinessLimitRequestViewModel.Designer.cs">
+        <DependentUpon>UpdateBusinessLimitRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\LimitPerAmountViewModel.Designer.cs">
+        <DependentUpon>LimitPerAmountViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\AddBusinessLimitRequestViewModel.Designer.cs">
+        <DependentUpon>AddBusinessLimitRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\AddOperationLimitRequestViewModel.Designer.cs">
+        <DependentUpon>AddOperationLimitRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\BusinessLimitsRequestViewModel.Designer.cs">
+        <DependentUpon>BusinessLimitsRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\LimitPerCountViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LimitPerCountViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\LimitPerTimeViewModel.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LimitPerTimeViewModel.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\RemoveLimitsRequestViewModel.Designer.cs">
+        <DependentUpon>RemoveLimitsRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="Data\ViewModel\Limit\LimitsRequestViewModel.Designer.cs">
+        <DependentUpon>LimitsRequestViewModel.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="DomainService\LimitService.Designer.cs">
+        <DependentUpon>LimitService.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="DomainService\BusinessService.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>BusinessService.resx</DependentUpon>
+      </Compile>
+      <Compile Update="DomainService\ConsumerService.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ConsumerService.resx</DependentUpon>
+      </Compile>
+      <Compile Update="DomainService\FacilityService.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>FacilityService.resx</DependentUpon>
+      </Compile>
+      <Compile Update="DomainService\GroupServiceService.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>GroupServiceService.resx</DependentUpon>
+      </Compile>
+      <Compile Update="DomainService\SchoolService.Designer.cs">
+        <DependentUpon>SchoolService.resx</DependentUpon>
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+      </Compile>
+      <Compile Update="DomainService\LocationService.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LocationService.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Data\Enumeration\LimitGroup.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LimitGroup.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\Enumeration\LimitType.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LimitType.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\Enumeration\Role.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>Role.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\Enumeration\ServiceType.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ServiceType.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\ApplicationSettings\ApplicationSettingsViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ApplicationSettingsViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Audit\AuditsRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>AuditsRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Business\BusinessesRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>BusinessesRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Business\ManageBusinessesRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ManageBusinessesRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Consumer\ConsumersRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ConsumersRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Consumer\ManageConsumerRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ManageConsumerRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Facility\AddFacilityRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>AddFacilityRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Facility\FacilitiesOperationRequestViewModel.resx">
+        <LastGenOutput>FacilitiesOperationRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Facility\FacilityAuditsRequestViewModel.resx">
+        <LastGenOutput>FacilityAuditsRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Facility\FacilitiesRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>FacilitiesRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Facility\RemoveFacilitiesRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>RemoveFacilitiesRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\GroupService\GroupServicesRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>GroupServicesRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\GroupService\ManageGroupServiceRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ManageGroupServiceRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\AuthenticationRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>AuthenticationRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\ChangePasswordRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ChangePasswordRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\GenerateTokenRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>GenerateTokenRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\ManageUserPermissionsRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ManageUserPermissionsRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\ManageUserRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ManageUserRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\ProfileSettingsRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ProfileSettingsRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\ResetPasswordRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ResetPasswordRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Identity\UsersRequestViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>UsersRequestViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\UpdateBusinessLimitRequestViewModel.fa.resx">
+        <SubType>Designer</SubType>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\UpdateBusinessLimitRequestViewModel.resx">
+        <SubType>Designer</SubType>
+        <LastGenOutput>UpdateBusinessLimitRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\LimitPerAmountViewModel.resx">
+        <LastGenOutput>LimitPerAmountViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\AddBusinessLimitRequestViewModel.resx">
+        <LastGenOutput>AddBusinessLimitRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\AddOperationLimitRequestViewModel.resx">
+        <LastGenOutput>AddOperationLimitRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\BusinessLimitsRequestViewModel.resx">
+        <LastGenOutput>BusinessLimitsRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\LimitPerCountViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LimitPerCountViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\LimitPerTimeViewModel.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LimitPerTimeViewModel.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\RemoveLimitsRequestViewModel.resx">
+        <LastGenOutput>RemoveLimitsRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Data\ViewModel\Limit\LimitsRequestViewModel.resx">
+        <LastGenOutput>LimitsRequestViewModel.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\LimitService.resx">
+        <LastGenOutput>LimitService.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\BusinessService.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>BusinessService.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\ConsumerService.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>ConsumerService.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\FacilityService.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>FacilityService.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\GroupServiceService.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>GroupServiceService.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\SchoolService.resx">
+        <LastGenOutput>SchoolService.Designer.cs</LastGenOutput>
+        <Generator>PublicResXFileCodeGenerator</Generator>
+      </EmbeddedResource>
+      <EmbeddedResource Update="DomainService\LocationService.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LocationService.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+</Project>

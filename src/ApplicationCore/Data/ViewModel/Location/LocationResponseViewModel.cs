@@ -1,0 +1,11 @@
+namespace GamaEdtech.Backend.Data.ViewModel.Location
+{
+    public sealed class LocationResponseViewModel
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string? Code { get; set; }
+        public int? ParentId { get; set; }
+        public string? ParentTitle { get; set; }
+    }
+}
