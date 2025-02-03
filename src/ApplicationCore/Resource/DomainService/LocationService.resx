@@ -121,7 +121,7 @@
     <value>Location was not found.</value>
   </data>
   <data name="LocationCantBeRemoved" xml:space="preserve">
-    <value>Location Cant be removed.</value>
+    <value>Location can't be removed.</value>
   </data>
   <data name="InvalidParentId" xml:space="preserve">
     <value>Parent Location was not found.</value>

@@ -6,6 +6,7 @@ namespace GamaEdtech.Backend.Data.Dto.School
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+        public string? LocalName { get; set; }
         public required SchoolType SchoolType { get; set; }
         public int StateId { get; set; }
         public string? StateTitle { get; set; }

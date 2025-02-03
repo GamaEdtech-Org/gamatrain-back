@@ -22,7 +22,11 @@ namespace GamaEdtech.Backend.Infrastructure.EntityFramework.Context
         protected override void OnConfiguring([NotNull] DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            _ = optionsBuilder.UseSqlServer(ConnectionName, t => t.UseNetTopologySuite());
+            _ = optionsBuilder.UseSqlServer(ConnectionName, t =>
+            {
+                _ = t.CommandTimeout(60 * 5);
+                _ = t.UseNetTopologySuite();
+            });
             _ = optionsBuilder.UseExceptionProcessor();
         }
     }

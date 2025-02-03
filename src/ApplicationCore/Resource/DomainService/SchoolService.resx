@@ -121,7 +121,7 @@
     <value>School was not found.</value>
   </data>
   <data name="SchoolCantBeRemoved" xml:space="preserve">
-    <value>School Cant be removed.</value>
+    <value>School can't be removed.</value>
   </data>
   <data name="InvalidStateId" xml:space="preserve">
     <value>State was not found.</value>

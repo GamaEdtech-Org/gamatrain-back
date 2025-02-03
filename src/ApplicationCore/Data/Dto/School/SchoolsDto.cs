@@ -4,5 +4,6 @@ namespace GamaEdtech.Backend.Data.Dto.School
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+        public string? LocalName { get; set; }
     }
 }

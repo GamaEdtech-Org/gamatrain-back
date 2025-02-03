@@ -75,6 +75,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
+                        Latitude = result.Data.Latitude,
+                        LocalTitle = result.Data.LocalTitle,
+                        Longitude = result.Data.Longitude,
                     }
                 });
             }
@@ -97,6 +100,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Code = request.Code,
                     ParentId = request.ParentId,
                     LocationType = LocationType.Country,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -123,6 +129,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -211,6 +220,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
+                        Latitude = result.Data.Latitude,
+                        LocalTitle = result.Data.LocalTitle,
+                        Longitude = result.Data.Longitude,
                     }
                 });
             }
@@ -232,7 +244,10 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Title = request.Title,
                     Code = request.Code,
                     ParentId = request.ParentId,
-                    LocationType = LocationType.Country,
+                    LocationType = LocationType.State,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -259,6 +274,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -347,6 +365,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
+                        Latitude = result.Data.Latitude,
+                        LocalTitle = result.Data.LocalTitle,
+                        Longitude = result.Data.Longitude,
                     }
                 });
             }
@@ -368,7 +389,10 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Title = request.Title,
                     Code = request.Code,
                     ParentId = request.ParentId,
-                    LocationType = LocationType.Country,
+                    LocationType = LocationType.City,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -395,6 +419,9 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
+                    Latitude = request.Latitude,
+                    LocalTitle = request.LocalTitle,
+                    Longitude = request.Longitude,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {

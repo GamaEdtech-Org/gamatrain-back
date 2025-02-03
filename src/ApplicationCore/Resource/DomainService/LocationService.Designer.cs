@@ -79,7 +79,7 @@ namespace GamaEdtech.Backend.Resource.DomainService {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Location Cant be removed..
+        ///   Looks up a localized string similar to Location can&apos;t be removed..
         /// </summary>
         public static string LocationCantBeRemoved {
             get {

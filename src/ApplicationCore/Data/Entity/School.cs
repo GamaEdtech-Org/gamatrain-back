@@ -29,6 +29,11 @@ namespace GamaEdtech.Backend.Data.Entity
         [Required]
         public string? Name { get; set; }
 
+        [Column(nameof(LocalName), DataType.UnicodeString)]
+        [StringLength(100)]
+        [Required]
+        public string? LocalName { get; set; }
+
         [Column(nameof(Type), DataType.Byte)]
         [Required]
         public SchoolType? SchoolType { get; set; }

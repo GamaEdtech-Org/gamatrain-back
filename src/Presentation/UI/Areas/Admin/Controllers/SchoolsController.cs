@@ -40,6 +40,7 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                         {
                             Id = t.Id,
                             Name = t.Name,
+                            LocalName = t.LocalName,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -67,6 +68,7 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                         Id = result.Data.Id,
                         Address = result.Data.Address,
                         Name = result.Data.Name,
+                        LocalName = result.Data.LocalName,
                         SchoolType = result.Data.SchoolType,
                         StateId = result.Data.StateId,
                         StateTitle = result.Data.StateTitle,
@@ -93,11 +95,12 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                 {
                     Address = request.Address!,
                     Name = request.Name!,
+                    LocalName = request.LocalName!,
                     SchoolType = request.SchoolType!,
                     StateId = request.StateId!.Value,
                     ZipCode = request.ZipCode!,
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude,
+                    Latitude = request.Latitude!.Value,
+                    Longitude = request.Longitude!.Value,
                 });
                 return Ok(new ApiResponse<ManageSchoolResponseViewModel>
                 {
@@ -123,11 +126,12 @@ namespace GamaEdtech.Backend.UI.Web.Areas.Admin.Controllers
                     Id = id,
                     Address = request.Address!,
                     Name = request.Name!,
+                    LocalName = request.LocalName!,
                     SchoolType = request.SchoolType!,
                     StateId = request.StateId!.Value,
                     ZipCode = request.ZipCode!,
-                    Latitude = request.Latitude,
-                    Longitude = request.Longitude,
+                    Latitude = request.Latitude!.Value,
+                    Longitude = request.Longitude!.Value,
                 });
                 return Ok(new ApiResponse<ManageSchoolResponseViewModel>
                 {

@@ -60,6 +60,9 @@ namespace GamaEdtech.Backend.DomainService
                     Code = t.Code,
                     ParentId = t.ParentId,
                     ParentTitle = t.Parent != null ? t.Parent.Title : null,
+                    Latitude = t.Latitude,
+                    LocalTitle = t.LocalTitle,
+                    Longitude = t.Longitude,
                 }).FirstOrDefaultAsync();
 
                 return location is null
@@ -99,6 +102,9 @@ namespace GamaEdtech.Backend.DomainService
                     location.Title = requestDto.Title;
                     location.Code = requestDto.Code;
                     location.LocationType = requestDto.LocationType;
+                    location.Latitude = requestDto.Latitude;
+                    location.LocalTitle = requestDto.LocalTitle;
+                    location.Longitude = requestDto.Longitude;
 
                     _ = repository.Update(location);
                 }
@@ -110,6 +116,9 @@ namespace GamaEdtech.Backend.DomainService
                         Code = requestDto.Code,
                         LocationType = requestDto.LocationType,
                         ParentId = requestDto.ParentId,
+                        Longitude = requestDto.Longitude,
+                        LocalTitle = requestDto.LocalTitle,
+                        Latitude = requestDto.Latitude,
                     };
                     repository.Add(location);
                 }

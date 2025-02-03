@@ -37,6 +37,7 @@ namespace GamaEdtech.Backend.DomainService
                 {
                     Id = t.Id,
                     Name = t.Name,
+                    LocalName = t.LocalName,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -56,6 +57,7 @@ namespace GamaEdtech.Backend.DomainService
                 {
                     Id = t.Id,
                     Name = t.Name,
+                    LocalName = t.LocalName,
                     Address = t.Address,
                     Latitude = t.Location!.X,
                     Longitude = t.Location!.Y,
@@ -99,6 +101,7 @@ namespace GamaEdtech.Backend.DomainService
                     }
 
                     school.Name = requestDto.Name;
+                    school.LocalName = requestDto.LocalName;
                     school.Address = requestDto.Address;
                     school.Location = new NetTopologySuite.Geometries.Point(requestDto.Latitude, requestDto.Longitude);
                     school.SchoolType = requestDto.SchoolType;
@@ -112,6 +115,7 @@ namespace GamaEdtech.Backend.DomainService
                     school = new School
                     {
                         Name = requestDto.Name,
+                        LocalName = requestDto.LocalName,
                         Address = requestDto.Address,
                         Location = new NetTopologySuite.Geometries.Point(requestDto.Latitude, requestDto.Longitude),
                         SchoolType = requestDto.SchoolType,
