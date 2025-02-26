@@ -24,15 +24,13 @@
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'!='Debug|Any CPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Any CPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all"/>
-    <!--<PackageReference Include="StyleCop.Analyzers" PrivateAssets="all"/>-->
-    <PackageReference Include="Farsica.Framework" />
     <PackageReference Include="SonarAnalyzer.CSharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

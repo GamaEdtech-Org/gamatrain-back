@@ -6,34 +6,60 @@
     </PackageReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.12.19" />
+  <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
     <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
+    <PackageVersion Include="Slugify.Core" Version="4.0.1" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
-    <PackageVersion Include="Farsica.Framework" Version="4.0.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="9.0.1" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="9.0.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageVersion Include="EntityFrameworkCore.Exceptions.SqlServer" Version="8.1.3" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="FreeSpire.Office" Version="8.2.0" />
     <PackageVersion Include="Freeware.Pdf2Png" Version="1.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.1">
+    <PackageVersion Include="Destructurama.Attributed" Version="5.1.0" />
+    <PackageVersion Include="DynamicExpresso.Core" Version="2.17.2" />
+    <PackageVersion Include="Mapster" Version="7.4.0" />
+    <PackageVersion Include="Mapster.Async" Version="2.0.1" />
+    <PackageVersion Include="Mapster.DependencyInjection" Version="1.0.1" />
+    <PackageVersion Include="Mapster.EFCore" Version="5.1.1" />
+    <PackageVersion Include="Mime-Detective.Definitions.Exhaustive" Version="24.12.2" />
+    <PackageVersion Include="NUlid" Version="1.7.2" />
+    <PackageVersion Include="PluralizeService.Core" Version="2.1.1" />
+    <PackageVersion Include="Serilog" Version="4.2.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.ClientInfo" Version="2.1.2" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
+    <PackageVersion Include="Serilog.Expressions" Version="5.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+    <PackageVersion Include="Serilog.Settings.AppSettings" Version="3.0.0" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Http" Version="9.1.0" />
+    <PackageVersion Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.2.0" />
+    <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>

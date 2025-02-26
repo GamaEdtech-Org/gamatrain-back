@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace GamaEdtech.Backend.Infrastructure.Migrations
+namespace GamaEdtech.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class ImportLocations : Migration

@@ -1,22 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationCore\Common\GamaEdtech.Backend.Common.csproj">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Resource\GamaEdtech.Resource.csproj">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ApplicationCore\Data\GamaEdtech.Backend.Data.csproj">
+    <ProjectReference Include="..\Application\Service\GamaEdtech.Application.Service.csproj">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ApplicationCore\Resource\GamaEdtech.Backend.Resource.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ApplicationCore\Shared\GamaEdtech.Backend.Shared.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\DomainService\GamaEdtech.Backend.DomainService.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Infrastructure\GamaEdtech.Backend.Infrastructure.csproj">
+    <ProjectReference Include="..\Infrastructure\GamaEdtech.Infrastructure.csproj">
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

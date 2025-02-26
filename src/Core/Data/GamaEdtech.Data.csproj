@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Mapster" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
+    <PackageReference Include="NUlid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Domain\GamaEdtech.Domain.csproj" />
+    <ProjectReference Include="..\Common\GamaEdtech.Common.csproj" />
+  </ItemGroup>
+
+</Project>

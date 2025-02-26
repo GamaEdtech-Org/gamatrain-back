@@ -89,7 +89,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:error
 dotnet_style_predefined_type_for_member_access = true:error
 
 # Modifier preferences
-dotnet_style_require_accessibility_modifiers = always:error
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:error
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:error
 dotnet_style_readonly_field = true:error
@@ -1248,6 +1248,13 @@ csharp_style_var_elsewhere = true:error
 dotnet_diagnostic.IDE0301.severity = error
 csharp_prefer_system_threading_lock = true:suggestion
 dotnet_diagnostic.CA1515.severity = suggestion
+dotnet_diagnostic.S3011.severity = suggestion
+dotnet_diagnostic.S1121.severity = suggestion
+dotnet_diagnostic.S3875.severity = suggestion
+dotnet_diagnostic.S2094.severity = suggestion
+dotnet_diagnostic.S2326.severity = suggestion
+dotnet_diagnostic.S3416.severity = suggestion
+dotnet_diagnostic.S6672.severity = suggestion
 
 [*.{cs,vb}]
 dotnet_diagnostic.CA1308.severity = none
@@ -1402,6 +1409,7 @@ dotnet_diagnostic.RS1032.severity = error
 dotnet_diagnostic.RS1033.severity = error
 dotnet_diagnostic.CA2019.severity = error
 dotnet_style_prefer_collection_expression = true:error
+dotnet_diagnostic.CA1815.severity = suggestion
 
 [*Controller.cs]
 dotnet_diagnostic.VSTHRD200.severity = suggestion

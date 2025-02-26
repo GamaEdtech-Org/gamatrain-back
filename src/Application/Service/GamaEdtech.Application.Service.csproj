@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <AssemblyAttribute Include="GamaEdtech.Common.DataAnnotation.InjectableAttribute">
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EntityFrameworkCore.Exceptions.SqlServer" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="FreeSpire.Office" />
+    <PackageReference Include="Freeware.Pdf2Png" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
+    <PackageReference Include="NUlid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Data\GamaEdtech.Data.csproj" />
+    <ProjectReference Include="..\Interface\GamaEdtech.Application.Interface.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <Compile Remove="logs\**" />
+    <Content Remove="logs\**" />
+    <EmbeddedResource Remove="logs\**" />
+    <None Remove="logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+    <PackageReference Include="NetTopologySuite" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="NUlid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\Interface\GamaEdtech.Application.Interface.csproj" />
+    <ProjectReference Include="..\..\Build\Build.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ViewModel\GamaEdtech.Presentation.ViewModel.csproj" />
+  </ItemGroup>
+
+</Project>
