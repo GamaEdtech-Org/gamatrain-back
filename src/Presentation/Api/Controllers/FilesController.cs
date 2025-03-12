@@ -5,6 +5,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = fileService.Value.GetFileUri(id);
+                var result = fileService.Value.GetFileUri(id, ContainerType.Default);
                 return result.OperationResult is Constants.OperationResult.Succeeded
                     ? Redirect(result.Data!.ToString())
                     : Ok(new ApiResponse<string?>(result.Errors));

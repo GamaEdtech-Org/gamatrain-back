@@ -25,9 +25,9 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                var result = await fileService.Value.CreateFileAsync(new CreateFileRequestDto
+                var result = await fileService.Value.CreateFileWithPreviewAsync(new CreateFileRequestDto
                 {
-                    File = request.File,
+                    File = request.File!,
                 });
                 return Ok(new ApiResponse<CreateFileResponseViewModel>
                 {

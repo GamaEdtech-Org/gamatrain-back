@@ -28,11 +28,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Resource", "Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Application.Service", "Application\Service\GamaEdtech.Application.Service.csproj", "{62644EE9-16B0-4888-BCC8-C28466B18D2E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Infrastructure", "Infrastructure\GamaEdtech.Infrastructure.csproj", "{B7F8EEAC-3869-415A-A10E-1977FA5D1C4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Infrastructure", "Infrastructure\Infrastructure\GamaEdtech.Infrastructure.csproj", "{B7F8EEAC-3869-415A-A10E-1977FA5D1C4D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build", "Build\Build.csproj", "{4F8AE24C-B061-406A-A6E5-C3AF30186F6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.UI.Web", "Presentation\Api\GamaEdtech.Presentation.Api.csproj", "{199435A9-7350-4E35-9494-8FF075807CCE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Presentation.Api", "Presentation\Api\GamaEdtech.Presentation.Api.csproj", "{199435A9-7350-4E35-9494-8FF075807CCE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamaEdtech.Test", "Test\GamaEdtech.Test.csproj", "{74C604EB-6E20-44F7-A4C5-C7128FC212A9}"
 EndProject
@@ -43,6 +43,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamaEdtech.Domain", "Domain\GamaEdtech.Domain.csproj", "{7CAF35FD-06C3-4B0C-A6FF-341C235C7F48}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamaEdtech.Presentation.ViewModel", "Presentation\ViewModel\GamaEdtech.Presentation.ViewModel.csproj", "{F87992A4-76E3-4B4C-B404-80D0DA04EBC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamaEdtech.Infrastructure.Interface", "Infrastructure\Interface\GamaEdtech.Infrastructure.Interface.csproj", "{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,6 +96,10 @@ Global
 		{F87992A4-76E3-4B4C-B404-80D0DA04EBC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F87992A4-76E3-4B4C-B404-80D0DA04EBC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F87992A4-76E3-4B4C-B404-80D0DA04EBC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +116,7 @@ Global
 		{7032CDFE-0663-4720-8DB7-7182D6D7A410} = {22BDF72F-A90D-47B3-A400-11BF21D58C88}
 		{7CAF35FD-06C3-4B0C-A6FF-341C235C7F48} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F87992A4-76E3-4B4C-B404-80D0DA04EBC0} = {E62D9E67-4BEF-4A1A-9064-5E771CA12C2E}
+		{1CFF3640-8A5C-4074-90A0-A6CC4F55B3F6} = {D6BE9988-B75A-4262-855F-75F9E1A0157F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D83DFB78-76C0-48D5-B6F2-1B6AF2819E4D}

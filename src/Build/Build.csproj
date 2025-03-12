@@ -11,7 +11,7 @@
     <ProjectReference Include="..\Application\Service\GamaEdtech.Application.Service.csproj">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Infrastructure\GamaEdtech.Infrastructure.csproj">
+    <ProjectReference Include="..\Infrastructure\Infrastructure\GamaEdtech.Infrastructure.csproj">
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

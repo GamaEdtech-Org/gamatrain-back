@@ -2,6 +2,8 @@ namespace GamaEdtech.Data.Dto.Location
 {
     using GamaEdtech.Domain.Enumeration;
 
+    using NetTopologySuite.Geometries;
+
     public sealed class ManageLocationRequestDto
     {
         public int? Id { get; set; }
@@ -10,7 +12,6 @@ namespace GamaEdtech.Data.Dto.Location
         public string? Code { get; set; }
         public LocationType? LocationType { get; set; }
         public int? ParentId { get; set; }
-        public int Latitude { get; set; }
-        public int Longitude { get; set; }
+        public Point? Coordinates { get; set; }
     }
 }

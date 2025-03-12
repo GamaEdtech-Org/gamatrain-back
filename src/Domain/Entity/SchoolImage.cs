@@ -12,8 +12,6 @@ namespace GamaEdtech.Domain.Entity
 
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-    using NUlid;
-
     [Table(nameof(SchoolImage))]
     public class SchoolImage : VersionableEntity<ApplicationUser, int, int?>, IEntity<SchoolImage, long>, ISchoolId, IStatus
     {
@@ -28,9 +26,10 @@ namespace GamaEdtech.Domain.Entity
         public int SchoolId { get; set; }
         public School? School { get; set; }
 
-        [Column(nameof(FileId), DataType.Ulid)]
+        [Column(nameof(FileId), DataType.String)]
         [Required]
-        public Ulid FileId { get; set; }
+        [StringLength(50)]
+        public string? FileId { get; set; }
 
         [Column(nameof(Status), DataType.Byte)]
         [Required]

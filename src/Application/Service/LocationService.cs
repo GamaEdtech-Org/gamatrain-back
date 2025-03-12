@@ -59,9 +59,8 @@ namespace GamaEdtech.Application.Service
                     Code = t.Code,
                     ParentId = t.ParentId,
                     ParentTitle = t.Parent != null ? t.Parent.Title : null,
-                    Latitude = t.Latitude,
+                    Coordinates = t.Coordinates,
                     LocalTitle = t.LocalTitle,
-                    Longitude = t.Longitude,
                 }).FirstOrDefaultAsync();
 
                 return location is null
@@ -101,9 +100,8 @@ namespace GamaEdtech.Application.Service
                     location.Title = requestDto.Title;
                     location.Code = requestDto.Code;
                     location.LocationType = requestDto.LocationType;
-                    location.Latitude = requestDto.Latitude;
+                    location.Coordinates = requestDto.Coordinates;
                     location.LocalTitle = requestDto.LocalTitle;
-                    location.Longitude = requestDto.Longitude;
 
                     _ = repository.Update(location);
                 }
@@ -115,9 +113,8 @@ namespace GamaEdtech.Application.Service
                         Code = requestDto.Code,
                         LocationType = requestDto.LocationType,
                         ParentId = requestDto.ParentId,
-                        Longitude = requestDto.Longitude,
+                        Coordinates = requestDto.Coordinates,
                         LocalTitle = requestDto.LocalTitle,
-                        Latitude = requestDto.Latitude,
                     };
                     repository.Add(location);
                 }

@@ -10,12 +10,13 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="FreeSpire.Office" />
     <PackageReference Include="Freeware.Pdf2Png" />
+    <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
-    <PackageReference Include="NUlid" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Data\GamaEdtech.Data.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Interface\GamaEdtech.Infrastructure.Interface.csproj" />
     <ProjectReference Include="..\Interface\GamaEdtech.Application.Interface.csproj" />
   </ItemGroup>
 </Project>

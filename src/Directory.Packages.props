@@ -6,7 +6,8 @@
     </PackageReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-  <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.0" />
+    <PackageVersion Include="MetadataExtractor" Version="2.8.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
     <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
     <PackageVersion Include="Slugify.Core" Version="4.0.1" />

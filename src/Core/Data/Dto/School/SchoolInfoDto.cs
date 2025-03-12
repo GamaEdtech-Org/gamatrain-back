@@ -6,7 +6,7 @@ namespace GamaEdtech.Data.Dto.School
     {
         public int Id { get; set; }
         public string? Name { get; set; }
-        public Point? Location { get; set; }
+        public Point? Coordinates { get; set; }
         public string? CityTitle { get; set; }
         public string? CountryTitle { get; set; }
         public string? StateTitle { get; set; }
@@ -15,5 +15,6 @@ namespace GamaEdtech.Data.Dto.School
         public bool HasEmail { get; set; }
         public DateTimeOffset LastModifyDate { get; set; }
         public double? Score { get; set; }
+        public double? Distance { get; set; }
     }
 }

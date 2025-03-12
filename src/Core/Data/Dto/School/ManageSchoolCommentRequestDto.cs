@@ -7,13 +7,13 @@ namespace GamaEdtech.Data.Dto.School
         public int CreationUserId { get; set; }
         public DateTimeOffset CreationDate { get; set; }
         public string? Comment { get; set; }
-        public byte ClassesQualityRate { get; set; }
-        public byte EducationRate { get; set; }
-        public byte ITTrainingRate { get; set; }
-        public byte SafetyAndHappinessRate { get; set; }
-        public byte BehaviorRate { get; set; }
-        public byte TuitionRatioRate { get; set; }
-        public byte FacilitiesRate { get; set; }
-        public byte ArtisticActivitiesRate { get; set; }
+        public double ClassesQualityRate { get; set; }
+        public double EducationRate { get; set; }
+        public double ITTrainingRate { get; set; }
+        public double SafetyAndHappinessRate { get; set; }
+        public double BehaviorRate { get; set; }
+        public double TuitionRatioRate { get; set; }
+        public double FacilitiesRate { get; set; }
+        public double ArtisticActivitiesRate { get; set; }
     }
 }

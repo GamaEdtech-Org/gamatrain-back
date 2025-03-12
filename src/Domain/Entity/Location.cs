@@ -12,6 +12,8 @@ namespace GamaEdtech.Domain.Entity
 
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+    using NetTopologySuite.Geometries;
+
     [Table(nameof(Location))]
     public class Location : VersionableEntity<ApplicationUser, int, int?>, IEntity<Location, int>
     {
@@ -42,11 +44,8 @@ namespace GamaEdtech.Domain.Entity
         public int? ParentId { get; set; }
         public Location? Parent { get; set; }
 
-        [Column(nameof(Latitude), TypeName = "float")]
-        public int Latitude { get; set; }
-
-        [Column(nameof(Longitude), TypeName = "float")]
-        public int Longitude { get; set; }
+        [Column(nameof(Coordinates), TypeName = "geometry")]
+        public Point? Coordinates { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<Location> builder)
         {

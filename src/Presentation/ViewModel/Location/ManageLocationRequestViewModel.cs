@@ -22,9 +22,9 @@ namespace GamaEdtech.Presentation.ViewModel.Location
         public int? ParentId { get; set; }
 
         [Display]
-        public int Latitude { get; set; }
+        public double? Latitude { get; set; }
 
         [Display]
-        public int Longitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

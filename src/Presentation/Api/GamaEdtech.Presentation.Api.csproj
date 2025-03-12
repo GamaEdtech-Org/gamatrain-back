@@ -13,7 +13,6 @@
     <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
-    <PackageReference Include="NUlid" />
   </ItemGroup>
 
   <ItemGroup>

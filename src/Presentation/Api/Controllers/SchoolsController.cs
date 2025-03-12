@@ -18,7 +18,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
     using Microsoft.AspNetCore.Mvc;
 
-    using NUlid;
+    using NetTopologySuite.Geometries;
 
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
@@ -50,17 +50,27 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     var specification = new NameContainsSpecification(request.Name);
                     baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
                 }
-                if (request.Location is not null)
+                if (request.HasScore.HasValue)
                 {
-                    var specification = new LocationIncludeSpecification(request.Location.Latitude!.Value, request.Location.Longitude!.Value, request.Location.Radius!.Value);
+                    var specification = new HasScoreEqualsSpecification(request.HasScore.Value);
                     baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
                 }
 
+                Point? point = null;
+                if (request.Location is not null)
+                {
+                    var specification = new LocationIncludeSpecification(request.Location.Latitude!.Value, request.Location.Longitude!.Value, request.Location.Radius!.Value);
+                    point = specification.Point;
+                    baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
+                }
+
+                request.PagingDto ??= new();
+                request.PagingDto!.SortFilter = [new SortFilter { Column = "", SortType = Constants.SortType.Asc }];
                 var result = await schoolService.Value.GetSchoolsListAsync(new ListRequestDto<School>
                 {
                     PagingDto = request.PagingDto,
                     Specification = baseSpecification,
-                });
+                }, point);
                 return Ok(new ApiResponseWithFilter<ListDataSource<SchoolInfoResponseViewModel>>(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
@@ -77,9 +87,9 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             HasEmail = t.HasEmail,
                             HasPhone = t.HasPhoneNumber,
                             HasWebsite = t.HasWebSite,
-                            HasLocation = t.Location is not null,
-                            Latitude = t.Location?.Y,
-                            Longitude = t.Location?.X,
+                            HasLocation = t.Coordinates is not null,
+                            Latitude = t.Coordinates?.Y,
+                            Longitude = t.Coordinates?.X,
                             StateTitle = t.StateTitle,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
@@ -119,8 +129,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         StateId = result.Data.StateId,
                         StateTitle = result.Data.StateTitle,
                         ZipCode = result.Data.ZipCode,
-                        Latitude = result.Data.Location?.Y,
-                        Longitude = result.Data.Location?.X,
+                        Latitude = result.Data.Coordinates?.Y,
+                        Longitude = result.Data.Coordinates?.X,
                         Facilities = result.Data.Facilities,
                         WebSite = result.Data.WebSite,
                         Email = result.Data.Email,
@@ -143,6 +153,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        #region Comments
+
         [HttpGet("{schoolId:int}/rate"), Produces<ApiResponse<SchoolRateResponseViewModel>>()]
         public async Task<IActionResult<SchoolRateResponseViewModel>> GetSchoolRate([FromRoute] int schoolId)
         {
@@ -164,6 +176,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         ITTrainingRate = result.Data.ITTrainingRate,
                         SafetyAndHappinessRate = result.Data.SafetyAndHappinessRate,
                         TuitionRatioRate = result.Data.TuitionRatioRate,
+                        TotalCount = result.Data.TotalCount,
                     }
                 });
             }
@@ -233,7 +246,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     SchoolId = schoolId,
                     TuitionRatioRate = request.TuitionRatioRate,
                     CreationDate = DateTimeOffset.UtcNow,
-                    CreationUserId = User.UserId<int>(),
+                    CreationUserId = User.UserId(),
                 });
                 return Ok(new ApiResponse<ManageSchoolCommentResponseViewModel>
                 {
@@ -269,7 +282,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     SafetyAndHappinessRate = request.SafetyAndHappinessRate,
                     TuitionRatioRate = request.TuitionRatioRate,
                     CreationDate = DateTimeOffset.UtcNow,
-                    CreationUserId = User.UserId<int>(),
+                    CreationUserId = User.UserId(),
                 });
                 return Ok(new ApiResponse<ManageSchoolCommentResponseViewModel>
                 {
@@ -331,8 +344,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpGet("{schoolId:int}/images/{fileType}"), Produces<ApiResponse<IEnumerable<Ulid>>>()]
-        public async Task<IActionResult<IEnumerable<string?>>> GetSchoolImages([FromRoute] int schoolId, [FromRoute] FileType fileType)
+        #endregion
+
+        #region Images
+
+        [HttpGet("{schoolId:int}/images/{fileType}"), Produces<ApiResponse<IEnumerable<string>>>()]
+        public async Task<IActionResult<IEnumerable<string?>>> GetSchoolImagesPath([FromRoute] int schoolId, [FromRoute] FileType fileType)
         {
             try
             {
@@ -352,5 +369,35 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 return Ok(new ApiResponse<IEnumerable<string?>>(new Error { Message = exc.Message }));
             }
         }
+
+        [HttpPost("{schoolId:int}/images"), Produces<ApiResponse<CreateSchoolImageResponseViewModel>>()]
+        [Permission(policy: null)]
+        public async Task<IActionResult<CreateSchoolImageResponseViewModel>> CreateSchoolImage([FromRoute] int schoolId, [NotNull] CreateSchoolImageRequestViewModel request)
+        {
+            try
+            {
+                var result = await schoolService.Value.CreateSchoolImageAsync(new Data.Dto.School.CreateSchoolImageRequestDto
+                {
+                    File = request.File!,
+                    FileType = request.FileType!,
+                    SchoolId = schoolId,
+                    CreationDate = DateTimeOffset.UtcNow,
+                    CreationUserId = User.UserId(),
+                });
+                return Ok(new ApiResponse<CreateSchoolImageResponseViewModel>
+                {
+                    Errors = result.Errors,
+                    Data = new() { Id = result.Data, },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok(new ApiResponse<CreateSchoolImageResponseViewModel>(new Error { Message = exc.Message }));
+            }
+        }
+
+        #endregion
     }
 }

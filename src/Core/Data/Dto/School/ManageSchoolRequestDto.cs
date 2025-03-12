@@ -13,7 +13,7 @@ namespace GamaEdtech.Data.Dto.School
         public string? ZipCode { get; set; }
         public string? Address { get; set; }
         public string? LocalAddress { get; set; }
-        public Point? Location { get; set; }
+        public Point? Coordinates { get; set; }
         public string? WebSite { get; set; }
         public string? Quarter { get; set; }
         public string? PhoneNumber { get; set; }

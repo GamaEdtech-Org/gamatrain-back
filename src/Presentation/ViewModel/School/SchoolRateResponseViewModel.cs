@@ -11,5 +11,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public double? ClassesQualityRate { get; set; }
         public double? BehaviorRate { get; set; }
         public double? ArtisticActivitiesRate { get; set; }
+        public int TotalCount { get; set; }
     }
 }

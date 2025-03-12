@@ -80,8 +80,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         StateId = result.Data.StateId,
                         StateTitle = result.Data.StateTitle,
                         ZipCode = result.Data.ZipCode,
-                        Latitude = result.Data.Location?.Y,
-                        Longitude = result.Data.Location?.X,
+                        Latitude = result.Data.Coordinates?.Y,
+                        Longitude = result.Data.Coordinates?.X,
                         Facilities = result.Data.Facilities,
                         WebSite = result.Data.WebSite,
                         Email = result.Data.Email,
@@ -109,11 +109,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                Point? location = null;
+                Point? coordinates = null;
                 if (request.Latitude.HasValue && request.Longitude.HasValue)
                 {
                     var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-                    location = geometryFactory.CreatePoint(new Coordinate(request.Longitude.Value, request.Latitude.Value));
+                    coordinates = geometryFactory.CreatePoint(new Coordinate(request.Longitude.Value, request.Latitude.Value));
                 }
 
                 var result = await schoolService.Value.ManageSchoolAsync(new ManageSchoolRequestDto
@@ -124,7 +124,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     SchoolType = request.SchoolType!,
                     StateId = request.StateId,
                     ZipCode = request.ZipCode,
-                    Location = location,
+                    Coordinates = coordinates,
                     Quarter = request.Quarter,
                     PhoneNumber = request.PhoneNumber,
                     FaxNumber = request.FaxNumber,
@@ -155,11 +155,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                Point? location = null;
+                Point? coordinates = null;
                 if (request.Latitude.HasValue && request.Longitude.HasValue)
                 {
                     var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-                    location = geometryFactory.CreatePoint(new Coordinate(request.Longitude.Value, request.Latitude.Value));
+                    coordinates = geometryFactory.CreatePoint(new Coordinate(request.Longitude.Value, request.Latitude.Value));
                 }
                 var result = await schoolService.Value.ManageSchoolAsync(new ManageSchoolRequestDto
                 {
@@ -170,7 +170,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     SchoolType = request.SchoolType!,
                     StateId = request.StateId,
                     ZipCode = request.ZipCode,
-                    Location = location,
+                    Coordinates = coordinates,
                     WebSite = request.WebSite,
                     LocalAddress = request.LocalAddress,
                     Facilities = request.Facilities,

@@ -4,7 +4,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
-    <PackageReference Include="NUlid" />
   </ItemGroup>
 
   <ItemGroup>

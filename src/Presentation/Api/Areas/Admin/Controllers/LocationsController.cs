@@ -76,9 +76,9 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
-                        Latitude = result.Data.Latitude,
                         LocalTitle = result.Data.LocalTitle,
-                        Longitude = result.Data.Longitude,
+                        Latitude = result.Data.Coordinates?.Y,
+                        Longitude = result.Data.Coordinates?.X,
                     }
                 });
             }
@@ -95,15 +95,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Title = request.Title,
                     Code = request.Code,
                     ParentId = request.ParentId,
                     LocationType = LocationType.Country,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -124,15 +130,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Id = id,
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -221,9 +233,9 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
-                        Latitude = result.Data.Latitude,
                         LocalTitle = result.Data.LocalTitle,
-                        Longitude = result.Data.Longitude,
+                        Latitude = result.Data.Coordinates?.Y,
+                        Longitude = result.Data.Coordinates?.X,
                     }
                 });
             }
@@ -240,15 +252,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Title = request.Title,
                     Code = request.Code,
                     ParentId = request.ParentId,
                     LocationType = LocationType.State,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -269,15 +287,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Id = id,
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -366,9 +390,9 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         Code = result.Data.Code,
                         ParentId = result.Data.ParentId,
                         ParentTitle = result.Data.ParentTitle,
-                        Latitude = result.Data.Latitude,
                         LocalTitle = result.Data.LocalTitle,
-                        Longitude = result.Data.Longitude,
+                        Latitude = result.Data.Coordinates?.Y,
+                        Longitude = result.Data.Coordinates?.X,
                     }
                 });
             }
@@ -385,15 +409,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Title = request.Title,
                     Code = request.Code,
                     ParentId = request.ParentId,
                     LocationType = LocationType.City,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {
@@ -414,15 +444,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                NetTopologySuite.Geometries.Point? coordinates = null;
+                if (request.Latitude.HasValue && request.Longitude.HasValue)
+                {
+                    var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                    coordinates = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(request.Longitude.Value, request.Latitude.Value));
+                }
+
                 var result = await locationService.Value.ManageLocationAsync(new ManageLocationRequestDto
                 {
                     Id = id,
                     Code = request.Code,
                     Title = request.Title,
                     ParentId = request.ParentId,
-                    Latitude = request.Latitude,
                     LocalTitle = request.LocalTitle,
-                    Longitude = request.Longitude,
+                    Coordinates = coordinates,
                 });
                 return Ok(new ApiResponse<ManageLocationResponseViewModel>
                 {

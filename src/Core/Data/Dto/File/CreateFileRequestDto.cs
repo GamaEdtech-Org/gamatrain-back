@@ -4,6 +4,6 @@ namespace GamaEdtech.Data.Dto.File
 
     public sealed class CreateFileRequestDto
     {
-        public IFormFile? File { get; set; }
+        public required IFormFile File { get; set; }
     }
 }

@@ -17,5 +17,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public LocationViewModel? Location { get; set; }
 
         public string? Name { get; set; }
+
+        public bool? HasScore { get; set; }
     }
 }

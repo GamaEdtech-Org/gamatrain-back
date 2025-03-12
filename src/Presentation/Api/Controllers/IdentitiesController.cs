@@ -32,7 +32,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var authenticateResult = await identityService.Value.AuthenticateAsync(new AuthenticationRequestDto { Password = request.Password!, Username = request.Username! });
+                var authenticateResult = await identityService.Value.AuthenticateAsync(new AuthenticationRequestDto
+                {
+                    Username = request.Username!,
+                    Password = request.Password!,
+                    AuthenticationProvider = AuthenticationProvider.Local,
+                });
                 if (authenticateResult.Data?.User is null)
                 {
                     return Ok(new ApiResponse<AuthenticationResponseViewModel>
@@ -127,16 +132,53 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var authenticateResult = await identityService.Value.AuthenticateAsync(new AuthenticationRequestDto { Password = request.Password!, Username = request.Username! });
+                var authenticateResult = await identityService.Value.AuthenticateAsync(new AuthenticationRequestDto
+                {
+                    Username = request.Username!,
+                    Password = request.Password!,
+                    AuthenticationProvider = AuthenticationProvider.Local,
+                });
                 if (authenticateResult.Data?.User is null)
                 {
                     return Ok(new ApiResponse<GenerateTokenResponseViewModel>(authenticateResult.Errors));
                 }
 
-                var signInResult = await identityService.Value.SignInAsync(new SignInRequestDto { RememberMe = false, User = authenticateResult.Data.User });
-                if (signInResult.OperationResult is not OperationResult.Succeeded)
+                var result = await identityService.Value.GenerateUserTokenAsync(new GenerateUserTokenRequestDto
                 {
-                    return Ok(new ApiResponse<GenerateTokenResponseViewModel>(signInResult.Errors));
+                    UserId = authenticateResult.Data.User.Id,
+                    TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
+                    Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
+                });
+                return Ok(new ApiResponse<GenerateTokenResponseViewModel>(result.Errors)
+                {
+                    Data = new()
+                    {
+                        Token = result.Data?.Token,
+                        ExpirationTime = result.Data?.ExpirationTime,
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok(new ApiResponse<GenerateTokenResponseViewModel>(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPost("tokens/google"), Produces(typeof(ApiResponse<GenerateTokenResponseViewModel>))]
+        public async Task<IActionResult<GenerateTokenResponseViewModel>> GenerateTokenWithGoogle([NotNull] GenerateTokenWithGoogleRequestViewModel request)
+        {
+            try
+            {
+                var authenticateResult = await identityService.Value.AuthenticateAsync(new AuthenticationRequestDto
+                {
+                    Username = request.Code!,
+                    AuthenticationProvider = AuthenticationProvider.Google,
+                });
+                if (authenticateResult.Data?.User is null)
+                {
+                    return Ok(new ApiResponse<GenerateTokenResponseViewModel>(authenticateResult.Errors));
                 }
 
                 var result = await identityService.Value.GenerateUserTokenAsync(new GenerateUserTokenRequestDto
@@ -170,7 +212,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var result = await identityService.Value.RemoveUserTokenAsync(new RemoveUserTokenRequestDto
                 {
-                    UserId = User.UserId<int>(),
+                    UserId = User.UserId(),
                     TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
                     Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
                 });

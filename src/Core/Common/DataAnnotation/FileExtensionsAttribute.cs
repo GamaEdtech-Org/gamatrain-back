@@ -6,7 +6,6 @@ namespace GamaEdtech.Common.DataAnnotation
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Core.Extensions.Collections.Generic;
@@ -85,7 +84,7 @@ namespace GamaEdtech.Common.DataAnnotation
                 }
 
                 var results = inspector.Value.ContentInspector.Inspect(file.OpenReadStream());
-                return results.Length <= 0 || results.ByFileExtension().Exists(t => Extensions!.Contains(t.Extension));
+                return results.Length == 0 || results.ByFileExtension().Exists(t => Extensions!.Exists(e => t.Extension.Equals(e, StringComparison.OrdinalIgnoreCase)));
             }
         }
 

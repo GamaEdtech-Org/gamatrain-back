@@ -22,6 +22,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Common.Mapping;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Common.Service.Factory;
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
@@ -43,7 +44,7 @@ namespace GamaEdtech.Application.Service
     using Void = Common.Data.Void;
 
     public class IdentityService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<IdentityService>> localizer, Lazy<ILogger<IdentityService>> logger
-            , Lazy<UserManager<ApplicationUser>> userManager
+            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
             , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration)
         : LocalizableServiceBase<IdentityService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IIdentityService, ITokenService
     {
@@ -157,35 +158,7 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var username = requestDto.Username;
-                var user = await signInManager.Value.UserManager.FindByNameAsync(username);
-                var validationResult = ValidateUser<AuthenticationResponseDto>(user);
-
-                if (validationResult.OperationResult is not OperationResult.Succeeded)
-                {
-                    return validationResult;
-                }
-
-                var signinResult = await signInManager.Value.CheckPasswordSignInAsync(user!, requestDto.Password!, true);
-                if (signinResult.Succeeded)
-                {
-                    var securityStampResult = await userManager.Value.UpdateSecurityStampAsync(user!);
-                    if (!securityStampResult.Succeeded)
-                    {
-                        return new(OperationResult.NotValid)
-                        {
-                            Errors = securityStampResult.Errors.Select(t => new Error { Message = t.Description, Code = t.Code }),
-                        };
-                    }
-                }
-
-                var message = signinResult.IsLockedOut ? Localizer.Value["UserLockedOut"] : Localizer.Value["WrongUsernameOrPassword"];
-                return signinResult.Succeeded
-                    ? new(OperationResult.Succeeded) { Data = new AuthenticationResponseDto { User = user!.AdaptData<ApplicationUser, ApplicationUserDto>() } }
-                    : new(OperationResult.NotValid)
-                    {
-                        Errors = new[] { new Error { Message = message } },
-                    };
+                return await genericFactory.Value.GetProvider(requestDto.AuthenticationProvider)!.AuthenticateAsync(requestDto);
             }
             catch (Exception exc)
             {
@@ -228,7 +201,7 @@ namespace GamaEdtech.Application.Service
                 var timeZoneId = await GetTimeZoneIdAsync(requestDto.User.Id);
                 List<Claim> claims = [
                     new Claim(ClaimTypes.Email, requestDto.User.EmailConfirmed ? requestDto.User.Email! : string.Empty),
-                    new Claim(ClaimTypes.MobilePhone, requestDto.User.PhoneNumberConfirmed ? requestDto.User.PhoneNumber! : string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, (requestDto.User.PhoneNumberConfirmed && !string.IsNullOrEmpty(requestDto.User.PhoneNumber)) ? requestDto.User.PhoneNumber : string.Empty),
                     new Claim(ClaimTypes.System, GenerateDeviceHash(HttpContextAccessor.Value.HttpContext) ?? string.Empty),
                     new Claim(TimeZoneIdClaim, timeZoneId),
                 ];
@@ -460,6 +433,11 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var user = await userManager.Value.FindByIdAsync(request.UserId!);
+                if (user is null)
+                {
+                    return null;
+                }
+
                 var validationResult = ValidateUser<VerifyTokenResponse>(user);
                 if (validationResult.OperationResult is not OperationResult.Succeeded)
                 {
@@ -474,11 +452,11 @@ namespace GamaEdtech.Application.Service
 
                 var timeZoneId = await GetTimeZoneIdAsync(user!.Id);
                 List<Claim> claims = [
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.UserName!),
-                    new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber!),
-                    new Claim(TimeZoneIdClaim, timeZoneId),
+                    new Claim(ClaimTypes.NameIdentifier, request.UserId ?? string.Empty),
+                    new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                    new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, (user.PhoneNumberConfirmed && !string.IsNullOrEmpty(user.PhoneNumber)) ? user.PhoneNumber : string.Empty),
+                    new Claim(TimeZoneIdClaim, timeZoneId ?? string.Empty),
                 ];
 
                 var roles = await GetUserRolesAsync(user.Id);
@@ -738,7 +716,7 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId<int>();
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
                 if (!userId.HasValue)
                 {
                     return new(OperationResult.Failed)
@@ -766,7 +744,7 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId<int>();
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
                 if (!userId.HasValue)
                 {
                     return new(OperationResult.Failed)

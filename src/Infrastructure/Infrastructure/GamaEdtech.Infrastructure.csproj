@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <AssemblyAttribute Include="GamaEdtech.Common.DataAnnotation.InjectableAttribute">
@@ -6,6 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="EntityFrameworkCore.Exceptions.SqlServer" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
@@ -13,12 +14,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
     <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Common\GamaEdtech.Common.csproj" />
-    <ProjectReference Include="..\Core\Data\GamaEdtech.Data.csproj" />
+    <ProjectReference Include="..\..\Core\Common\GamaEdtech.Common.csproj" />
+    <ProjectReference Include="..\..\Core\Data\GamaEdtech.Data.csproj" />
+    <ProjectReference Include="..\..\Domain\GamaEdtech.Domain.csproj" />
+    <ProjectReference Include="..\Interface\GamaEdtech.Infrastructure.Interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>
