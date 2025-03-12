@@ -1,0 +1,23 @@
+﻿2025-03-07T20:06:34.0378556+00:00 [WRN] (gamacoreap-cd65909f/) Failed to determine the https port for redirect.
+2025-03-07T20:08:21.0771360+00:00 [WRN] (gamacoreap-9a3d1a6f/) Failed to determine the https port for redirect.
+2025-03-07T20:09:08.6111638+00:00 [WRN] (gamacoreap-76b43a41/) Failed to determine the https port for redirect.
+2025-03-07T20:10:03.7050278+00:00 [ERR] (gamacoreap-9a3d1a6f/) VerifyTokenAsync
+System.ArgumentException: Bearer 5 is not a valid value for Int32. (Parameter 'value')
+ ---> System.FormatException: The input string 'Bearer 5' was not in a correct format.
+   at System.Number.ThrowFormatException[TChar](ReadOnlySpan`1 value)
+   at System.Int32.Parse(String s, NumberStyles style, IFormatProvider provider)
+   at System.ComponentModel.Int32Converter.FromString(String value, NumberFormatInfo formatInfo)
+   at System.ComponentModel.BaseNumberConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   --- End of inner exception stack trace ---
+   at System.ComponentModel.BaseNumberConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   at Microsoft.AspNetCore.Identity.UserStoreBase`5.ConvertIdFromString(String id)
+   at Microsoft.AspNetCore.Identity.EntityFrameworkCore.UserStore`9.FindByIdAsync(String userId, CancellationToken cancellationToken)
+   at GamaEdtech.Application.Service.IdentityService.VerifyTokenAsync(VerifyTokenRequest request) in /home/runner/work/GamaEdtech.Back/GamaEdtech.Back/src/Application/Service/IdentityService.cs:line 435
+2025-03-07T20:22:53.5172535+00:00 [WRN] (gamacoreap-ad2a775e/) Failed to determine the https port for redirect.
+2025-03-07T20:22:54.0988537+00:00 [ERR] (gamacoreap-ad2a775e/) VerifyTokenAsync
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at System.ArgumentNullException.Throw(String paramName)
+   at System.ArgumentNullException.ThrowIfNull(Object argument, String paramName)
+   at System.Security.Claims.Claim..ctor(String type, String value, String valueType, String issuer, String originalIssuer, ClaimsIdentity subject, String propertyKey, String propertyValue)
+   at System.Security.Claims.Claim..ctor(String type, String value)
+   at GamaEdtech.Application.Service.IdentityService.VerifyTokenAsync(VerifyTokenRequest request) in /home/runner/work/GamaEdtech.Back/GamaEdtech.Back/src/Application/Service/IdentityService.cs:line 449
