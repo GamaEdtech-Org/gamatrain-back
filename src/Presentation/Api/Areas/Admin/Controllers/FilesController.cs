@@ -21,7 +21,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     public class FilesController(Lazy<ILogger<FilesController>> logger, Lazy<IFileService> fileService) : ApiControllerBase<FilesController>(logger)
     {
         [HttpPost, Produces(typeof(ApiResponse<CreateFileResponseViewModel>))]
-        public async Task<IActionResult> CreateFile([NotNull, FromForm] CreateFileRequestViewModel request)
+        public async Task<IActionResult<CreateFileResponseViewModel>> CreateFile([NotNull, FromForm] CreateFileRequestViewModel request)
         {
             try
             {
@@ -29,9 +29,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     File = request.File!,
                 });
-                return Ok(new ApiResponse<CreateFileResponseViewModel>
+                return Ok<CreateFileResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new()
                     {
                         FileId = result.Data?.FileId,
@@ -45,7 +44,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<CreateFileResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<CreateFileResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }

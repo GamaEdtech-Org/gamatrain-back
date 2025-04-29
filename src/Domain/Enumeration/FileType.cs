@@ -3,7 +3,7 @@ namespace GamaEdtech.Domain.Enumeration
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class FileType : Enumeration<byte>
+    public sealed class FileType : Enumeration<FileType, byte>
     {
         [Display]
         public static readonly FileType SimpleImage = new(nameof(SimpleImage), 0);

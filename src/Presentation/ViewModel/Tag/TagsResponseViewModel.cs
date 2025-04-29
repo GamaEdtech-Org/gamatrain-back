@@ -7,7 +7,7 @@ namespace GamaEdtech.Presentation.ViewModel.Tag
 
     public sealed class TagsResponseViewModel
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         public string? Name { get; set; }
 

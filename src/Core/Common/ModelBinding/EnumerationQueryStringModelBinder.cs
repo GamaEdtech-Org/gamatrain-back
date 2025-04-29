@@ -1,66 +1,86 @@
 namespace GamaEdtech.Common.ModelBinding
 {
     using System;
-    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
 
     using GamaEdtech.Common.Data.Enumeration;
 
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-    public class EnumerationQueryStringModelBinder<TEnum, TKey> : IModelBinder
-        where TEnum : Enumeration<TKey>
-        where TKey : IEquatable<TKey>, IComparable<TKey>
+    public class EnumerationQueryStringModelBinder(Type modelType) : IModelBinder
     {
-        /// <inheritdoc />
-        public Task BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
-            ArgumentNullException.ThrowIfNull(bindingContext);
-
-            var enumerationName = bindingContext.ValueProvider.GetValue(bindingContext.FieldName);
-            if (enumerationName.Length == 0)
+            var modelName = bindingContext.ModelName;
+            var valueProviderResult = bindingContext.ValueProvider.GetValue(modelName);
+            if (valueProviderResult == ValueProviderResult.None)
             {
-                // 100000 is just temporary
-                List<string> list = [];
-                for (var i = 0; i < 100000; i++)
-                {
-                    var tmp = bindingContext.ValueProvider.GetValue(bindingContext.FieldName + $"[{i}]");
-                    if (tmp.Length == 0)
-                    {
-                        break;
-                    }
-
-                    list.AddRange(tmp.Values);
-                }
-
-                if (list.Count > 0)
-                {
-                    enumerationName = new ValueProviderResult(new Microsoft.Extensions.Primitives.StringValues([.. list]));
-                }
+                return Task.CompletedTask;
             }
 
-            List<TEnum> lst = new(enumerationName.Length);
-            foreach (var item in enumerationName)
+            bindingContext.ModelState.SetModelValue(modelName, valueProviderResult);
+
+            string?[] lst = [valueProviderResult.FirstValue];
+            var single = true;
+            var type = modelType;
+            if (modelType.HasElementType)
             {
-                if (item.TryGetFromNameOrValue<TEnum, TKey>(out var result))
+                type = modelType.GetElementType()!;
+                lst = [.. valueProviderResult.Values];
+                single = false;
+            }
+            else if (typeof(System.Collections.IEnumerable).IsAssignableFrom(modelType))
+            {
+                type = modelType.GenericTypeArguments[0];
+                lst = [.. valueProviderResult.Values];
+                single = false;
+            }
+
+            var all = EnumerationExtensions.GetAll(type);
+            if (all is null)
+            {
+                return Task.CompletedTask;
+            }
+
+
+            var values = new List<object>();
+            for (var i = 0; i < lst.Length; i++)
+            {
+                var item = lst[i];
+                var valid = false;
+#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
+                foreach (var child in all)
                 {
-                    lst.Add(result!);
+                    if (child!.ToString()!.Equals(item, StringComparison.OrdinalIgnoreCase))
+                    {
+                        values!.Add(child);
+                        valid = true;
+                        break;
+                    }
                 }
-                else
+#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
+
+                if (!valid)
                 {
                     bindingContext.Result = ModelBindingResult.Failed();
                     var msg = Resources.GlobalResource.Validation_AttemptedValueIsInvalidAccessor;
-                    bindingContext.ModelState.AddModelError(bindingContext.FieldName, string.Format(msg, item, bindingContext.ModelName));
+                    bindingContext.ModelState.AddModelError(bindingContext.FieldName, string.Format(msg, item, modelName));
                     return Task.CompletedTask;
                 }
             }
 
-            var isEnumerable = typeof(System.Collections.IEnumerable).IsAssignableFrom(bindingContext.ModelType);
-            if (lst.Count > 0)
+            object? model = values;
+            if (single)
             {
-                bindingContext.Result = isEnumerable ? ModelBindingResult.Success(lst) : ModelBindingResult.Success(lst[0]);
+                model = values.FirstOrDefault();
+            }
+            else if (modelType.HasElementType)
+            {
+                model = values.ToArray();
             }
 
+            bindingContext.Result = ModelBindingResult.Success(model);
             return Task.CompletedTask;
         }
     }

@@ -21,7 +21,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     public class LocationsController(Lazy<ILogger<LocationsController>> logger, Lazy<ILocationService> locationService) : ApiControllerBase<LocationsController>(logger)
     {
         [HttpGet("countries"), Produces(typeof(ApiResponse<ListDataSource<LocationsResponseViewModel>>))]
-        public async Task<IActionResult> GetCountries([NotNull, FromQuery] LocationsRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<LocationsResponseViewModel>>> GetCountries([NotNull, FromQuery] LocationsRequestViewModel request)
         {
             try
             {
@@ -30,9 +30,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     PagingDto = request.PagingDto,
                     Specification = new LocationTypeEqualsSpecification(LocationType.Country),
                 });
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>>
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new LocationsResponseViewModel
@@ -49,12 +48,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpGet("states/{countryId}"), Produces(typeof(ApiResponse<ListDataSource<LocationsResponseViewModel>>))]
-        public async Task<IActionResult> GetStates([NotNull, FromRoute] int countryId, [NotNull, FromQuery] LocationsRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<LocationsResponseViewModel>>> GetStates([NotNull, FromRoute] int countryId, [NotNull, FromQuery] LocationsRequestViewModel request)
         {
             try
             {
@@ -63,9 +62,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     PagingDto = request.PagingDto,
                     Specification = new LocationTypeEqualsSpecification(LocationType.State).And(new ParentIdEqualsSpecification(countryId)),
                 });
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>>
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new LocationsResponseViewModel
@@ -82,12 +80,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpGet("cities/{stateId}"), Produces(typeof(ApiResponse<ListDataSource<LocationsResponseViewModel>>))]
-        public async Task<IActionResult> GetCities([NotNull, FromRoute] int stateId, [NotNull, FromQuery] LocationsRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<LocationsResponseViewModel>>> GetCities([NotNull, FromRoute] int stateId, [NotNull, FromQuery] LocationsRequestViewModel request)
         {
             try
             {
@@ -96,9 +94,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     PagingDto = request.PagingDto,
                     Specification = new LocationTypeEqualsSpecification(LocationType.City).And(new ParentIdEqualsSpecification(stateId)),
                 });
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>>
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new LocationsResponseViewModel
@@ -115,7 +112,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<LocationsResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<LocationsResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }

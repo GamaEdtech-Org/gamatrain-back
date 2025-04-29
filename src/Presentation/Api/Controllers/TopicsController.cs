@@ -20,7 +20,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         : ApiControllerBase<TopicsController>(logger)
     {
         [HttpGet, Produces<ApiResponse<ListDataSource<TopicsResponseViewModel>>>()]
-        public async Task<IActionResult> GetTopics([NotNull, FromQuery] TopicsRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<TopicsResponseViewModel>>> GetTopics([NotNull, FromQuery] TopicsRequestViewModel request)
         {
             try
             {
@@ -29,9 +29,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     PagingDto = request.PagingDto,
                     Specification = request.SubjectId.HasValue ? new SubjectIdEqualsSpecification(request.SubjectId.Value) : null,
                 });
-                return Ok(new ApiResponse<ListDataSource<TopicsResponseViewModel>>
+                return Ok<ListDataSource<TopicsResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new TopicsResponseViewModel
@@ -48,7 +47,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<TopicsResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<TopicsResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }

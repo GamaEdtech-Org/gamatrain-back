@@ -16,13 +16,13 @@ namespace GamaEdtech.Domain.Entity
     using NetTopologySuite.Geometries;
 
     [Table(nameof(School))]
-    public class School : VersionableEntity<ApplicationUser, int, int?>, IEntity<School, int>
+    public class School : VersionableEntity<ApplicationUser, int, int?>, IEntity<School, long>, IDeletable
     {
         [System.ComponentModel.DataAnnotations.Key]
-        [Column(nameof(Id), DataType.Int)]
+        [Column(nameof(Id), DataType.Long)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Required]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Column(nameof(OsmId), DataType.Long)]
         public long? OsmId { get; set; }
@@ -62,7 +62,7 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(LocalAddress), DataType.UnicodeMaxString)]
         public string? LocalAddress { get; set; }
 
-        [Column(nameof(Coordinates), TypeName = "geometry")]
+        [Column(nameof(Coordinates), TypeName = "geography")]
         public Point? Coordinates { get; set; }
 
         [Column(nameof(Quarter), DataType.UnicodeString)]
@@ -91,7 +91,12 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(Score), TypeName = "float")]
         public double? Score { get; set; }
 
-        public virtual ICollection<SchoolComment>? Comments { get; set; }
+        [Column(nameof(IsDeleted), DataType.Boolean)]
+        public bool IsDeleted { get; set; }
+
+        public virtual ICollection<SchoolComment>? SchoolComments { get; set; }
+        public virtual ICollection<SchoolTag>? SchoolTags { get; set; }
+        public virtual ICollection<SchoolImage>? SchoolImages { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<School> builder)
         {
@@ -99,6 +104,8 @@ namespace GamaEdtech.Domain.Entity
             _ = builder.HasOne(t => t.Country).WithMany().HasForeignKey(t => t.CountryId).OnDelete(DeleteBehavior.NoAction);
             _ = builder.HasOne(t => t.State).WithMany().HasForeignKey(t => t.StateId).OnDelete(DeleteBehavior.NoAction);
             _ = builder.HasOne(t => t.City).WithMany().HasForeignKey(t => t.CityId).OnDelete(DeleteBehavior.NoAction);
+
+            _ = builder.HasQueryFilter(t => !t.IsDeleted).HasIndex(t => t.IsDeleted);
         }
     }
 }

@@ -8,19 +8,20 @@ namespace GamaEdtech.Common.Converter
 
     using GamaEdtech.Common.Data.Enumeration;
 
-    public class DictionaryEnumerationConverter<TKey> : JsonConverter<Dictionary<Enumeration<TKey>, object?>>
-            where TKey : IEquatable<TKey>, IComparable<TKey>
+    public class DictionaryEnumerationConverter<TEnum, TKey> : JsonConverter<Dictionary<Enumeration<TEnum, TKey>, object?>>
+        where TEnum : Enumeration<TEnum, TKey>
+        where TKey : IEquatable<TKey>, IComparable<TKey>
     {
-        public override bool CanConvert([NotNull] Type typeToConvert) => typeof(Dictionary<Enumeration<TKey>, object?>) == typeToConvert;
+        public override bool CanConvert([NotNull] Type typeToConvert) => typeof(Dictionary<Enumeration<TEnum, TKey>, object?>) == typeToConvert;
 
-        public override Dictionary<Enumeration<TKey>, object?> Read(ref Utf8JsonReader reader, Type typeToConvert, [NotNull] JsonSerializerOptions options)
+        public override Dictionary<Enumeration<TEnum, TKey>, object?> Read(ref Utf8JsonReader reader, Type typeToConvert, [NotNull] JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
             {
                 throw new JsonException();
             }
 
-            var dictionary = new Dictionary<Enumeration<TKey>, object?>();
+            var dictionary = new Dictionary<Enumeration<TEnum, TKey>, object?>();
 
             while (reader.Read())
             {
@@ -37,9 +38,9 @@ namespace GamaEdtech.Common.Converter
 
                 var propertyName = reader.GetString();
 
-                if (!propertyName.TryGetFromNameOrValue<Enumeration<TKey>, TKey>(out var enumeration) || enumeration is null)
+                if (!propertyName.TryGetFromNameOrValue<TEnum, TKey>(out var enumeration) || enumeration is null)
                 {
-                    throw new JsonException($"Unable to convert \"{propertyName}\" to Enumeration \"{typeof(Enumeration<>)}\".");
+                    throw new JsonException($"Unable to convert \"{propertyName}\" to Enumeration \"{typeof(Enumeration<,>)}\".");
                 }
 
                 // Get the value.
@@ -53,7 +54,7 @@ namespace GamaEdtech.Common.Converter
             throw new JsonException();
         }
 
-        public override void Write([NotNull] Utf8JsonWriter writer, [NotNull] Dictionary<Enumeration<TKey>, object?> dictionary, [NotNull] JsonSerializerOptions options)
+        public override void Write([NotNull] Utf8JsonWriter writer, [NotNull] Dictionary<Enumeration<TEnum, TKey>, object?> dictionary, [NotNull] JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 

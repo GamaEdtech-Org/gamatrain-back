@@ -15,9 +15,7 @@ namespace GamaEdtech.Common.DataAccess.Repositories
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
-#pragma warning disable CA1005 // Avoid excessive parameters on generic types
     public abstract class EntityRepositoryBase<TContext, TEntity, TKey>([NotNull] ILogger<IDataAccess> logger, TContext? context)
-#pragma warning restore CA1005 // Avoid excessive parameters on generic types
         : RepositoryBase<TContext>(logger, context), IRepository<TEntity, TKey>
         where TContext : DbContext
         where TEntity : class, IEntity<TEntity, TKey>, new()
@@ -59,6 +57,8 @@ namespace GamaEdtech.Common.DataAccess.Repositories
         public TEntity? Get(ISpecification<TEntity>? specification, bool tracking = true) => QueryDb(specification?.Expression(), specification?.Order, null, tracking).FirstOrDefault();
 
         public async Task<TEntity?> GetAsync(TKey id, Func<IQueryable<TEntity>, IQueryable<TEntity>>? includes = null, bool tracking = true) => await QueryDb(t => t.Id.Equals(id), null, includes, tracking).FirstOrDefaultAsync();
+
+        public async Task<TEntity?> GetAsync([NotNull] Expression<Func<TEntity, bool>> predicate, bool tracking = true) => await QueryDb(predicate, null, null, tracking).FirstOrDefaultAsync();
 
         public async Task<TEntity?> GetAsync(ISpecification<TEntity>? specification, bool tracking = true) => await QueryDb(specification?.Expression(), specification?.Order, null, tracking).FirstOrDefaultAsync();
 

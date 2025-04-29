@@ -2,6 +2,6 @@ namespace GamaEdtech.Presentation.ViewModel.Tag
 {
     public sealed class ManageTagResponseViewModel
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
     }
 }

@@ -1,8 +1,12 @@
 namespace GamaEdtech.Presentation.ViewModel.School
 {
+    using GamaEdtech.Common.Converter;
+    using System.Text.Json.Serialization;
+
     using GamaEdtech.Common.DataAnnotation;
 
     using GamaEdtech.Domain.Enumeration;
+    using System.Collections.Generic;
 
     public sealed class ManageSchoolRequestViewModel
     {
@@ -15,6 +19,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         [Required]
+        [JsonConverter(typeof(EnumerationConverter<SchoolType, byte>))]
         public SchoolType? SchoolType { get; set; }
 
         [Display]
@@ -61,5 +66,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         public long? OsmId { get; set; }
+
+        [Display]
+        public IEnumerable<long> Tags { get; set; }
     }
 }

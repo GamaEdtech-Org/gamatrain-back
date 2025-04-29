@@ -9,6 +9,7 @@ namespace GamaEdtech.Application.Interface
     using System.Diagnostics.CodeAnalysis;
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
+    using GamaEdtech.Domain.Enumeration;
 
     [Injectable]
     public interface IIdentityService
@@ -20,6 +21,8 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<ApplicationUserDto>> GetUserAsync([NotNull] ISpecification<ApplicationUser> specification);
 
         Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId);
+
+        Task<ResultData<bool>> UserIsInRoleAsync([NotNull] int userId, [NotNull] string role);
 
         Task<ResultData<AuthenticationResponseDto>> AuthenticateAsync([NotNull] AuthenticationRequestDto requestDto);
 
@@ -56,5 +59,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync();
 
         Task<ResultData<Void>> UpdateProfileSettingsAsync([NotNull] ProfileSettingsDto requestDto);
+
+        Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims);
     }
 }

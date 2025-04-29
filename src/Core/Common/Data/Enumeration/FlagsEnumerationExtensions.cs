@@ -15,9 +15,10 @@ namespace GamaEdtech.Common.Data.Enumeration
     public static class FlagsEnumerationExtensions
     {
         public static IEnumerable<string> GetNames<TEnum>(BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Static)
-            where TEnum : FlagsEnumeration<TEnum>, new() => typeof(TEnum)
-                .GetFields(bindingFlags)
-                .Select(f => f.Name);
+            where TEnum : FlagsEnumeration<TEnum>, new() => GetNames(typeof(TEnum), bindingFlags);
+
+        public static IEnumerable<string> GetNames([NotNull] this Type flagsEnumType, BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Static)
+            => flagsEnumType.GetFields(bindingFlags).Select(f => f.Name);
 
         public static IEnumerable<string> GetNames<TEnum>(this TEnum enumFlag, BindingFlags bindingFlag = BindingFlags.Public | BindingFlags.Static)
             where TEnum : FlagsEnumeration<TEnum>, new() => GetKeyValues<TEnum>(bindingFlag).Where(t => enumFlag.HasFlags(t.Value)).Select(t => t.Key);

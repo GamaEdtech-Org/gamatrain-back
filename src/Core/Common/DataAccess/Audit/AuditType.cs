@@ -1,8 +1,8 @@
-﻿namespace GamaEdtech.Common.DataAccess.Audit
+namespace GamaEdtech.Common.DataAccess.Audit
 {
     using GamaEdtech.Common.Data.Enumeration;
 
-    public class AuditType : Enumeration<byte>
+    public class AuditType : Enumeration<AuditType, byte>
     {
         public static readonly AuditType Added = new(nameof(Added), 0);
         public static readonly AuditType Modified = new(nameof(Modified), 1);

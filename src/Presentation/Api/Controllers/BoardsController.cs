@@ -26,7 +26,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 {
                     PagingDto = request.PagingDto,
                 });
-                return Ok(new ApiResponse<ListDataSource<BoardsResponseViewModel>>(result.Errors)
+                return Ok<ListDataSource<BoardsResponseViewModel>>(new(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
                     {
@@ -44,7 +44,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<BoardsResponseViewModel>>(new Error { Message = exc.Message }));
+                return Ok<ListDataSource<BoardsResponseViewModel>>(new(new Error { Message = exc.Message }));
             }
         }
     }

@@ -13,7 +13,8 @@ namespace GamaEdtech.Application.Interface
     public interface IFileService
     {
         Task<ResultData<CreateFileResponseDto>> CreateFileWithPreviewAsync([NotNull] CreateFileRequestDto requestDto);
-        ResultData<Uri?> GetFileUri(string? id, ContainerType containerType);
+        ResultData<Uri?> GetFileUri(string id, ContainerType containerType);
         Task<ResultData<string?>> UploadFileAsync([NotNull] UploadFileRequestDto requestDto);
+        Task<ResultData<bool>> RemoveFileAsync([NotNull] RemoveFileRequestDto requestDto);
     }
 }

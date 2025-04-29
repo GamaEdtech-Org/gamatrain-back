@@ -3,7 +3,7 @@ namespace GamaEdtech.Domain.Enumeration
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class SchoolType : Enumeration<byte>
+    public sealed class SchoolType : Enumeration<SchoolType, byte>
     {
         [Display]
         public static readonly SchoolType Public = new(nameof(Public), 0);

@@ -1,7 +1,8 @@
-﻿namespace GamaEdtech.Common.ModelBinding
+namespace GamaEdtech.Common.ModelBinding
 {
     using System;
 
+    using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data.Enumeration;
 
     using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -13,27 +14,20 @@
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            var fullyQualifiedAssemblyName = context.Metadata.ModelType.FullName;
-            if (fullyQualifiedAssemblyName is null)
+            var modelType = context.Metadata.ModelType;
+
+            if (modelType.HasElementType)
             {
-                return null;
+                modelType = modelType.GetElementType()!;
+            }
+            else if (modelType.IsGenericType && typeof(System.Collections.IEnumerable).IsAssignableFrom(modelType))
+            {
+                modelType = modelType.GenericTypeArguments[0];
             }
 
-            var enumType = context.Metadata.ModelType.Assembly.GetType(fullyQualifiedAssemblyName, false);
-            if (enumType is null)
-            {
-                return null;
-            }
-
-            var typeOfEnumeration = typeof(Enumeration<>);
-            if (typeof(System.Collections.IEnumerable).IsAssignableFrom(enumType) && enumType.IsGenericType)
-            {
-                typeOfEnumeration = enumType.GenericTypeArguments[0];
-            }
-
-            return !enumType.IsSubclassOf(typeOfEnumeration)
-                ? null
-                : Activator.CreateInstance(typeof(EnumerationQueryStringModelBinder<,>).MakeGenericType(enumType)) as IModelBinder;
+            return Globals.IsSubclassOf(modelType, typeof(Enumeration<,>))
+                ? new EnumerationQueryStringModelBinder(context.Metadata.ModelType)
+                : null;
         }
     }
 }

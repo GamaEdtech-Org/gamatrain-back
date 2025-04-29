@@ -1,11 +1,11 @@
-﻿namespace GamaEdtech.Common.Service.Factory
+namespace GamaEdtech.Common.Service.Factory
 {
     using GamaEdtech.Common.Data.Enumeration;
 
     [DataAnnotation.Injectable]
     public interface IGenericFactory<TProvider, TProviderType>
         where TProvider : IProvider<TProviderType>
-        where TProviderType : Enumeration<byte>
+        where TProviderType : Enumeration<TProviderType, byte>
     {
         TProvider? GetProvider(TProviderType providerType, bool returnFirstItemIfNotMatch = false);
     }

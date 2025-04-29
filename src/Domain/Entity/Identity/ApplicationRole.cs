@@ -56,6 +56,8 @@ namespace GamaEdtech.Domain.Entity.Identity
             List<ApplicationRole> seedData =
             [
                 new ApplicationRole { Id = 1, Name = nameof(Role.Admin), NormalizedName = nameof(Role.Admin).ToUpperInvariant(), ConcurrencyStamp = "85465B3B-E646-49BC-AAC6-D07C450B3AE3", },
+                new ApplicationRole { Id = 2, Name = nameof(Role.Teacher), NormalizedName = nameof(Role.Teacher).ToUpperInvariant(), ConcurrencyStamp = "85465B3B-E646-49BC-AAC6-D07C450B3AE4", },
+                new ApplicationRole { Id = 3, Name = nameof(Role.Student), NormalizedName = nameof(Role.Student).ToUpperInvariant(), ConcurrencyStamp = "85465B3B-E646-49BC-AAC6-D07C450B3AE5", },
             ];
             _ = builder.HasData(seedData);
         }

@@ -33,7 +33,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var result = await uow.GetRepository<Tag, int>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+                var result = await uow.GetRepository<Tag>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
                 var users = await result.List.Select(t => new TagsDto
                 {
                     Id = t.Id,
@@ -55,7 +55,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var tag = await uow.GetRepository<Tag, int>().GetManyQueryable(specification).Select(t => new TagDto
+                var tag = await uow.GetRepository<Tag>().GetManyQueryable(specification).Select(t => new TagDto
                 {
                     Id = t.Id,
                     Name = t.Name,
@@ -77,12 +77,12 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<int>> ManageTagAsync([NotNull] ManageTagRequestDto requestDto)
+        public async Task<ResultData<long>> ManageTagAsync([NotNull] ManageTagRequestDto requestDto)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var repository = uow.GetRepository<Tag, int>();
+                var repository = uow.GetRepository<Tag>();
                 Tag? tag = null;
 
                 if (requestDto.Id.HasValue)
@@ -133,7 +133,8 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var tag = await uow.GetRepository<Tag, int>().GetAsync(specification);
+                var repository = uow.GetRepository<Tag>();
+                var tag = await repository.GetAsync(specification);
                 if (tag is null)
                 {
                     return new(OperationResult.NotFound)
@@ -143,7 +144,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                uow.GetRepository<Tag, int>().Remove(tag);
+                repository.Remove(tag);
                 _ = await uow.SaveChangesAsync();
                 return new(OperationResult.Succeeded) { Data = true };
             }
@@ -155,6 +156,22 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
+            }
+        }
+
+        public async Task<ResultData<bool>> ExistsTagAsync([NotNull] ISpecification<Tag> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var exists = await uow.GetRepository<Tag>().AnyAsync(specification);
+
+                return new(OperationResult.Succeeded) { Data = exists };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
             }
         }
     }

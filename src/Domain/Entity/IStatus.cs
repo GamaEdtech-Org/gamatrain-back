@@ -4,6 +4,6 @@ namespace GamaEdtech.Domain.Entity
 
     public interface IStatus
     {
-        Status? Status { get; set; }
+        Status Status { get; set; }
     }
 }

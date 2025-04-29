@@ -17,8 +17,6 @@ namespace GamaEdtech.Infrastructure.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_Schools_Longitude",
                 table: "Schools");
-
-            migrationBuilder.Sql("CREATE SPATIAL INDEX SPATIAL_Schools_Location ON dbo.Schools(Location) USING GEOMETRY_GRID    WITH(BOUNDING_BOX = (xmin = 0.0, ymin = 0.0, xmax = 500, ymax = 200), GRIDS = (LEVEL_1 = MEDIUM, LEVEL_2 = MEDIUM, LEVEL_3 = MEDIUM, LEVEL_4 = MEDIUM), CELLS_PER_OBJECT = 16, STATISTICS_NORECOMPUTE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)");
         }
 
         /// <inheritdoc />

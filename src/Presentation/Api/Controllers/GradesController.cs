@@ -29,7 +29,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     PagingDto = request.PagingDto,
                     Specification = request.BoardId.HasValue ? new BoardIdEqualsSpecification(request.BoardId.Value) : null,
                 });
-                return Ok(new ApiResponse<ListDataSource<GradesResponseViewModel>>(result.Errors)
+                return Ok<ListDataSource<GradesResponseViewModel>>(new(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
                     {
@@ -47,7 +47,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<GradesResponseViewModel>>(new Error { Message = exc.Message }));
+                return Ok<ListDataSource<GradesResponseViewModel>>(new(new Error { Message = exc.Message }));
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace GamaEdtech.Common.Data
+namespace GamaEdtech.Common.Data
 {
     using GamaEdtech.Common.DataAnnotation;
 

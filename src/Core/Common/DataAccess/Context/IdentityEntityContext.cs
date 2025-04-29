@@ -28,9 +28,7 @@ namespace GamaEdtech.Common.DataAccess.Context
 
     using NUlid;
 
-#pragma warning disable CA1005 // Avoid excessive parameters on generic types
     public abstract class IdentityEntityContext<TContext, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
-#pragma warning restore CA1005 // Avoid excessive parameters on generic types
         : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>, IEntityContext
         where TContext : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
         where TUser : IdentityUser<TKey>
@@ -129,6 +127,11 @@ namespace GamaEdtech.Common.DataAccess.Context
 
                         _ = builder.Entity(type).Property(nameof(IVersionableEntity<TUser, TKey, TKey>.LastModifyUserId)).IsRequired(false);
                     }
+                    else if (interfaces.Exists(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ICreationableEntity<,>)))
+                    {
+                        _ = builder.Entity(type).HasOne(nameof(ICreationableEntity<TUser, TKey>.CreationUser))
+                                .WithMany().HasForeignKey(nameof(ICreationableEntity<TUser, TKey>.CreationUserId)).OnDelete(DeleteBehavior.NoAction);
+                    }
 
                     if (type.IsGenericType)
                     {
@@ -212,36 +215,36 @@ namespace GamaEdtech.Common.DataAccess.Context
             }
 
             var entries = ChangeTracker.Entries();
-            var i = 0;
+            var userId = httpContextAccessor.HttpContext.UserId<TKey>();
+            var now = DateTimeOffset.UtcNow;
             foreach (var entry in entries)
             {
-                if (entry.Entity.GetType().GetInterface(typeof(IVersionableEntity<,,>).Name) is null)
+                if (entry.State is EntityState.Added && entry.Entity is ICreationableEntity<TUser, TKey> creationableEntity)
                 {
-                    continue;
-                }
-
-                dynamic versionableEntity = entry.Entity;
-                var userId = httpContextAccessor.HttpContext.UserId<TKey>();
-                if (entry.State is EntityState.Added)
-                {
-                    if (userId is not null && !userId.Equals(default))
+                    if (userId is not null && !userId.Equals(default)
+                        && (creationableEntity.CreationUserId is null || creationableEntity.CreationUserId.Equals(default)))
                     {
-                        versionableEntity.CreationUserId = userId;
+                        creationableEntity.CreationUserId = userId;
                     }
 
-                    versionableEntity.CreationDate = DateTimeOffset.Now;
+                    if (creationableEntity.CreationDate.Equals(default))
+                    {
+                        creationableEntity.CreationDate = now;
+                    }
                 }
-                else if (entry.State is EntityState.Modified)
+                else if (entry.State is EntityState.Modified && entry.Entity is IVersionableEntity<TUser, TKey, TKey> versionableEntity)
                 {
-                    if (userId is not null && !userId.Equals(default))
+                    if (userId is not null && !userId.Equals(default)
+                        && (versionableEntity.LastModifyUser is null || versionableEntity.LastModifyUser.Equals(default)))
                     {
                         versionableEntity.LastModifyUserId = userId;
                     }
 
-                    versionableEntity.LastModifyDate = DateTimeOffset.Now;
+                    if (!versionableEntity.LastModifyDate.HasValue)
+                    {
+                        versionableEntity.LastModifyDate = now;
+                    }
                 }
-
-                i++;
             }
         }
 
@@ -255,7 +258,7 @@ namespace GamaEdtech.Common.DataAccess.Context
             var audit = new Audit
             {
                 Id = Ulid.NewUlid(),
-                Date = DateTimeOffset.Now,
+                Date = DateTimeOffset.UtcNow,
                 IpAddress = httpContextAccessor.HttpContext.GetClientIpAddress(),
                 UserAgent = httpContextAccessor.HttpContext.UserAgent(),
                 UserId = httpContextAccessor.HttpContext.UserId<TKey>()?.ToString(),

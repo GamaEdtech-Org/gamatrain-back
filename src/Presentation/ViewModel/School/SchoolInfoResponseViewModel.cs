@@ -4,7 +4,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
     public sealed class SchoolInfoResponseViewModel
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string? Name { get; set; }
         public string? Slug { get; set; }
 

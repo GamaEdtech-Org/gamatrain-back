@@ -21,12 +21,11 @@ namespace GamaEdtech.Infrastructure.Provider.File
     {
         public FileProviderType ProviderType => FileProviderType.Local;
 
-        public ResultData<Uri?> GetFileUri(string? id, ContainerType containerType)
+        public ResultData<Uri?> GetFileUri(string? id, [NotNull] ContainerType containerType)
         {
             try
             {
-                var hostUrl = $"{httpContextAccessor.Value.HttpContext?.Request.Scheme}://{httpContextAccessor.Value.HttpContext?.Request.Host}";
-                var path = $"{hostUrl}/{configuration.Value.GetValue<string>("FileProvider:Local:Path")}/{id}";
+                var path = $"{GetDirectoryPath(containerType, false)}/{id}";
                 return new(OperationResult.Succeeded) { Data = new Uri(path) };
             }
             catch (Exception exc)
@@ -40,8 +39,7 @@ namespace GamaEdtech.Infrastructure.Provider.File
         {
             try
             {
-                var path = configuration.Value.GetValue<string>("FileProvider:Local:Path");
-                var dir = Path.Combine(environment.Value.WebRootPath, path!.Replace("/", "\\", StringComparison.OrdinalIgnoreCase), requestDto.ContainerType.Name);
+                var dir = GetDirectoryPath(requestDto.ContainerType, true);
                 if (!Directory.Exists(dir))
                 {
                     _ = Directory.CreateDirectory(dir);
@@ -52,13 +50,48 @@ namespace GamaEdtech.Infrastructure.Provider.File
 
                 await System.IO.File.WriteAllBytesAsync(savedFilePath, requestDto.File);
 
-                return new(OperationResult.Succeeded) { Data = $"{requestDto.ContainerType.Name}/{value}" };
+                return new(OperationResult.Succeeded) { Data = value };
             }
             catch (Exception exc)
             {
                 logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
             }
+        }
+
+        public async Task<ResultData<bool>> RemoveFileAsync([NotNull] RemoveFileRequestDto requestDto)
+        {
+            try
+            {
+                var file = Path.Combine(GetDirectoryPath(requestDto.ContainerType, true), requestDto.FileId);
+                if (System.IO.File.Exists(file))
+                {
+                    System.IO.File.SetAttributes(file, FileAttributes.Normal);
+                    System.IO.File.Delete(file);
+                }
+
+                return new(OperationResult.Succeeded) { Data = await Task.FromResult(true) };
+            }
+            catch (Exception exc)
+            {
+                logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        private string GetDirectoryPath([NotNull] ContainerType containerType, bool physicalPath)
+        {
+            var path = configuration.Value.GetValue<string>("FileProvider:Local:Path")!;
+            if (physicalPath)
+            {
+                List<string> lst = [environment.Value.WebRootPath];
+                lst.AddRange(path.Split('/'));
+                lst.Add(containerType.Name);
+                return Path.Combine([.. lst]);
+            }
+
+            var hostUrl = $"{httpContextAccessor.Value.HttpContext?.Request.Scheme}://{httpContextAccessor.Value.HttpContext?.Request.Host}";
+            return hostUrl + "/" + path + "/" + containerType.Name;
         }
     }
 }

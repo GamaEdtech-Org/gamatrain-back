@@ -4,7 +4,7 @@ namespace GamaEdtech.Data.Dto.School
 
     public sealed class SchoolInfoDto
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string? Name { get; set; }
         public Point? Coordinates { get; set; }
         public string? CityTitle { get; set; }

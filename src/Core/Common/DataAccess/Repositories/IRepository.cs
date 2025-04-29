@@ -1,7 +1,8 @@
-﻿namespace GamaEdtech.Common.DataAccess.Repositories
+namespace GamaEdtech.Common.DataAccess.Repositories
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
@@ -31,6 +32,8 @@
         TEntity? Get(ISpecification<TEntity>? specification, bool tracking = true);
 
         Task<TEntity?> GetAsync(TKey id, Func<IQueryable<TEntity>, IQueryable<TEntity>>? includes = null, bool tracking = true);
+
+        Task<TEntity?> GetAsync([NotNull] Expression<Func<TEntity, bool>> predicate, bool tracking = true);
 
         Task<TEntity?> GetAsync(ISpecification<TEntity>? specification, bool tracking = true);
 

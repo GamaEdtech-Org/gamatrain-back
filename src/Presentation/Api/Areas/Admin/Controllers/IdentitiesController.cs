@@ -32,15 +32,14 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     {
         [HttpGet, Produces(typeof(ApiResponse<ListDataSource<UserListResponseViewModel>>))]
         [Display(Name = "Users List")]
-        public async Task<IActionResult> GetUsers([NotNull, FromQuery] ConsumersRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<UserListResponseViewModel>>> GetUsers([NotNull, FromQuery] ConsumersRequestViewModel request)
         {
             try
             {
                 var result = await identityService.Value.GetUsersAsync(new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto });
-                return Ok(new ApiResponse<ListDataSource<UserListResponseViewModel>>
+                return Ok<ListDataSource<UserListResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
-                    Data = result.Data.List is null ? new() : new ListDataSource<UserListResponseViewModel>
+                    Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new UserListResponseViewModel
                         {
@@ -58,21 +57,20 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<UserListResponseViewModel>> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<ListDataSource<UserListResponseViewModel>>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpGet("{userId:int}"), Produces(typeof(ApiResponse<UserResponseViewModel>))]
         [Display(Name = "User Details")]
-        public async Task<IActionResult> Get([FromRoute] int userId)
+        public async Task<IActionResult<UserResponseViewModel>> Get([FromRoute] int userId)
         {
             try
             {
                 var result = await identityService.Value.GetUserAsync(new IdEqualsSpecification<ApplicationUser, int>(userId));
-                return Ok(new ApiResponse<UserResponseViewModel>
+                return Ok<UserResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
-                    Data = result.Data is null ? null : new UserResponseViewModel
+                    Data = result.Data is null ? null : new()
                     {
                         Id = result.Data.Id,
                         Username = result.Data.UserName,
@@ -87,7 +85,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<UserResponseViewModel> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<UserResponseViewModel>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
@@ -107,22 +105,19 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     LastName = request.LastName,
                     Avatar = await request.Avatar.ConvertImageToBase64Async(),
                 });
-                return Ok(new ApiResponse<Void>
-                {
-                    Errors = result.Errors,
-                });
+                return Ok<Void>(new(result.Errors));
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<Void> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpPut("{userId:int}"), Produces(typeof(ApiResponse<Void>))]
         [Display(Name = "Edit User")]
-        public async Task<IActionResult> Update([FromRoute] int userId, [NotNull, FromBody] EditUserRequestViewModel request)
+        public async Task<IActionResult<Void>> Update([FromRoute] int userId, [NotNull, FromBody] EditUserRequestViewModel request)
         {
             try
             {
@@ -136,16 +131,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     LastName = request.LastName,
                     Avatar = await request.Avatar.ConvertImageToBase64Async(),
                 });
-                return Ok(new ApiResponse<Void>
-                {
-                    Errors = result.Errors,
-                });
+                return Ok<Void>(new(result.Errors));
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<Void> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
@@ -156,9 +148,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             try
             {
                 var result = await identityService.Value.RemoveUserAsync(new IdEqualsSpecification<ApplicationUser, int>(userId));
-                return Ok(new ApiResponse<bool>
+                return Ok<bool>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data
                 });
             }
@@ -166,7 +157,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<bool>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
@@ -177,17 +168,16 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             try
             {
                 var result = await identityService.Value.ToggleUserAsync(new IdEqualsSpecification<ApplicationUser, int>(userId));
-                return Ok(new ApiResponse<AuthenticationResponseViewModel>
+                return Ok<Void>(new(result.Errors)
                 {
-                    Errors = result.Errors,
-                    Data = new AuthenticationResponseViewModel()
+                    Data = new()
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<Void> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
@@ -203,9 +193,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
                     Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
                 });
-                return Ok(new ApiResponse<GetTokenResponseViewModel>
+                return Ok<GetTokenResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new GetTokenResponseViewModel
                     {
                         Token = result.Data,
@@ -216,13 +205,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<GetTokenResponseViewModel> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<GetTokenResponseViewModel>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpPost("{userId:int}/token"), Produces(typeof(ApiResponse<GenerateTokenResponseViewModel>))]
         [Display(Name = "Generate User Token")]
-        public async Task<IActionResult> GenerateToken([FromRoute] int userId)
+        public async Task<IActionResult<GenerateTokenResponseViewModel>> GenerateToken([FromRoute] int userId)
         {
             try
             {
@@ -232,9 +221,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
                     Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
                 });
-                return Ok(new ApiResponse<GenerateTokenResponseViewModel>
+                return Ok<GenerateTokenResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new GenerateTokenResponseViewModel
                     {
                         Token = result.Data?.Token,
@@ -245,13 +233,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<GenerateTokenResponseViewModel> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<GenerateTokenResponseViewModel>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpDelete("{userId:int}/token"), Produces(typeof(ApiResponse<bool>))]
         [Display(Name = "Remove User Token")]
-        public async Task<IActionResult> RemoveToken([FromRoute] int userId)
+        public async Task<IActionResult<bool>> RemoveToken([FromRoute] int userId)
         {
             try
             {
@@ -261,55 +249,48 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
                     Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
                 });
-                return Ok(new ApiResponse<bool>
+                return Ok<bool>(new(result.Errors)
                 {
-                    Errors = result.Errors,
-                    Data = result.OperationResult is OperationResult.Succeeded,
+                    Data = result.Data,
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<bool>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpPut("{userId:int}/reset-password"), Produces(typeof(ApiResponse<Void>))]
         [Display(Name = "Reset User Password")]
-        public async Task<IActionResult> ResetPassword([FromRoute] int userId, [NotNull] ResetPasswordRequestViewModel request)
+        public async Task<IActionResult<Void>> ResetPassword([FromRoute] int userId, [NotNull] ResetPasswordRequestViewModel request)
         {
             try
             {
                 var userResult = await identityService.Value.GetUserAsync(new IdEqualsSpecification<ApplicationUser, int>(userId));
                 if (userResult.OperationResult is not OperationResult.Succeeded)
                 {
-                    return Ok(new ApiResponse<Void>
-                    {
-                        Errors = userResult.Errors,
-                    });
+                    return Ok<Void>(new(userResult.Errors));
                 }
                 var resetPasswordResult = await identityService.Value.ResetPasswordAsync(new ResetPasswordRequestDto
                 {
                     UserId = userId,
                     NewPassword = request.NewPassword,
                 });
-                return Ok(new ApiResponse<Void>
-                {
-                    Errors = resetPasswordResult.Errors,
-                });
+                return Ok<Void>(new(resetPasswordResult.Errors));
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<Void> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpGet("{userId:int}/permissions"), Produces(typeof(ApiResponse<UserPermissionsResponseViewModel>))]
         [Display(Name = "View User Permissions")]
-        public async Task<IActionResult> Permissions([FromRoute] int userId)
+        public async Task<IActionResult<UserPermissionsResponseViewModel>> Permissions([FromRoute] int userId)
         {
             try
             {
@@ -322,21 +303,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await identityService.Value.GetUserPermissionsAsync(new UserPermissionsRequestDto { UserId = userId });
 
                 var areas = endpoints.Where(t => t.Controller.HasValue).GroupBy(t => t.Area);
-                List<ClaimsResponseViewModel> items = new(areas.Count());
+                List<PermissionsResponseViewModel> items = new(areas.Count());
                 foreach (var area in areas)
                 {
                     var controllers = area.GroupBy(t => t.Controller);
-                    var areaItem = new ClaimsResponseViewModel
+                    var areaItem = new PermissionsResponseViewModel
                     {
                         Text = area.Key?.Value ?? Localizer.Value["Root"],
-                        Items = controllers.Select(t => new ClaimsResponseViewModel
+                        Items = controllers.Select(t => new PermissionsResponseViewModel
                         {
                             Text = t.Key?.Value,
-                            Items = t.Select(c => new ClaimsResponseViewModel
+                            Items = t.Select(c => new PermissionsResponseViewModel
                             {
                                 Text = c.Action?.Value,
                                 Value = c.EndpointName,
-                                HasPermission = result.Data?.Claims?.Contains(c.EndpointName) is true,
+                                HasPermission = result.Data?.Permissions?.Contains(c.EndpointName) is true,
                             }),
                         }),
                     };
@@ -344,12 +325,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     items.Add(areaItem);
                 }
 
-                return Ok(new ApiResponse<UserPermissionsResponseViewModel>
+                return Ok<UserPermissionsResponseViewModel>(new(result.Errors)
                 {
                     Data = new UserPermissionsResponseViewModel
                     {
-                        Claims = items,
+                        Permissions = items,
                         Roles = result.Data?.Roles,
+                        SystemClaims = result.Data?.SystemClaims,
                     }
                 });
             }
@@ -357,33 +339,31 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<ClaimsResponseViewModel>> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<UserPermissionsResponseViewModel>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
         [HttpPut("{userId:int}/permissions"), Produces(typeof(ApiResponse<Void>))]
         [Display(Name = "Edit User Permissions")]
-        public async Task<IActionResult> ManageUserPermissions([FromRoute] int userId, [NotNull] ManageUserPermissionsRequestViewModel request)
+        public async Task<IActionResult<Void>> ManageUserPermissions([FromRoute] int userId, [NotNull] ManageUserPermissionsRequestViewModel request)
         {
             try
             {
                 var result = await identityService.Value.UpdateUserPermissionsAsync(new UpdateUserPermissionsRequestDto
                 {
                     UserId = userId,
-                    Claims = request.Claims,
-                    Roles = request.Roles
+                    Permissions = request.Permissions ?? [],
+                    Roles = request.Roles,
+                    SystemClaims = request.SystemClaims,
                 });
 
-                return Ok(new ApiResponse<Void>
-                {
-                    Errors = result.Errors,
-                });
+                return Ok<Void>(new(result.Errors));
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<Void> { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
     }

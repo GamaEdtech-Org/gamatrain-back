@@ -13,6 +13,8 @@ namespace GamaEdtech.Presentation.Api
 
     using GamaEdtech.Domain.Entity.Identity;
 
+    using Hangfire;
+
     using Microsoft.OpenApi.Models;
 
     public class Startup(IConfiguration configuration)
@@ -46,6 +48,13 @@ namespace GamaEdtech.Presentation.Api
 
         protected override void ConfigureServicesCore(IServiceCollection services, IMvcBuilder mvcBuilder)
         {
+            _ = services.AddHangfire(t => t
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(Configuration.GetValue<string>("Connection:ConnectionString")));
+            _ = services.AddHangfireServer();
+
             _ = services.AddDistributedMemoryCache();
 
             _ = services.AddApiVersioning(config =>
@@ -60,7 +69,7 @@ namespace GamaEdtech.Presentation.Api
                 setup.SubstituteApiVersionInUrl = true;
             });
 
-            _ = services.ConfigureSwagger(options =>
+            _ = services.ConfigureSwagger(DefaultNamespace, options =>
             {
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -176,6 +185,14 @@ namespace GamaEdtech.Presentation.Api
             _ = app.UseCookiePolicy(new CookiePolicyOptions { Secure = CookieSecurePolicy.Always });
 
             _ = app.UseHealthChecks("/healthz");
+
+            _ = app.UseHangfireDashboard();
+
+            RecurringJob.RemoveIfExists("UpdateAllSchoolScore");
+            RecurringJob.AddOrUpdate<ISchoolService>("UpdateSchoolScore", t => t.UpdateSchoolScoreAsync(null), Cron.Daily(0, 0));
+            RecurringJob.AddOrUpdate<ISchoolService>("UpdateSchoolCommentReactions", t => t.UpdateSchoolCommentReactionsAsync(null), Cron.Daily(0, 5));
+            RecurringJob.AddOrUpdate<IBlogService>("UpdatePostReactions", t => t.UpdatePostReactionsAsync(null), Cron.Daily(0, 10));
+            RecurringJob.AddOrUpdate<ISchoolService>("RemoveOldRejectedSchoolImages", t => t.RemoveOldRejectedSchoolImagesAsync(), Cron.Daily(0, 15));
         }
     }
 }

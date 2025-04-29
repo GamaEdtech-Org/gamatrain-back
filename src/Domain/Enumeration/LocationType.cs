@@ -3,7 +3,7 @@ namespace GamaEdtech.Domain.Enumeration
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class LocationType : Enumeration<byte>
+    public sealed class LocationType : Enumeration<LocationType, byte>
     {
         [Display]
         public static readonly LocationType Country = new(nameof(Country), 0, null);

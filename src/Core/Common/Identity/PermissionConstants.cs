@@ -2,6 +2,7 @@ namespace GamaEdtech.Common.Identity
 {
     public static class PermissionConstants
     {
+        public const string SystemClaim = "SystemClaim";
         public const string PermissionPolicy = "Permission";
 
         public static readonly string ApiDataProtectorTokenProvider = "ApiDataProtectorTokenProvider";

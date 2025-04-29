@@ -58,12 +58,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet("{id:int}"), Produces<ApiResponse<TagResponseViewModel>>()]
-        public async Task<IActionResult> GetTag([FromRoute] int id)
+        [HttpGet("{id:long}"), Produces<ApiResponse<TagResponseViewModel>>()]
+        public async Task<IActionResult> GetTag([FromRoute] long id)
         {
             try
             {
-                var result = await tagService.Value.GetTagAsync(new IdEqualsSpecification<Tag, int>(id));
+                var result = await tagService.Value.GetTagAsync(new IdEqualsSpecification<Tag, long>(id));
                 return Ok(new ApiResponse<TagResponseViewModel>
                 {
                     Errors = result.Errors,
@@ -109,8 +109,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
-        [HttpPut("{id:int}"), Produces<ApiResponse<ManageTagResponseViewModel>>()]
-        public async Task<IActionResult> UpdateTag([FromRoute] int id, [NotNull, FromBody] ManageTagRequestViewModel request)
+        [HttpPut("{id:long}"), Produces<ApiResponse<ManageTagResponseViewModel>>()]
+        public async Task<IActionResult> UpdateTag([FromRoute] long id, [NotNull, FromBody] ManageTagRequestViewModel request)
         {
             try
             {
@@ -135,12 +135,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
-        [HttpDelete("{id:int}"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RemoveTag([FromRoute] int id)
+        [HttpDelete("{id:long}"), Produces<ApiResponse<bool>>()]
+        public async Task<IActionResult> RemoveTag([FromRoute] long id)
         {
             try
             {
-                var result = await tagService.Value.RemoveTagAsync(new IdEqualsSpecification<Tag, int>(id));
+                var result = await tagService.Value.RemoveTagAsync(new IdEqualsSpecification<Tag, long>(id));
                 return Ok(new ApiResponse<bool>
                 {
                     Errors = result.Errors,

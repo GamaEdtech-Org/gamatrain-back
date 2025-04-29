@@ -1,9 +1,9 @@
-﻿namespace GamaEdtech.Common.Service.Factory
+namespace GamaEdtech.Common.Service.Factory
 {
     using GamaEdtech.Common.Data.Enumeration;
 
     public interface IProvider<T>
-        where T : Enumeration<byte>
+        where T : Enumeration<T, byte>
     {
         T ProviderType { get; }
     }

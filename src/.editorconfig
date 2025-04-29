@@ -123,7 +123,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
 # File header preferences
 # dotnet_diagnostic.SA1636.severity = none
 # Undocumented
-dotnet_style_operator_placement_when_wrapping = end_of_line
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
 csharp_style_prefer_null_check_over_type_check = true:error
 
 # C# Style Rules
@@ -683,6 +683,10 @@ dotnet_diagnostic.CA1848.severity = silent
 dotnet_diagnostic.JSON002.severity = error
 
 # Workaround for https://github.com/dotnet/roslyn-analyzers/issues/5628
+
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+dotnet_diagnostic.CS8618.severity = suggestion
+
 [Program.cs]
 dotnet_diagnostic.ca1812.severity = none
 
@@ -703,7 +707,7 @@ dotnet_diagnostic.CA1070.severity=error
 dotnet_diagnostic.CA1047.severity= error
 dotnet_diagnostic.CA1000.severity= error
 dotnet_diagnostic.CA1003.severity= error
-dotnet_diagnostic.CA1005.severity= error
+dotnet_diagnostic.CA1005.severity= suggestion
 dotnet_diagnostic.CA1010.severity=error
 dotnet_diagnostic.CA1012.severity= error
 dotnet_diagnostic.CA1016.severity=error
@@ -1210,7 +1214,7 @@ dotnet_diagnostic.CA1063.severity = error
 dotnet_diagnostic.CA1066.severity = error
 dotnet_diagnostic.CA1067.severity = error
 dotnet_diagnostic.CA1069.severity = error
-csharp_indent_labels = no_change
+csharp_indent_labels = one_less_than_current
 csharp_using_directive_placement = inside_namespace:error
 csharp_prefer_simple_using_statement = true:error
 csharp_prefer_braces = true:error

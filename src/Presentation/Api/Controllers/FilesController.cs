@@ -22,13 +22,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 var result = fileService.Value.GetFileUri(id, ContainerType.Default);
                 return result.OperationResult is Constants.OperationResult.Succeeded
                     ? Redirect(result.Data!.ToString())
-                    : Ok(new ApiResponse<string?>(result.Errors));
+                    : Ok<string?>(new(result.Errors));
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<string?>(new Error { Message = exc.Message }));
+                return Ok<string?>(new(new Error { Message = exc.Message }));
             }
         }
     }

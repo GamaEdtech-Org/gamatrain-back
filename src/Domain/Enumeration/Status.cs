@@ -3,7 +3,7 @@ namespace GamaEdtech.Domain.Enumeration
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class Status : Enumeration<byte>
+    public sealed class Status : Enumeration<Status, byte>
     {
         [Display]
         public static readonly Status Draft = new(nameof(Draft), 0);

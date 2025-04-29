@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <AssemblyAttribute Include="GamaEdtech.Common.DataAnnotation.InjectableAttribute">
+    </AssemblyAttribute>
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="NetTopologySuite" />

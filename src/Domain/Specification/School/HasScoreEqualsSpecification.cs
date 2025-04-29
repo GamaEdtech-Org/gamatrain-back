@@ -7,6 +7,6 @@ namespace GamaEdtech.Domain.Specification.School
 
     public sealed class HasScoreEqualsSpecification(bool hasScore) : SpecificationBase<School>
     {
-        public override Expression<Func<School, bool>> Expression() => (t) => hasScore ? (t.Comments != null && t.Comments.Any()) : (t.Comments == null || !t.Comments.Any());
+        public override Expression<Func<School, bool>> Expression() => (t) => hasScore ? (t.SchoolComments != null && t.SchoolComments.Any()) : (t.SchoolComments == null || !t.SchoolComments.Any());
     }
 }

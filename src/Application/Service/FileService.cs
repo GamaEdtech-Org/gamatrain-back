@@ -16,6 +16,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Data.Dto.File;
     using GamaEdtech.Data.Dto.School;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
@@ -26,9 +27,18 @@ namespace GamaEdtech.Application.Service
 
 #pragma warning disable CA1416 // Validate platform compatibility
     public class FileService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer
-        , Lazy<ILogger<FileService>> logger, Lazy<IConfiguration> configuration, Lazy<IGenericFactory<Infrastructure.Interface.IFileProvider, FileProviderType>> genericFactory)
+        , Lazy<ILogger<FileService>> logger, Lazy<IConfiguration> configuration, Lazy<IGenericFactory<IFileProvider, FileProviderType>> genericFactory)
         : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IFileService
     {
+        private IFileProvider FileProvider
+        {
+            get
+            {
+                _ = configuration.Value.GetValue<string?>("FileProvider:Type").TryGetFromNameOrValue<FileProviderType, byte>(out var fileProviderType);
+                return genericFactory.Value.GetProvider(fileProviderType!)!;
+            }
+        }
+
         public async Task<ResultData<CreateFileResponseDto>> CreateFileWithPreviewAsync([NotNull] CreateFileRequestDto requestDto)
         {
             try
@@ -62,12 +72,11 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public ResultData<Uri?> GetFileUri(string? id, ContainerType containerType)
+        public ResultData<Uri?> GetFileUri(string id, ContainerType containerType)
         {
             try
             {
-                var fileProviderType = configuration.Value.GetValue<FileProviderType>("FileProvider:Type");
-                return genericFactory.Value.GetProvider(fileProviderType!)!.GetFileUri(id, containerType);
+                return FileProvider.GetFileUri(id, containerType);
             }
             catch (Exception exc)
             {
@@ -80,8 +89,20 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var fileProviderType = configuration.Value.GetValue<string>("FileProvider:Type")!.ToEnumeration<FileProviderType, byte>();
-                return await genericFactory.Value.GetProvider(fileProviderType!)!.UploadFileAsync(requestDto);
+                return await FileProvider.UploadFileAsync(requestDto);
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<bool>> RemoveFileAsync([NotNull] RemoveFileRequestDto requestDto)
+        {
+            try
+            {
+                return await FileProvider.RemoveFileAsync(requestDto);
             }
             catch (Exception exc)
             {

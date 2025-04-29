@@ -11,6 +11,9 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         [JsonConverter(typeof(FlagsEnumerationConverter<Role>))]
         public Role? Roles { get; set; }
 
-        public IEnumerable<ClaimsResponseViewModel>? Claims { get; set; }
+        [JsonConverter(typeof(FlagsEnumerationConverter<SystemClaim>))]
+        public SystemClaim? SystemClaims { get; set; }
+
+        public IEnumerable<PermissionsResponseViewModel>? Permissions { get; set; }
     }
 }

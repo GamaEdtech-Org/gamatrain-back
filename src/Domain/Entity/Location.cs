@@ -44,7 +44,7 @@ namespace GamaEdtech.Domain.Entity
         public int? ParentId { get; set; }
         public Location? Parent { get; set; }
 
-        [Column(nameof(Coordinates), TypeName = "geometry")]
+        [Column(nameof(Coordinates), TypeName = "geography")]
         public Point? Coordinates { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<Location> builder)

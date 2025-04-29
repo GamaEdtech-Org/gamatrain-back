@@ -14,7 +14,8 @@ namespace GamaEdtech.Application.Interface
     {
         Task<ResultData<ListDataSource<TagsDto>>> GetTagsAsync(ListRequestDto<Tag>? requestDto = null);
         Task<ResultData<TagDto>> GetTagAsync([NotNull] ISpecification<Tag> specification);
-        Task<ResultData<int>> ManageTagAsync([NotNull] ManageTagRequestDto requestDto);
+        Task<ResultData<long>> ManageTagAsync([NotNull] ManageTagRequestDto requestDto);
         Task<ResultData<bool>> RemoveTagAsync([NotNull] ISpecification<Tag> specification);
+        Task<ResultData<bool>> ExistsTagAsync([NotNull] ISpecification<Tag> specification);
     }
 }

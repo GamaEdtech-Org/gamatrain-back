@@ -1,6 +1,9 @@
 namespace GamaEdtech.Infrastructure.Provider.File
 {
+    using System;
     using System.Diagnostics.CodeAnalysis;
+
+    using Azure.Storage.Blobs;
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
@@ -17,20 +20,11 @@ namespace GamaEdtech.Infrastructure.Provider.File
     {
         public FileProviderType ProviderType => FileProviderType.Azure;
 
-        public ResultData<Uri?> GetFileUri(string? id, ContainerType containerType)
+        public ResultData<Uri?> GetFileUri(string id, ContainerType containerType)
         {
             try
             {
-                var connection = configuration.Value.GetValue<string>("Azure:ConnectionString");
-
-                var key = "Azure:ContainerName";
-                if (containerType == ContainerType.School)
-                {
-                    key = "Azure:SchoolContainerName";
-                }
-                var container = configuration.Value.GetValue<string>(key);
-
-                var url = new Azure.Storage.Blobs.BlobClient(connection, container, id)
+                var url = GetClient(containerType, id)
                     .GenerateSasUri(Azure.Storage.Sas.BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(10));
 
                 return new(OperationResult.Succeeded) { Data = url };
@@ -46,14 +40,9 @@ namespace GamaEdtech.Infrastructure.Provider.File
         {
             try
             {
-                var name = Guid.NewGuid().ToString("N");
-                var connection = configuration.Value.GetValue<string>("Azure:ConnectionString");
+                var name = $"{Guid.NewGuid():N}{requestDto.FileExtension}";
 
-                var key = requestDto.ContainerType == ContainerType.School ? "Azure:SchoolContainerName" : "Azure:ContainerName";
-                var container = configuration.Value.GetValue<string>(key);
-
-                _ = await new Azure.Storage.Blobs.BlobClient(connection, container, name)
-                    .UploadAsync(new BinaryData(requestDto.File));
+                _ = await GetClient(requestDto.ContainerType, name).UploadAsync(new BinaryData(requestDto.File));
 
                 return new(OperationResult.Succeeded) { Data = name };
             }
@@ -64,5 +53,38 @@ namespace GamaEdtech.Infrastructure.Provider.File
             }
         }
 
+        public async Task<ResultData<bool>> RemoveFileAsync([NotNull] RemoveFileRequestDto requestDto)
+        {
+            try
+            {
+                _ = await GetClient(requestDto.ContainerType, requestDto.FileId)
+                    .DeleteIfExistsAsync(Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
+
+                return new(OperationResult.Succeeded) { Data = await Task.FromResult(true) };
+            }
+            catch (Exception exc)
+            {
+                logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        private BlobClient GetClient([NotNull] ContainerType containerType, string fileId)
+        {
+            var key = "FileProvider:Azure:ContainerName";
+            if (containerType == ContainerType.School)
+            {
+                key = "FileProvider:Azure:SchoolContainerName";
+            }
+            else if (containerType == ContainerType.Post)
+            {
+                key = "FileProvider:Azure:PostContainerName";
+            }
+
+            var container = configuration.Value.GetValue<string>(key);
+            var connection = configuration.Value.GetValue<string>("FileProvider:Azure:ConnectionString");
+
+            return new BlobClient(connection, container, fileId);
+        }
     }
 }

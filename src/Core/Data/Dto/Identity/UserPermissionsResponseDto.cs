@@ -4,8 +4,8 @@ namespace GamaEdtech.Data.Dto.Identity
 
     public sealed class UserPermissionsResponseDto
     {
-        public IEnumerable<string?>? Claims { get; set; }
-
+        public IEnumerable<string?>? Permissions { get; set; }
+        public SystemClaim? SystemClaims { get; set; }
         public Role? Roles { get; set; }
     }
 }

@@ -10,7 +10,8 @@ namespace GamaEdtech.Data.Dto.School
         public DateTimeOffset CreationDate { get; set; }
         public string? FileId { get; set; }
         public FileType? FileType { get; set; }
-        public int SchoolId { get; set; }
+        public long SchoolId { get; set; }
         public string? SchoolName { get; set; }
+        public long? TagId { get; set; }
     }
 }

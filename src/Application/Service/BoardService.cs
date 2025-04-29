@@ -22,9 +22,9 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
     using GamaEdtech.Application.Interface;
 
-    public class BoardService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer
-        , Lazy<ILogger<FileService>> logger)
-        : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBoardService
+    public class BoardService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BoardService>> localizer
+        , Lazy<ILogger<BoardService>> logger)
+        : LocalizableServiceBase<BoardService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBoardService
     {
         public async Task<ResultData<ListDataSource<BoardsDto>>> GetBoardsAsync(ListRequestDto<Board>? requestDto = null)
         {

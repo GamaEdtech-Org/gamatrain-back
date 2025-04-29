@@ -33,6 +33,7 @@ namespace GamaEdtech.Common.Startup
     using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ApplicationModels;
+    using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -66,9 +67,14 @@ namespace GamaEdtech.Common.Startup
 
             var files = Directory.GetFiles(dir, $"{startupOption.DefaultNamespace}.*.dll").Where(t => !t.Contains(frameworkAssembly.ManifestModule.Name!, StringComparison.OrdinalIgnoreCase));
 
-            var mvcBuilder = ConfigureServicesInternal(services);
+            var assemblies = files.Select(Assembly.LoadFrom)
+                .Where(t => t.GetCustomAttribute<InjectableAttribute>() is not null)
+                .Union(new[] { frameworkAssembly });
+            var allTypes = assemblies.SelectMany(t => t.DefinedTypes);
 
-            AddScopedDynamic(services, frameworkAssembly, files);
+            var mvcBuilder = ConfigureServicesInternal(services, allTypes);
+
+            AddScopedDynamic(services, assemblies, allTypes);
             ConfigureServicesCore(services, mvcBuilder);
         }
 
@@ -87,6 +93,7 @@ namespace GamaEdtech.Common.Startup
                 _ = app.UseHttpsRedirection();
             }
 
+            _ = app.UseStaticFiles();
             _ = app.UseRouting();
 
             if (startupOption.Authentication)
@@ -185,7 +192,7 @@ namespace GamaEdtech.Common.Startup
             return null;
         }
 
-        private IMvcBuilder ConfigureServicesInternal(IServiceCollection services)
+        private IMvcBuilder ConfigureServicesInternal(IServiceCollection services, IEnumerable<TypeInfo> allTypes)
         {
             _ = services.AddTransient(typeof(Lazy<>));
 
@@ -204,6 +211,15 @@ namespace GamaEdtech.Common.Startup
                 options.ConstraintMap["slugify"] = typeof(SlugifyParameterTransformer);
                 options.LowercaseUrls = true;
                 options.LowercaseQueryStrings = true;
+
+                var customConstraintMaps = typeof(IRouteConstraint).GetAllTypesImplementingType(allTypes);
+                if (customConstraintMaps is not null)
+                {
+                    foreach (var item in customConstraintMaps)
+                    {
+                        options.ConstraintMap.Add(item.Name, item);
+                    }
+                }
             });
 
             var mvcBuilder = services.AddControllers(ConfigureMvc);
@@ -358,17 +374,8 @@ namespace GamaEdtech.Common.Startup
             }
         }
 
-        private void AddScopedDynamic(IServiceCollection services, Assembly frameworkAssembly, IEnumerable<string>? assemblyFiles)
+        private void AddScopedDynamic(IServiceCollection services, [NotNull] IEnumerable<Assembly> assemblies, IEnumerable<TypeInfo> allTypes)
         {
-            if (assemblyFiles is null)
-            {
-                return;
-            }
-
-            var assemblies = assemblyFiles.Select(Assembly.LoadFrom)
-                .Where(t => t.GetCustomAttribute<InjectableAttribute>() is not null)
-                .Union(new[] { frameworkAssembly });
-            var allTypes = assemblies.SelectMany(t => t.DefinedTypes);
             var injectableTypes = allTypes.Where(t => t.GetCustomAttribute<InjectableAttribute>() is not null);
             foreach (var serviceType in injectableTypes)
             {

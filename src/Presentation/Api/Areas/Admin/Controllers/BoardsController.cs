@@ -24,7 +24,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         : ApiControllerBase<BoardsController>(logger)
     {
         [HttpGet, Produces<ApiResponse<ListDataSource<BoardsResponseViewModel>>>()]
-        public async Task<IActionResult> GetBoards([NotNull, FromQuery] BoardsRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<BoardsResponseViewModel>>> GetBoards([NotNull, FromQuery] BoardsRequestViewModel request)
         {
             try
             {
@@ -32,9 +32,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     PagingDto = request.PagingDto,
                 });
-                return Ok(new ApiResponse<ListDataSource<BoardsResponseViewModel>>
+                return Ok<ListDataSource<BoardsResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new BoardsResponseViewModel
@@ -51,19 +50,18 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<BoardsResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<BoardsResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpGet("{id:int}"), Produces<ApiResponse<BoardResponseViewModel>>()]
-        public async Task<IActionResult> GetBoard([FromRoute] int id)
+        public async Task<IActionResult<BoardResponseViewModel>> GetBoard([FromRoute] int id)
         {
             try
             {
                 var result = await boardService.Value.GetBoardAsync(new IdEqualsSpecification<Board, int>(id));
-                return Ok(new ApiResponse<BoardResponseViewModel>
+                return Ok<BoardResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data is null ? null : new()
                     {
                         Id = result.Data.Id,
@@ -77,12 +75,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<BoardResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<BoardResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpPost, Produces<ApiResponse<ManageBoardResponseViewModel>>()]
-        public async Task<IActionResult> CreateBoard([NotNull] ManageBoardRequestViewModel request)
+        public async Task<IActionResult<ManageBoardResponseViewModel>> CreateBoard([NotNull] ManageBoardRequestViewModel request)
         {
             try
             {
@@ -92,9 +90,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Description = request.Description,
                     Icon = request.Icon,
                 });
-                return Ok(new ApiResponse<ManageBoardResponseViewModel>
+                return Ok<ManageBoardResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new() { Id = result.Data, },
                 });
             }
@@ -102,12 +99,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ManageBoardResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ManageBoardResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpPut("{id:int}"), Produces<ApiResponse<ManageBoardResponseViewModel>>()]
-        public async Task<IActionResult> UpdateBoard([FromRoute] int id, [NotNull, FromBody] ManageBoardRequestViewModel request)
+        public async Task<IActionResult<ManageBoardResponseViewModel>> UpdateBoard([FromRoute] int id, [NotNull, FromBody] ManageBoardRequestViewModel request)
         {
             try
             {
@@ -118,9 +115,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Description = request.Description,
                     Icon = request.Icon,
                 });
-                return Ok(new ApiResponse<ManageBoardResponseViewModel>
+                return Ok<ManageBoardResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new() { Id = result.Data, },
                 });
             }
@@ -128,19 +124,18 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ManageBoardResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ManageBoardResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpDelete("{id:int}"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RemoveBoard([FromRoute] int id)
+        public async Task<IActionResult<bool>> RemoveBoard([FromRoute] int id)
         {
             try
             {
                 var result = await boardService.Value.RemoveBoardAsync(new IdEqualsSpecification<Board, int>(id));
-                return Ok(new ApiResponse<bool>
+                return Ok<bool>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data
                 });
             }
@@ -148,7 +143,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+                return Ok<bool>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }

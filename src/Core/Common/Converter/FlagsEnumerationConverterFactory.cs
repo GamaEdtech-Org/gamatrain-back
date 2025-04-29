@@ -10,7 +10,7 @@ namespace GamaEdtech.Common.Converter
 
     public class FlagsEnumerationConverterFactory : JsonConverterFactory
     {
-        public override bool CanConvert([NotNull] Type typeToConvert) => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Enumeration<>);
+        public override bool CanConvert([NotNull] Type typeToConvert) => typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Enumeration<,>);
 
         public override JsonConverter CreateConverter([NotNull] Type typeToConvert, JsonSerializerOptions options)
         {

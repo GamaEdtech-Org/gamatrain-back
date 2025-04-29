@@ -3,13 +3,13 @@ namespace GamaEdtech.Domain.Enumeration
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class TagType : Enumeration<byte>
+    public sealed class TagType : Enumeration<TagType, byte>
     {
         [Display]
-        public static readonly TagType Facility = new(nameof(Facility), 0);
+        public static readonly TagType School = new(nameof(School), 0);
 
         [Display]
-        public static readonly TagType Service = new(nameof(Service), 1);
+        public static readonly TagType Post = new(nameof(Post), 1);
 
         [Display]
         public static readonly TagType Feature = new(nameof(Feature), 2);

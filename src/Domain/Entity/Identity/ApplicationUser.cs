@@ -117,9 +117,6 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Avatar), DataType.UnicodeMaxString)]
         public string? Avatar { get; set; }
 
-        [NotMapped]
-        public string? FullName => FirstName + " " + LastName;
-
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

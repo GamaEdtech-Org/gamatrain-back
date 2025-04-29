@@ -36,7 +36,23 @@ namespace GamaEdtech.Common.Core.Extensions.Linq
         public static TQueryable WhereIf<T, TQueryable>([NotNull] this TQueryable query, bool condition, Expression<Func<T, int, bool>> predicate)
             where TQueryable : IQueryable<T> => condition
                 ? (TQueryable)query.Where(predicate)
-                : query;
+        : query;
+
+        public static (IQueryable<T> List, bool Applied) OrderBy<T>(this IQueryable<T> lst, IEnumerable<SortFilter>? sortFilters)
+        {
+            if (sortFilters?.Any() == true)
+            {
+                var properties = typeof(T).GetProperties();
+                var items = sortFilters.Where(t => properties.Exists(p => p.Name.Equals(t.Column, StringComparison.OrdinalIgnoreCase)));
+                if (items?.Any() == true)
+                {
+                    var criteria = string.Join(",", items.Select(t => $"{t.Column} {t.SortType.ToString().ToLowerInvariant()}"));
+                    return (lst.OrderBy(criteria), true);
+                }
+            }
+
+            return (lst, false);
+        }
 
         public static async Task<(IQueryable<TSource> List, int? TotalRecordsCount)> FilterListAsync<TSource>(this IQueryable<TSource> lst, PagingDto? pagingDto)
         {
@@ -55,16 +71,7 @@ namespace GamaEdtech.Common.Core.Extensions.Linq
                 }
             }
 
-            var sort = false;
-            if (pagingDto.SortFilter?.Any() == true)
-            {
-                var items = pagingDto.SortFilter.Where(t => properties.Exists(p => p.Name.Equals(t.Column, StringComparison.OrdinalIgnoreCase)));
-                if (items?.Any() == true)
-                {
-                    sort = true;
-                    lst = lst.OrderBy(string.Join(",", items.Select(t => $"{t.Column} {t.SortType.ToString().ToLowerInvariant()}")));
-                }
-            }
+            (lst, var sortApplied) = OrderBy(lst, pagingDto.SortFilter);
 
             int? total = null;
 
@@ -77,7 +84,7 @@ namespace GamaEdtech.Common.Core.Extensions.Linq
 #pragma warning restore S6966 // Awaitable method should be used
                 }
 
-                if (!sort)
+                if (!sortApplied)
                 {
                     var id = properties.FirstOrDefault(t => t.Name.Equals("Id", StringComparison.OrdinalIgnoreCase))?.Name ?? properties.FirstOrDefault()?.Name;
                     lst = lst.OrderBy(id!);

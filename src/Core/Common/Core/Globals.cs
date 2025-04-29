@@ -484,9 +484,25 @@ namespace GamaEdtech.Common.Core
             return types;
         }
 
+        public static bool IsSubclassOf(Type? type, Type? baseType)
+        {
+            while (type != null && type != typeof(object))
+            {
+                var cur = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+                if (baseType == cur)
+                {
+                    return true;
+                }
+
+                type = type.BaseType;
+            }
+
+            return false;
+        }
+
         public static string TrimEnd([NotNull] this string input, string? suffixToRemove, StringComparison comparisonType = StringComparison.CurrentCulture) => suffixToRemove is not null && input.EndsWith(suffixToRemove, comparisonType) ? input[..^suffixToRemove.Length] : input;
 
-        public static string? Slugify(this string? value) => new SlugHelper().GenerateSlug(value);
+        public static string? Slugify(this string? value) => value is null ? null : new SlugHelper().GenerateSlug(value);
 
         public static async Task<string?> ConvertImageToBase64Async(this IFormFile? file)
         {

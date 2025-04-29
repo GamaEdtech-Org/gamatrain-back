@@ -1,4 +1,4 @@
-﻿namespace GamaEdtech.Domain.Enumeration
+namespace GamaEdtech.Domain.Enumeration
 {
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAnnotation;
@@ -9,6 +9,12 @@
     {
         [Display]
         public static readonly Role Admin = new(1);
+
+        [Display]
+        public static readonly Role Teacher = new(2);
+
+        [Display]
+        public static readonly Role Student = new(3);
 
         public Role()
         {

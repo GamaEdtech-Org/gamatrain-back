@@ -12,10 +12,20 @@ namespace GamaEdtech.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Location",
+            migrationBuilder.AddColumn<Point>(
+                name: "Coordinates",
                 table: "Schools",
-                newName: "Coordinates");
+                type: "geography",
+                nullable: true);
+
+            migrationBuilder.Sql(@"
+UPDATE Schools SET Coordinates = geography::STGeomFromText([Location].STAsText(),4326) 
+WHERE [Location] IS NOT NULL
+");
+
+            migrationBuilder.DropColumn(
+                name: "Location",
+                table: "Schools");
 
             migrationBuilder.AlterColumn<double>(
                 name: "TuitionRatioRate",
@@ -84,10 +94,13 @@ namespace GamaEdtech.Infrastructure.Migrations
             migrationBuilder.AddColumn<Point>(
                 name: "Coordinates",
                 table: "Locations",
-                type: "geometry",
+                type: "geography",
                 nullable: true);
 
-            migrationBuilder.Sql("UPDATE Locations SET Coordinates = geometry::Point([Longitude], [Latitude], 4326) WHERE [Latitude] IS NOT NULL AND [Longitude] IS NOT NULL");
+            migrationBuilder.Sql(@"
+UPDATE Locations SET Coordinates = geography::STGeomFromText('POINT(' + CAST([Longitude] AS VARCHAR(20)) + ' ' + CAST([Latitude] AS VARCHAR(20)) + ')', 4326) 
+WHERE [Latitude] IS NOT NULL AND [Longitude] IS NOT NULL
+");
 
             migrationBuilder.DropColumn(
                 name: "Latitude",

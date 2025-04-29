@@ -11,7 +11,8 @@ namespace GamaEdtech.Infrastructure.Interface
     [Injectable]
     public interface IFileProvider : IProvider<FileProviderType>
     {
-        ResultData<Uri?> GetFileUri(string? id, ContainerType containerType);
+        ResultData<Uri?> GetFileUri(string id, ContainerType containerType);
         Task<ResultData<string?>> UploadFileAsync([NotNull] UploadFileRequestDto requestDto);
+        Task<ResultData<bool>> RemoveFileAsync([NotNull] RemoveFileRequestDto requestDto);
     }
 }

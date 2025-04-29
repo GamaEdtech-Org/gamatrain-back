@@ -25,7 +25,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         : ApiControllerBase<GradesController>(logger)
     {
         [HttpGet, Produces<ApiResponse<ListDataSource<GradesResponseViewModel>>>()]
-        public async Task<IActionResult> GetGrades([NotNull, FromQuery] GradesRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<GradesResponseViewModel>>> GetGrades([NotNull, FromQuery] GradesRequestViewModel request)
         {
             try
             {
@@ -34,9 +34,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     PagingDto = request.PagingDto,
                     Specification = request.BoardId.HasValue ? new BoardIdEqualsSpecification(request.BoardId.Value) : null,
                 });
-                return Ok(new ApiResponse<ListDataSource<GradesResponseViewModel>>
+                return Ok<ListDataSource<GradesResponseViewModel>>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data.List is null ? new() : new()
                     {
                         List = result.Data.List.Select(t => new GradesResponseViewModel
@@ -53,19 +52,18 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ListDataSource<GradesResponseViewModel>> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ListDataSource<GradesResponseViewModel>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpGet("{id:int}"), Produces<ApiResponse<GradeResponseViewModel>>()]
-        public async Task<IActionResult> GetGrade([FromRoute] int id)
+        public async Task<IActionResult<GradeResponseViewModel>> GetGrade([FromRoute] int id)
         {
             try
             {
                 var result = await gradeService.Value.GetGradeAsync(new IdEqualsSpecification<Grade, int>(id));
-                return Ok(new ApiResponse<GradeResponseViewModel>
+                return Ok<GradeResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data is null ? null : new()
                     {
                         Id = result.Data.Id,
@@ -79,12 +77,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<GradeResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<GradeResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpPost, Produces<ApiResponse<ManageGradeResponseViewModel>>()]
-        public async Task<IActionResult> CreateGrade([NotNull] ManageGradeRequestViewModel request)
+        public async Task<IActionResult<ManageGradeResponseViewModel>> CreateGrade([NotNull] ManageGradeRequestViewModel request)
         {
             try
             {
@@ -94,9 +92,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Description = request.Description,
                     Icon = request.Icon,
                 });
-                return Ok(new ApiResponse<ManageGradeResponseViewModel>
+                return Ok<ManageGradeResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new() { Id = result.Data, },
                 });
             }
@@ -104,12 +101,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ManageGradeResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ManageGradeResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpPut("{id:int}"), Produces<ApiResponse<ManageGradeResponseViewModel>>()]
-        public async Task<IActionResult> UpdateGrade([FromRoute] int id, [NotNull, FromBody] ManageGradeRequestViewModel request)
+        public async Task<IActionResult<ManageGradeResponseViewModel>> UpdateGrade([FromRoute] int id, [NotNull, FromBody] ManageGradeRequestViewModel request)
         {
             try
             {
@@ -120,9 +117,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Description = request.Description,
                     Icon = request.Icon,
                 });
-                return Ok(new ApiResponse<ManageGradeResponseViewModel>
+                return Ok<ManageGradeResponseViewModel>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = new() { Id = result.Data, },
                 });
             }
@@ -130,19 +126,18 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ManageGradeResponseViewModel> { Errors = [new() { Message = exc.Message }] });
+                return Ok<ManageGradeResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
         [HttpDelete("{id:int}"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RemoveGrade([FromRoute] int id)
+        public async Task<IActionResult<bool>> RemoveGrade([FromRoute] int id)
         {
             try
             {
                 var result = await gradeService.Value.RemoveGradeAsync(new IdEqualsSpecification<Grade, int>(id));
-                return Ok(new ApiResponse<bool>
+                return Ok<bool>(new(result.Errors)
                 {
-                    Errors = result.Errors,
                     Data = result.Data
                 });
             }
@@ -150,7 +145,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+                return Ok<bool>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }

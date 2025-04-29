@@ -9,7 +9,11 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
     public sealed class ManageUserPermissionsRequestViewModel
     {
         [Display]
-        public IEnumerable<string>? Claims { get; set; }
+        public IEnumerable<string>? Permissions { get; set; }
+
+        [Display]
+        [JsonConverter(typeof(FlagsEnumerationConverter<SystemClaim>))]
+        public SystemClaim? SystemClaims { get; set; }
 
         [Display]
         [JsonConverter(typeof(FlagsEnumerationConverter<Role>))]

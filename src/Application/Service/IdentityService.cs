@@ -2,6 +2,7 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Security.Claims;
     using System.Security.Cryptography;
     using System.Text;
@@ -146,6 +147,22 @@ namespace GamaEdtech.Application.Service
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var roles = await uow.GetRepository<ApplicationUserRole, int>().GetManyQueryable(t => t.UserId == userId).Select(t => t.Role!.Name!).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = roles };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
+        public async Task<ResultData<bool>> UserIsInRoleAsync([NotNull] int userId, [NotNull] string role)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var normalizedRoleName = role.ToUpperInvariant();
+                var result = await uow.GetRepository<ApplicationUserRole, int>().AnyAsync(t => t.UserId == userId && t.Role!.NormalizedName == normalizedRoleName);
+                return new(OperationResult.Succeeded) { Data = result };
             }
             catch (Exception exc)
             {
@@ -555,7 +572,7 @@ namespace GamaEdtech.Application.Service
                 await handleUnauthorizedRequestAsync();
             }
 
-            var userId = context.Principal.UserId<int>();
+            var userId = context.Principal.UserId();
             var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
             var currentSecurityStamp = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == userId).Select(t => t.SecurityStamp).FirstOrDefaultAsync();
             var securityStampClaim = context.Principal?.FindFirstValue(userManager.Value.Options.ClaimsIdentity.SecurityStampClaimType);
@@ -581,7 +598,7 @@ namespace GamaEdtech.Application.Service
                     .GetManyQueryable(new IdEqualsSpecification<ApplicationUser, int>(requestDto.UserId))
                     .Select(t => new
                     {
-                        Claims = t.UserClaims!.Where(u => u.ClaimType == PermissionConstants.PermissionPolicy).Select(u => u.ClaimValue).ToList(),
+                        Claims = t.UserClaims!.Select(u => new { u.ClaimType, u.ClaimValue }).ToList(),
                         Roles = t.UserRoles!.Select(u => u.Role!.Name!).ToList(),
                     }).FirstOrDefaultAsync();
 
@@ -591,7 +608,9 @@ namespace GamaEdtech.Application.Service
                     {
                         Data = new()
                         {
-                            Claims = data.Claims,
+                            Permissions = data.Claims.Where(t => t.ClaimType == PermissionConstants.PermissionPolicy).Select(t => t.ClaimValue),
+                            SystemClaims = data.Claims.Where(t => t.ClaimType == PermissionConstants.SystemClaim)
+                                .Select(t => t.ClaimValue!).ListToFlagsEnum<SystemClaim>(),
                             Roles = data.Roles.ListToFlagsEnum<Role>(),
                         },
                     };
@@ -629,21 +648,11 @@ namespace GamaEdtech.Application.Service
 
                 var forceLogout = false;
 
-                var requestRoles = requestDto.Roles?.GetNames();
+                #region Roles
 
-                IEnumerable<string> newRoles;
-                IEnumerable<string> removedRoles;
-
-                if (requestRoles?.Any() != true)
-                {
-                    newRoles = [];
-                    removedRoles = userRoles;
-                }
-                else
-                {
-                    newRoles = requestRoles.Except(userRoles);
-                    removedRoles = userRoles.Except(requestRoles);
-                }
+                var requestRoles = requestDto.Roles?.GetNames() ?? [];
+                var newRoles = requestRoles.Except(userRoles);
+                var removedRoles = userRoles.Except(requestRoles);
 
                 if (removedRoles.Any())
                 {
@@ -657,26 +666,21 @@ namespace GamaEdtech.Application.Service
                     _ = await userManager.Value.AddToRolesAsync(user, newRoles);
                 }
 
+                #endregion
+
                 var repository = uow.GetRepository<ApplicationUserClaim, int>();
 
                 var specification = new UserIdEqualsSpecification<ApplicationUserClaim, int>(requestDto.UserId)
-                    .And(new ClaimTypeEqualsSpecification(PermissionConstants.PermissionPolicy));
+                    .And(new ClaimTypeEqualsSpecification(PermissionConstants.PermissionPolicy)
+                        .Or(new ClaimTypeEqualsSpecification(PermissionConstants.SystemClaim))
+                    );
                 var claims = await repository.GetManyQueryable(specification)
-                    .Select(t => t.ClaimValue).ToListAsync();
+                    .Select(t => new { t.ClaimType, t.ClaimValue }).ToListAsync();
 
-                IEnumerable<string?> newPermissions;
-                IEnumerable<string?> removedPermissions;
+                #region Permissions
 
-                if (requestDto.Claims?.Any() != true)
-                {
-                    newPermissions = [];
-                    removedPermissions = claims;
-                }
-                else
-                {
-                    newPermissions = requestDto.Claims.Except(claims);
-                    removedPermissions = claims.Except(requestDto.Claims);
-                }
+                var newPermissions = requestDto.Permissions.Except(claims.Where(t => t.ClaimType == PermissionConstants.PermissionPolicy).Select(t => t.ClaimValue));
+                var removedPermissions = claims.Where(t => t.ClaimType == PermissionConstants.PermissionPolicy && !requestDto.Permissions.Contains(t.ClaimValue)).Select(t => t.ClaimValue);
 
                 if (newPermissions.Any())
                 {
@@ -694,6 +698,33 @@ namespace GamaEdtech.Application.Service
                     _ = await repository.GetManyQueryable(t => t.UserId == requestDto.UserId && t.ClaimType == PermissionConstants.PermissionPolicy && removedPermissions.Contains(t.ClaimValue))
                         .ExecuteDeleteAsync();
                 }
+
+                #endregion
+
+                #region System Claims
+
+                var requestClaims = requestDto.SystemClaims?.GetNames() ?? [];
+                var newClaims = requestClaims.Except(claims.Where(t => t.ClaimType == PermissionConstants.SystemClaim).Select(t => t.ClaimValue));
+                var removedClaims = claims.Where(t => t.ClaimType == PermissionConstants.SystemClaim && !requestClaims.Contains(t.ClaimValue)).Select(t => t.ClaimValue);
+
+                if (newClaims.Any())
+                {
+                    forceLogout = true;
+                    foreach (var item in newClaims)
+                    {
+                        repository.Add(new ApplicationUserClaim { UserId = requestDto.UserId, ClaimType = PermissionConstants.SystemClaim, ClaimValue = item });
+                    }
+                    _ = await uow.SaveChangesAsync();
+                }
+
+                if (removedClaims.Any())
+                {
+                    forceLogout = true;
+                    _ = await repository.GetManyQueryable(t => t.UserId == requestDto.UserId && t.ClaimType == PermissionConstants.SystemClaim && removedClaims.Contains(t.ClaimValue))
+                        .ExecuteDeleteAsync();
+                }
+
+                #endregion
 
                 if (forceLogout)
                 {
@@ -787,6 +818,27 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message } } };
+            }
+        }
+
+        public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userClaimsRepository = uow.GetRepository<ApplicationUserClaim, int>();
+                var names = claims.GetNames()!;
+                var exist = await userClaimsRepository.AnyAsync(t => t.UserId == userId && t.ClaimType == PermissionConstants.SystemClaim && names.Contains(t.ClaimValue));
+
+                return new(OperationResult.Succeeded)
+                {
+                    Data = exist,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
             }
         }
 
