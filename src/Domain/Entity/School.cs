@@ -85,9 +85,6 @@ namespace GamaEdtech.Domain.Entity
         [StringLength(300)]
         public string? WebSite { get; set; }
 
-        [Column(nameof(Facilities), DataType.UnicodeMaxString)]
-        public string? Facilities { get; set; }
-
         [Column(nameof(Score), TypeName = "float")]
         public double? Score { get; set; }
 

@@ -10,6 +10,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public PagingDto? PagingDto { get; set; } = new() { PageFilter = new(), };
 
         [Display]
-        public Status Status { get; set; }
+        public Status? Status { get; set; }
     }
 }

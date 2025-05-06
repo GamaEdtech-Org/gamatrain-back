@@ -6,7 +6,7 @@ namespace GamaEdtech.Data.Dto.Transaction
     {
         public int UserId { get; set; }
         public Period Period { get; set; }
-        public DateTimeOffset? StartDate { get; set; }
-        public DateTimeOffset? EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
     }
 }

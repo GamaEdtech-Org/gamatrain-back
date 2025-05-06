@@ -132,7 +132,7 @@ namespace GamaEdtech.Application.Service
                         .And(new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(requestDto.UserId))
                         .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post))
                         .And(new StatusEqualsSpecification<Contribution>(Status.Draft).Or(new StatusEqualsSpecification<Contribution>(Status.Rejected)));
-                    var data = await contributionService.Value.ExistContributionAsync(specification);
+                    var data = await contributionService.Value.ExistsContributionAsync(specification);
                     if (!data.Data)
                     {
                         return new(data.OperationResult) { Errors = data.Errors };
@@ -217,8 +217,8 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var specification = new IdEqualsSpecification<Post, long>(requestDto.PostId);
-                var exist = await PostExistAsync(specification);
-                if (!exist.Data)
+                var exists = await PostExistsAsync(specification);
+                if (!exists.Data)
                 {
                     return new(OperationResult.NotFound)
                     {
@@ -255,8 +255,8 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var specification = new IdEqualsSpecification<Post, long>(requestDto.PostId);
-                var exist = await PostExistAsync(specification);
-                if (!exist.Data)
+                var exists = await PostExistsAsync(specification);
+                if (!exists.Data)
                 {
                     return new(OperationResult.NotFound)
                     {
@@ -332,14 +332,14 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<bool>> PostExistAsync([NotNull] ISpecification<Post> specification)
+        public async Task<ResultData<bool>> PostExistsAsync([NotNull] ISpecification<Post> specification)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var exist = await uow.GetRepository<Post>().AnyAsync(specification);
+                var exists = await uow.GetRepository<Post>().AnyAsync(specification);
 
-                return new(OperationResult.Succeeded) { Data = exist };
+                return new(OperationResult.Succeeded) { Data = exists };
             }
             catch (Exception exc)
             {

@@ -630,7 +630,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                ISpecification<Contribution> specification = new CategoryTypeEqualsSpecification<Contribution>(CategoryType.School);
+                ISpecification<Contribution> specification = new CategoryTypeEqualsSpecification<Contribution>(CategoryType.SchoolIssues);
                 if (request.Status is not null)
                 {
                     specification = specification.And(new StatusEqualsSpecification<Contribution>(request.Status));
@@ -739,7 +739,6 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             ZipCode = dto.ZipCode,
             Latitude = dto.Coordinates?.Y,
             Longitude = dto.Coordinates?.X,
-            Facilities = dto.Facilities,
             WebSite = dto.WebSite,
             Email = dto.Email,
             CityId = dto.CityId,
@@ -780,7 +779,6 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 Coordinates = coordinates,
                 WebSite = request.WebSite,
                 LocalAddress = request.LocalAddress,
-                Facilities = request.Facilities,
                 CityId = request.CityId,
                 CountryId = request.CountryId,
                 Email = request.Email,

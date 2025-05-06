@@ -17,7 +17,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> RemovePostAsync([NotNull] ISpecification<Post> specification);
         Task<ResultData<bool>> LikePostAsync([NotNull] PostReactionRequestDto requestDto);
         Task<ResultData<bool>> DislikePostAsync([NotNull] PostReactionRequestDto requestDto);
-        Task<ResultData<bool>> PostExistAsync([NotNull] ISpecification<Post> specification);
+        Task<ResultData<bool>> PostExistsAsync([NotNull] ISpecification<Post> specification);
         Task<ResultData<bool>> ConfirmPostContributionAsync([NotNull] ConfirmPostContributionRequestDto requestDto);
         Task<ResultData<bool>> IsCreatorOfPostAsync(long postId, int userId);
 

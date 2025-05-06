@@ -25,7 +25,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                _ = configuration.Value.GetValue<string?>("CaptchaProvider:Type").TryGetFromNameOrValue<CaptchaProviderType, byte>(out var captchaProviderType);
+                _ = configuration.Value.GetValue<string?>("Captcha:Type").TryGetFromNameOrValue<CaptchaProviderType, byte>(out var captchaProviderType);
                 var validateCaptcha = await captchaProviders.Value.FirstOrDefault(t => t.ProviderType == captchaProviderType)!.VerifyCaptchaAsync(request.Captcha);
                 if (!validateCaptcha.Data)
                 {

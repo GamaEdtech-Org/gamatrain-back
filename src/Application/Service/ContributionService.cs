@@ -132,7 +132,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<bool>> ExistContributionAsync([NotNull] ISpecification<Contribution> specification)
+        public async Task<ResultData<bool>> ExistsContributionAsync([NotNull] ISpecification<Contribution> specification)
         {
             try
             {

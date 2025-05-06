@@ -6,10 +6,10 @@ namespace GamaEdtech.Presentation.ViewModel.Transaction
     public sealed class TransactionStatisticsRequestViewModel
     {
         [Display]
-        public DateTime? StartDate { get; set; }
+        public DateOnly? StartDate { get; set; }
 
         [Display]
-        public DateTime? EndDate { get; set; }
+        public DateOnly? EndDate { get; set; }
 
         [Display]
         [Required]

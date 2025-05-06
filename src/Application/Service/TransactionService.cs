@@ -105,40 +105,36 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var repository = uow.GetRepository<Transaction>();
-                var lst = repository.GetManyQueryable(t => t.UserId == requestDto.UserId);
-
-                if (requestDto.StartDate.HasValue)
-                {
-                    lst = lst.Where(t => t.CreationDate >= requestDto.StartDate.Value);
-                }
-
-                if (requestDto.EndDate.HasValue)
-                {
-                    lst = lst.Where(t => t.CreationDate <= requestDto.EndDate.Value);
-                }
+                var startDate = new DateTimeOffset(requestDto.StartDate, TimeOnly.MinValue, TimeSpan.Zero);
+                var endDate = new DateTimeOffset(requestDto.EndDate, TimeOnly.MaxValue, TimeSpan.Zero);
 
                 List<GetStatisticsResponseDto>? result = null;
                 if (requestDto.Period == Period.DayOfWeek)
                 {
-                    var startSql = requestDto.StartDate.HasValue ? $" AND (CreationDate>='{requestDto.StartDate.Value}') " : "";
-                    var endSql = requestDto.EndDate.HasValue ? $" AND (CreationDate<='{requestDto.EndDate.Value}') " : "";
+                    if (requestDto.EndDate.AddDays(-7) > requestDto.StartDate)
+                    {
+                        return new(OperationResult.Failed) { Errors = [new() { Message = "distance of StartDate and EndDate must be smaller than 7 days" },] };
+                    }
+
+                    //by limiting in ef we must using native code
                     var sql = $@"
-SELECT IsDebit, DATEPART(weekday, CreationDate), SUM(Points)
-FROM Transactions
-WHERE UserId={requestDto.UserId} {startSql} {endSql}
-GROUP BY IsDebit, DATEPART(weekday, CreationDate)";
+                        SELECT IsDebit, DATEPART(weekday, CreationDate), SUM(Points)
+                        FROM Transactions
+                        WHERE UserId={requestDto.UserId} AND (CreationDate>='{startDate}') AND (CreationDate<='{endDate}')
+                        GROUP BY IsDebit, DATEPART(weekday, CreationDate)";
                     var data = await uow.SqlQueryAsync(sql);
 
                     result = new(7);
-                    for (var i = 0; i < 7; i++)
+                    var current = requestDto.StartDate;
+                    var end = requestDto.EndDate;
+                    while (current <= end)
                     {
                         int? debitValue = null;
                         int? creditValue = null;
 
                         foreach (DataRow row in data.Tables[0].Rows)
                         {
-                            if (((int)row[1]) - 1 == i)
+                            if (((int)row[1]) - 1 == (int)current.DayOfWeek)
                             {
                                 if ((bool)row[0])
                                 {
@@ -155,36 +151,49 @@ GROUP BY IsDebit, DATEPART(weekday, CreationDate)";
                         {
                             DebitValue = debitValue.GetValueOrDefault(),
                             CreditValue = creditValue.GetValueOrDefault(),
-                            Name = ((System.DayOfWeek)i).ToString(),
+                            Name = current.DayOfWeek.ToString(),
                         });
+
+                        current = current.AddDays(1);
                     }
                 }
                 else if (requestDto.Period == Period.MonthOfYear)
                 {
-                    var data = await lst.GroupBy(t => new
+                    if (requestDto.EndDate.AddMonths(-12) > requestDto.StartDate)
                     {
-                        t.IsDebit,
-                        t.CreationDate.Month,
-                    }).Select(t => new
-                    {
-                        Name = t.Key.Month,
-                        t.Key.IsDebit,
-                        Value = t.Sum(s => s.Points),
-                    }).ToListAsync();
+                        return new(OperationResult.Failed) { Errors = [new() { Message = "distance of StartDate and EndDate must be smaller than 12 months" },] };
+                    }
+
+                    var repository = uow.GetRepository<Transaction>();
+                    var lst = await repository.GetManyQueryable(t => t.UserId == requestDto.UserId && t.CreationDate >= startDate
+                        && t.CreationDate <= endDate).GroupBy(t => new
+                        {
+                            t.IsDebit,
+                            t.CreationDate.Month,
+                        }).Select(t => new
+                        {
+                            Name = t.Key.Month,
+                            t.Key.IsDebit,
+                            Value = t.Sum(s => s.Points),
+                        }).OrderByDescending(t => t.Name).ToListAsync();
 
                     var monthNames = CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
                     result = new(monthNames.Length);
-                    for (var i = 0; i < monthNames.Length; i++)
+                    var current = requestDto.StartDate;
+                    var end = requestDto.EndDate;
+                    while (current <= end)
                     {
-                        var debitTransaction = data.Find(t => t.Name == i && t.IsDebit);
-                        var creditTransaction = data.Find(t => t.Name == i && !t.IsDebit);
+                        var debitTransaction = lst.Find(t => t.Name == current.Month && t.IsDebit);
+                        var creditTransaction = lst.Find(t => t.Name == current.Month && !t.IsDebit);
 
                         result.Add(new()
                         {
                             DebitValue = debitTransaction?.Value ?? 0,
                             CreditValue = creditTransaction?.Value ?? 0,
-                            Name = monthNames[i],
+                            Name = monthNames[current.Month],
                         });
+
+                        current = current.AddMonths(1);
                     }
                 }
 
