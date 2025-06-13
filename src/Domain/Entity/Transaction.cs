@@ -19,6 +19,7 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public long Id { get; set; }
 
+        [Column(nameof(PreviousTransactionId), DataType.Long)]
         public long? PreviousTransactionId { get; set; }
         public Transaction? PreviousTransaction { get; set; }
 

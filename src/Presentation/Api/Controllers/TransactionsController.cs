@@ -101,11 +101,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 {
                     if (request.Period == Period.DayOfWeek)
                     {
-                        request.StartDate = request.EndDate.Value.AddDays(-7);
+                        request.StartDate = request.EndDate.Value.AddDays(-6);
                     }
                     else if (request.Period == Period.MonthOfYear)
                     {
-                        request.StartDate = request.EndDate.Value.AddMonths(-12);
+                        request.StartDate = request.EndDate.Value.AddMonths(-11);
                     }
                 }
 

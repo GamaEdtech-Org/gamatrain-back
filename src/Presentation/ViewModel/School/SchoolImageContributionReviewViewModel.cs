@@ -9,5 +9,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public long SchoolId { get; set; }
         public string? FileId { get; set; }
         public FileType? FileType { get; set; }
+        public bool IsDefault { get; set; }
+        public long? TagId { get; set; }
+        public string? TagName { get; set; }
     }
 }

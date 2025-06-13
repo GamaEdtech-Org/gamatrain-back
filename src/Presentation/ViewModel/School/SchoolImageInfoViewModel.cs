@@ -9,5 +9,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public string? TagName { get; set; }
         public string? TagIcon { get; set; }
         public long? TagId { get; set; }
+        public bool IsDefault { get; set; }
     }
 }

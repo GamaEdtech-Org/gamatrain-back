@@ -10,14 +10,17 @@ namespace GamaEdtech.Common.DataAnnotation
 
     using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class RequiredAttribute : System.ComponentModel.DataAnnotations.RequiredAttribute, IClientModelValidator
     {
-        public RequiredAttribute()
+        public RequiredAttribute(bool required = true)
         {
+            Required = required;
             ErrorMessageResourceType = typeof(Resources.GlobalResource);
             ErrorMessageResourceName = nameof(Resources.GlobalResource.Validation_Required);
         }
+
+        public bool Required { get; internal init; }
 
         public new string? ErrorMessageResourceName
         {
@@ -35,8 +38,15 @@ namespace GamaEdtech.Common.DataAnnotation
             private set => base.ErrorMessageResourceType = value;
         }
 
+        public override bool IsValid(object? value) => !Required || base.IsValid(value);
+
         public void AddValidation([NotNull] ClientModelValidationContext context)
         {
+            if (!Required)
+            {
+                return;
+            }
+
             _ = context.Attributes.AddIfNotContains(new KeyValuePair<string, string>("data-val", "true"));
 
             var msg = FormatErrorMessage(Globals.GetLocalizedDisplayName(context.ModelMetadata.ContainerType?.GetProperty(context.ModelMetadata.Name!))!);

@@ -22,5 +22,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [JsonConverter(typeof(EnumerationConverter<FileType, byte>))]
         public FileType? FileType { get; set; }
+
+        public bool IsDefault { get; set; }
     }
 }

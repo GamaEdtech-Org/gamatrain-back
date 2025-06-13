@@ -35,6 +35,10 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public FileType? FileType { get; set; }
 
+        [Column(nameof(IsDefault), DataType.Boolean)]
+        [Required]
+        public bool IsDefault { get; set; }
+
         [Column(nameof(TagId), DataType.Long)]
         public long? TagId { get; set; }
         public Tag? Tag { get; set; }

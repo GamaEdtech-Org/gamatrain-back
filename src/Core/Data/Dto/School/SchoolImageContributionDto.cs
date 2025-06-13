@@ -8,5 +8,6 @@ namespace GamaEdtech.Data.Dto.School
         public string? FileId { get; set; }
         public FileType? FileType { get; set; }
         public long? TagId { get; set; }
+        public bool IsDefault { get; set; }
     }
 }

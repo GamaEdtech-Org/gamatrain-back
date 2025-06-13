@@ -77,6 +77,22 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<string?>> GetTagNameAsync([NotNull] ISpecification<Tag> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var tagName = await uow.GetRepository<Tag>().GetManyQueryable(specification).Select(t => t.Name).FirstOrDefaultAsync();
+
+                return new(OperationResult.Succeeded) { Data = tagName };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
         public async Task<ResultData<long>> ManageTagAsync([NotNull] ManageTagRequestDto requestDto)
         {
             try
@@ -167,6 +183,22 @@ namespace GamaEdtech.Application.Service
                 var exists = await uow.GetRepository<Tag>().AnyAsync(specification);
 
                 return new(OperationResult.Succeeded) { Data = exists };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<int>> GetTagsCountAsync([NotNull] ISpecification<Tag> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var count = await uow.GetRepository<Tag>().CountAsync(specification);
+
+                return new(OperationResult.Succeeded) { Data = count };
             }
             catch (Exception exc)
             {

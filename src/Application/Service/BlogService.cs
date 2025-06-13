@@ -22,6 +22,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
+    using GamaEdtech.Domain.Specification.Post;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ namespace GamaEdtech.Application.Service
 
     public class BlogService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BlogService>> localizer
         , Lazy<ILogger<BlogService>> logger, Lazy<IReactionService> reactionService, Lazy<IFileService> fileService, Lazy<IIdentityService> identityService
-        , Lazy<IContributionService> contributionService, Lazy<IConfiguration> configuration)
+        , Lazy<IContributionService> contributionService, Lazy<ITagService> tagService, Lazy<IConfiguration> configuration)
         : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService
     {
         public async Task<ResultData<ListDataSource<PostsDto>>> GetPostsAsync(ListRequestDto<Post>? requestDto = null)
@@ -46,10 +47,13 @@ namespace GamaEdtech.Application.Service
                 {
                     t.Id,
                     t.Title,
+                    t.Slug,
                     t.Summary,
                     t.LikeCount,
                     t.DislikeCount,
                     t.ImageId,
+                    t.PublishDate,
+                    t.VisibilityType,
                 }).ToListAsync();
 
                 var result = blogs.Select(t => new PostsDto
@@ -59,7 +63,10 @@ namespace GamaEdtech.Application.Service
                     LikeCount = t.LikeCount,
                     Summary = t.Summary,
                     Title = t.Title,
-                    ImageUri = fileService.Value.GetFileUri(t.ImageId!, ContainerType.Post).Data,
+                    Slug = t.Slug,
+                    ImageUri = fileService.Value.GetFileUri(t.ImageId, ContainerType.Post).Data,
+                    PublishDate = t.PublishDate,
+                    VisibilityType = t.VisibilityType,
                 });
 
                 return new(OperationResult.Succeeded) { Data = new() { List = result, TotalRecordsCount = lst.TotalRecordsCount } };
@@ -79,12 +86,15 @@ namespace GamaEdtech.Application.Service
                 var post = await uow.GetRepository<Post>().GetManyQueryable(specification).Select(t => new
                 {
                     t.Title,
+                    t.Slug,
                     t.Summary,
                     t.Body,
                     t.ImageId,
                     t.LikeCount,
                     t.DislikeCount,
+                    t.VisibilityType,
                     CreationUser = t.CreationUser.FirstName + " " + t.CreationUser.LastName,
+                    t.PublishDate,
                     Tags = t.PostTags == null ? null : t.PostTags.Select(s => new TagDto
                     {
                         Icon = s.Tag.Icon,
@@ -104,13 +114,16 @@ namespace GamaEdtech.Application.Service
                 PostDto result = new()
                 {
                     Title = post.Title,
+                    Slug = post.Slug,
                     Summary = post.Summary,
                     Body = post.Body,
-                    ImageUri = fileService.Value.GetFileUri(post.ImageId!, ContainerType.Post).Data,
+                    ImageUri = fileService.Value.GetFileUri(post.ImageId, ContainerType.Post).Data,
                     LikeCount = post.LikeCount,
                     DislikeCount = post.DislikeCount,
                     CreationUser = post.CreationUser,
                     Tags = post.Tags,
+                    VisibilityType = post.VisibilityType,
+                    PublishDate = post.PublishDate,
                 };
 
                 return new(OperationResult.Succeeded) { Data = result };
@@ -133,9 +146,29 @@ namespace GamaEdtech.Application.Service
                         .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post))
                         .And(new StatusEqualsSpecification<Contribution>(Status.Draft).Or(new StatusEqualsSpecification<Contribution>(Status.Rejected)));
                     var data = await contributionService.Value.ExistsContributionAsync(specification);
-                    if (!data.Data)
+                    if (data.OperationResult is not OperationResult.Succeeded)
                     {
                         return new(data.OperationResult) { Errors = data.Errors };
+                    }
+
+                    if (!data.Data)
+                    {
+                        return new(OperationResult.NotValid) { Errors = [new() { Message = "Invalid Blog Status", }] };
+                    }
+                }
+
+                var exists = await PostExistsAsync(new SlugEqualsSpecification(requestDto.Slug!));
+                if (exists.Data)
+                {
+                    return new(OperationResult.Duplicate) { Errors = [new() { Message = Localizer.Value["DuplicateSlug"] },], };
+                }
+
+                if (requestDto.Tags?.Any() == true)
+                {
+                    var count = await tagService.Value.GetTagsCountAsync(new IdContainsSpecification<Tag, long>(requestDto.Tags));
+                    if (count.Data != requestDto.Tags.Count())
+                    {
+                        return new(OperationResult.Duplicate) { Errors = [new() { Message = Localizer.Value["InvalidTag"] },], };
                     }
                 }
 
@@ -157,6 +190,9 @@ namespace GamaEdtech.Application.Service
                     Summary = requestDto.Summary,
                     Tags = requestDto.Tags,
                     Title = requestDto.Title,
+                    Slug = requestDto.Slug,
+                    PublishDate = requestDto.PublishDate,
+                    VisibilityType = requestDto.VisibilityType,
                 };
 
                 var contributionResult = await contributionService.Value.ManageContributionAsync(new ManageContributionRequestDto
@@ -370,8 +406,11 @@ namespace GamaEdtech.Application.Service
                     CreationDate = dto.CreationDate,
                     ImageId = dto.ImageId,
                     Title = dto.Title,
+                    Slug = dto.Slug,
                     Summary = dto.Summary,
                     Status = Status.Confirmed,
+                    PublishDate = dto.PublishDate,
+                    VisibilityType = dto.VisibilityType,
                     PostTags = dto.Tags?.Select(t => new PostTag
                     {
                         CreationUserId = dto.CreationUserId,
@@ -394,12 +433,12 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var repository = uow.GetRepository<Post>();
+                var specification = new IdEqualsSpecification<Post, long>(postId)
+                    .And(new CreationUserIdEqualsSpecification<Post, ApplicationUser, int>(userId));
 
-                var exists = await repository.AnyAsync(t => t.Id == postId && t.CreationUserId == userId);
+                var exists = await PostExistsAsync(specification);
 
-                return new(OperationResult.Succeeded) { Data = exists };
+                return new(OperationResult.Succeeded) { Data = exists.Data };
             }
             catch (Exception exc)
             {

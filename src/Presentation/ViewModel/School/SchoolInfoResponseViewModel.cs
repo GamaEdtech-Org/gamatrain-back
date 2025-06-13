@@ -5,7 +5,9 @@ namespace GamaEdtech.Presentation.ViewModel.School
     public sealed class SchoolInfoResponseViewModel
     {
         public long Id { get; set; }
+
         public string? Name { get; set; }
+
         public string? Slug { get; set; }
 
         [JsonPropertyName("lat")]
@@ -31,5 +33,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public DateTimeOffset LastModifyDate { get; set; }
 
         public double? Score { get; set; }
+
+        public Uri? DefaultImageUri { get; set; }
     }
 }

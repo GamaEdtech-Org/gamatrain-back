@@ -37,7 +37,6 @@ namespace GamaEdtech.Domain.Entity
         public string? LocalName { get; set; }
 
         [Column(nameof(SchoolType), DataType.Byte)]
-        [Required]
         public SchoolType? SchoolType { get; set; }
 
         [Column(nameof(CountryId), DataType.Int)]
@@ -91,9 +90,9 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(IsDeleted), DataType.Boolean)]
         public bool IsDeleted { get; set; }
 
-        public virtual ICollection<SchoolComment>? SchoolComments { get; set; }
-        public virtual ICollection<SchoolTag>? SchoolTags { get; set; }
-        public virtual ICollection<SchoolImage>? SchoolImages { get; set; }
+        public virtual ICollection<SchoolComment> SchoolComments { get; set; } = [];
+        public virtual ICollection<SchoolTag> SchoolTags { get; set; } = [];
+        public virtual ICollection<SchoolImage> SchoolImages { get; set; } = [];
 
         public void Configure([NotNull] EntityTypeBuilder<School> builder)
         {

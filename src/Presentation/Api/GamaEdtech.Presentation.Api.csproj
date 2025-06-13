@@ -26,4 +26,8 @@
     <ProjectReference Include="..\ViewModel\GamaEdtech.Presentation.ViewModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

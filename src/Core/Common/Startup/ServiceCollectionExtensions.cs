@@ -27,6 +27,8 @@ namespace GamaEdtech.Common.Startup
                 options.SchemaFilter<EnumerationToEnumSchemaFilter>();
                 options.SchemaFilter<UlidToStringSchemaFilter>();
 
+                options.RequestBodyFilter<CustomRequestBodyFilter>();
+
                 options.DocumentFilter<DisplayNameDocumentFilter>();
 
                 options.OperationFilter<CustomOperationFilter>();

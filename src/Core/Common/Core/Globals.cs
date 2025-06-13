@@ -481,7 +481,7 @@ namespace GamaEdtech.Common.Core
                 types = new[] { mainType };
             }
 
-            return types;
+            return types?.Distinct();
         }
 
         public static bool IsSubclassOf(Type? type, Type? baseType)

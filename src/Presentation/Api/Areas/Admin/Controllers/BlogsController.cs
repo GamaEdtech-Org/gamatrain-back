@@ -87,8 +87,10 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Title = dto.Title,
                     Summary = dto.Summary,
                     Body = dto.Body,
-                    ImageUri = string.IsNullOrEmpty(dto.ImageId) ? null : fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
+                    ImageUri = fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
                     Tags = dto.Tags,
+                    PublishDate = dto.PublishDate,
+                    VisibilityType = dto.VisibilityType,
                 };
 
                 return Ok(new ApiResponse<PostContributionResponseViewModel>

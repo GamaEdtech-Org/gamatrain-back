@@ -72,11 +72,11 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public ResultData<Uri?> GetFileUri(string id, ContainerType containerType)
+        public ResultData<Uri?> GetFileUri(string? id, ContainerType containerType)
         {
             try
             {
-                return FileProvider.GetFileUri(id, containerType);
+                return id is null ? new(OperationResult.Succeeded) { Data = null } : FileProvider.GetFileUri(id, containerType);
             }
             catch (Exception exc)
             {

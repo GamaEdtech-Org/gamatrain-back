@@ -190,7 +190,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     ValidateActor = false,
                     ValidateIssuerSigningKey = false,
                     ValidateSignatureLast = false,
-                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JsonWebToken(token),
+                    SignatureValidator = (token, parameters) => new JsonWebToken(token),
                     ValidAudience = endpoint,
                 });
                 if (!data.IsValid)

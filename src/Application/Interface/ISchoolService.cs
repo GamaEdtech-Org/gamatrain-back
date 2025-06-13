@@ -13,6 +13,8 @@ namespace GamaEdtech.Application.Interface
     [Injectable]
     public interface ISchoolService
     {
+        #region Schools
+
         Task<ResultData<ListDataSource<SchoolsDto>>> GetSchoolsAsync(ListRequestDto<School>? requestDto = null);
         Task<ResultData<ListDataSource<SchoolInfoDto>>> GetSchoolsListAsync(ListRequestDto<School>? requestDto = null, Point? point = null);
         Task<ResultData<SchoolDto>> GetSchoolAsync([NotNull] ISpecification<School> specification);
@@ -20,6 +22,10 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<long>> ManageSchoolAsync([NotNull] ManageSchoolRequestDto requestDto, bool ignoreNullValues);
         Task<ResultData<bool>> RemoveSchoolAsync([NotNull] ISpecification<School> specification);
         Task<ResultData<bool>> ExistsSchoolAsync([NotNull] ISpecification<School> specification);
+
+        #endregion
+
+        #region Rate and Comments
 
         Task<ResultData<SchoolRateDto>> GetSchoolRateAsync([NotNull] ISpecification<SchoolComment> specification);
         Task<ResultData<ListDataSource<SchoolCommentDto>>> GetSchoolCommentsAsync(ListRequestDto<SchoolComment>? requestDto = null);
@@ -29,21 +35,40 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> ConfirmSchoolCommentContributionAsync([NotNull] ConfirmSchoolCommentContributionRequestDto requestDto);
         Task<ResultData<bool>> CommentExistsAsync([NotNull] ISpecification<SchoolComment> specification);
 
+        #endregion
+
+        #region Images
+
         Task<ResultData<ListDataSource<SchoolImageDto>>> GetSchoolImagesAsync(ListRequestDto<SchoolImage>? requestDto = null);
         Task<ResultData<IEnumerable<SchoolImageInfoDto>>> GetSchoolImagesListAsync([NotNull] ISpecification<SchoolImage> specification);
         Task<ResultData<long>> CreateSchoolImageContributionAsync([NotNull] ManageSchoolImageContributionRequestDto requestDto);
         Task<ResultData<bool>> ConfirmSchoolImageContributionAsync([NotNull] ConfirmSchoolImageContributionRequestDto requestDto);
         Task<ResultData<bool>> RemoveSchoolImageAsync([NotNull] ISpecification<SchoolImage> specification);
         Task<ResultData<bool>> ManageSchoolImageAsync([NotNull] ManageSchoolImageRequestDto requestDto);
+        Task<ResultData<bool>> SetDefaultSchoolImageAsync([NotNull] SetDefaultSchoolImageRequestDto requestDto);
+
+        #endregion
+
+        #region Contributions
 
         Task<ResultData<long>> ManageSchoolContributionAsync([NotNull] ManageSchoolContributionRequestDto requestDto);
         Task<ResultData<bool>> ConfirmSchoolContributionAsync([NotNull] ConfirmSchoolContributionRequestDto requestDto);
 
+        #endregion
+
+        #region Issues
+
         Task<ResultData<long>> CreateSchoolIssuesContributionAsync([NotNull] CreateSchoolIssuesContributionRequestDto requestDto);
         Task<ResultData<bool>> ConfirmSchoolIssuesContributionAsync([NotNull] ConfirmSchoolIssuesContributionRequestDto requestDto);
+
+        #endregion
+
+        #region Job
 
         Task<ResultData<bool>> UpdateSchoolScoreAsync(long? schoolId = null);
         Task<ResultData<bool>> UpdateSchoolCommentReactionsAsync(long? schoolCommentId = null);
         Task<ResultData<bool>> RemoveOldRejectedSchoolImagesAsync();
+
+        #endregion
     }
 }

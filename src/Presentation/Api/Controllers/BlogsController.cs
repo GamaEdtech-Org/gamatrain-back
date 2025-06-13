@@ -10,6 +10,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.Specification.Impl;
+    using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.Blog;
     using GamaEdtech.Domain.Entity;
@@ -33,9 +34,18 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                ISpecification<Post>? specification = request.TagId.HasValue
-                    ? new TagIncludedSpecification(request.TagId.Value)
-                    : null;
+                ISpecification<Post>? specification = new PublishDateSpecification();
+
+                if (request.TagId.HasValue)
+                {
+                    specification = specification.And(new TagIncludedSpecification(request.TagId.Value));
+                }
+
+                if (request.VisibilityType is not null)
+                {
+                    specification = specification.And(new VisibilityTypeEqualsSpecification(request.VisibilityType));
+                }
+
                 var result = await blogService.Value.GetPostsAsync(new ListRequestDto<Post>
                 {
                     PagingDto = request.PagingDto,
@@ -49,10 +59,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         {
                             Id = t.Id,
                             Title = t.Title,
+                            Slug = t.Slug,
                             Summary = t.Summary,
                             LikeCount = t.LikeCount,
                             DislikeCount = t.DislikeCount,
                             ImageUri = t.ImageUri,
+                            PublishDate = t.PublishDate,
+                            VisibilityType = t.VisibilityType,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -71,19 +84,23 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await blogService.Value.GetPostAsync(new IdEqualsSpecification<Post, long>(postId));
+                var specification = new IdEqualsSpecification<Post, long>(postId).And(new PublishDateSpecification());
+                var result = await blogService.Value.GetPostAsync(specification);
 
                 return Ok<PostResponseViewModel>(new(result.Errors)
                 {
                     Data = result.Data is null ? null : new()
                     {
                         Title = result.Data.Title,
+                        Slug = result.Data.Slug,
                         Summary = result.Data.Summary,
                         Body = result.Data.Body,
                         ImageUri = result.Data.ImageUri,
                         LikeCount = result.Data.LikeCount,
                         DislikeCount = result.Data.DislikeCount,
                         CreationUser = result.Data.CreationUser,
+                        VisibilityType = result.Data.VisibilityType,
+                        PublishDate = result.Data.PublishDate,
                         Tags = result.Data.Tags?.Select(t => new TagResponseViewModel
                         {
                             Id = t.Id,
@@ -171,6 +188,60 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpGet("slugs/generate"), Produces<ApiResponse<string>>()]
+        [Permission(policy: null)]
+        public async Task<IActionResult<string>> GenerateSlug([FromQuery, Required] string title)
+        {
+            try
+            {
+                var slug = Globals.Slugify(title);
+                var result = await GenerateSlugAsync(slug!);
+
+                return Ok<string>(new()
+                {
+                    Data = result,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<string>(new(new Error { Message = exc.Message }));
+            }
+
+            async Task<string> GenerateSlugAsync(string slug)
+            {
+                var result = await blogService.Value.PostExistsAsync(new SlugEqualsSpecification(slug));
+                if (result.OperationResult is Constants.OperationResult.Succeeded && !result.Data)
+                {
+                    return slug;
+                }
+
+                slug += 1;
+                return await GenerateSlugAsync(slug);
+            }
+        }
+
+        [HttpGet("slugs/validate"), Produces<ApiResponse<bool>>()]
+        [Permission(policy: null)]
+        public async Task<IActionResult<bool>> ValidateSlug([FromQuery, Required] string slug)
+        {
+            try
+            {
+                var result = await blogService.Value.PostExistsAsync(new SlugEqualsSpecification(slug));
+                return Ok<bool>(new(result.Errors)
+                {
+                    Data = !result.Data,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<bool>(new(new Error { Message = exc.Message }));
+            }
+        }
+
         #region Contributions
 
         [HttpGet("contributions"), Produces<ApiResponse<ListDataSource<PostContributionListResponseViewModel>>>()]
@@ -238,7 +309,9 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     Summary = dto.Summary,
                     Body = dto.Body,
                     Tags = dto.Tags,
-                    ImageUri = string.IsNullOrEmpty(dto.ImageId) ? null : fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
+                    ImageUri = fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
+                    PublishDate = dto.PublishDate,
+                    VisibilityType = dto.VisibilityType,
                 };
             }
             catch (Exception exc)
@@ -306,10 +379,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
             ContributionId = contributionId,
             UserId = User.UserId(),
             Title = request.Title,
+            Slug = request.Slug,
             Summary = request.Summary,
             Body = request.Body,
             Image = request.Image,
             Tags = request.Tags,
+            PublishDate = request.PublishDate.GetValueOrDefault(),
+            VisibilityType = request.VisibilityType!,
         };
     }
 }

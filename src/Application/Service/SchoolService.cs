@@ -51,14 +51,24 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var result = await uow.GetRepository<School, long>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
-                var users = await result.List.Select(t => new SchoolsDto
+                var result = await uow.GetRepository<School>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+                var schools = await result.List.Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    t.LocalName,
+                    DefaultImageId = t.SchoolImages.OrderByDescending(i => i.IsDefault).Select(i => i.FileId).FirstOrDefault(),
+                }).ToListAsync();
+
+                var lst = schools.Select(t => new SchoolsDto
                 {
                     Id = t.Id,
                     Name = t.Name,
                     LocalName = t.LocalName,
-                }).ToListAsync();
-                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+                    DefaultImageUri = fileService.Value.GetFileUri(t.DefaultImageId, ContainerType.School).Data,
+                });
+
+                return new(OperationResult.Succeeded) { Data = new() { List = lst, TotalRecordsCount = result.TotalRecordsCount } };
             }
             catch (Exception exc)
             {
@@ -72,35 +82,54 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var lst = uow.GetRepository<School, long>().GetManyQueryable(requestDto?.Specification);
+                var lst = uow.GetRepository<School>().GetManyQueryable(requestDto?.Specification);
                 int? total = requestDto?.PagingDto?.PageFilter?.ReturnTotalRecordsCount == true ? await lst.CountAsync() : null;
-                var query = lst.Select(t => new SchoolInfoDto
+                var query = lst.Select(t => new
                 {
-                    Id = t.Id,
-                    Name = t.Name,
-                    LastModifyDate = t.LastModifyDate ?? t.CreationDate,
-                    HasWebSite = !string.IsNullOrEmpty(t.WebSite),
-                    HasEmail = !string.IsNullOrEmpty(t.Email),
-                    HasPhoneNumber = !string.IsNullOrEmpty(t.PhoneNumber),
-                    Coordinates = t.Coordinates,
-                    Score = t.Score,
+                    t.Id,
+                    t.Name,
+                    t.CreationDate,
+                    t.LastModifyDate,
+                    t.WebSite,
+                    t.Email,
+                    t.PhoneNumber,
+                    t.Coordinates,
+                    t.Score,
                     CityTitle = t.City == null ? "" : t.City.Title,
                     CountryTitle = t.Country == null ? "" : t.Country.Title,
                     StateTitle = t.State == null ? "" : t.State.Title,
-                    Distance = point != null && t.Coordinates != null ? t.Coordinates!.Distance(point) : null,
+                    Distance = point != null && t.Coordinates != null ? t.Coordinates.Distance(point) : (double?)null,
+                    DefaultImageUri = t.SchoolImages.OrderByDescending(i => i.IsDefault).Select(i => i.FileId).FirstOrDefault(),
                 });
 
                 (query, var sortApplied) = query.OrderBy(requestDto?.PagingDto?.SortFilter);
                 if (!sortApplied)
                 {
-                    query = point is not null ? query.OrderBy(t => t.Distance) : query.OrderBy(t => t.Id);
+                    query = point is not null ? query.OrderBy(t => t.Distance) : query.OrderByDescending(t => t.Id);
                 }
                 if (requestDto?.PagingDto?.PageFilter is not null)
                 {
                     query = query.Skip(requestDto.PagingDto.PageFilter.Skip)
                         .Take(requestDto.PagingDto.PageFilter.Size);
                 }
-                var result = await query.ToListAsync();
+                var items = await query.ToListAsync();
+
+                var result = items.Select(t => new SchoolInfoDto
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    CityTitle = t.CityTitle,
+                    Coordinates = t.Coordinates,
+                    CountryTitle = t.CountryTitle,
+                    Distance = t.Distance,
+                    LastModifyDate = t.LastModifyDate ?? t.CreationDate,
+                    Score = t.Score,
+                    StateTitle = t.StateTitle,
+                    HasEmail = !string.IsNullOrEmpty(t.Email),
+                    HasPhoneNumber = !string.IsNullOrEmpty(t.PhoneNumber),
+                    HasWebSite = !string.IsNullOrEmpty(t.WebSite),
+                    DefaultImageUri = fileService.Value.GetFileUri(t.DefaultImageUri, ContainerType.School).Data,
+                });
 
                 return new(OperationResult.Succeeded) { Data = new() { List = result, TotalRecordsCount = total } };
             }
@@ -116,29 +145,30 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var school = await uow.GetRepository<School, long>().GetManyQueryable(specification).Select(t => new SchoolDto
+                var school = await uow.GetRepository<School>().GetManyQueryable(specification).Select(t => new
                 {
-                    Id = t.Id,
-                    Name = t.Name,
-                    LocalName = t.LocalName,
-                    Address = t.Address,
-                    LocalAddress = t.LocalAddress,
-                    Coordinates = t.Coordinates,
-                    SchoolType = t.SchoolType,
-                    ZipCode = t.ZipCode,
-                    CityId = t.CityId,
+                    t.Id,
+                    t.Name,
+                    t.LocalName,
+                    t.Address,
+                    t.LocalAddress,
+                    t.Coordinates,
+                    t.SchoolType,
+                    t.ZipCode,
+                    t.CityId,
                     CityTitle = t.City != null ? t.City.Title : "",
-                    CountryId = t.CountryId,
+                    t.CountryId,
                     CountryTitle = t.Country != null ? t.Country.Title : "",
-                    StateId = t.StateId,
+                    t.StateId,
                     StateTitle = t.State != null ? t.State.Title : "",
-                    WebSite = t.WebSite,
-                    FaxNumber = t.FaxNumber,
-                    PhoneNumber = t.PhoneNumber,
-                    Email = t.Email,
-                    Quarter = t.Quarter,
-                    OsmId = t.OsmId,
-                    Tags = t.SchoolTags == null ? null : t.SchoolTags.Select(s => new TagDto
+                    t.WebSite,
+                    t.FaxNumber,
+                    t.PhoneNumber,
+                    t.Email,
+                    t.Quarter,
+                    t.OsmId,
+                    DefaultImageId = t.SchoolImages.OrderByDescending(i => i.IsDefault).Select(i => i.FileId).FirstOrDefault(),
+                    Tags = t.SchoolTags.Select(s => new TagDto
                     {
                         Icon = s.Tag.Icon,
                         Id = s.TagId,
@@ -146,13 +176,40 @@ namespace GamaEdtech.Application.Service
                         TagType = s.Tag.TagType,
                     }),
                 }).FirstOrDefaultAsync();
-
-                return school is null
-                    ? new(OperationResult.NotFound)
+                if (school is null)
+                {
+                    return new(OperationResult.NotFound)
                     {
                         Errors = [new() { Message = Localizer.Value["SchoolNotFound"] },],
-                    }
-                    : new(OperationResult.Succeeded) { Data = school };
+                    };
+                }
+
+                SchoolDto result = new()
+                {
+                    Id = school.Id,
+                    Name = school.Name,
+                    LocalName = school.LocalName,
+                    Address = school.Address,
+                    LocalAddress = school.LocalAddress,
+                    Coordinates = school.Coordinates,
+                    SchoolType = school.SchoolType,
+                    ZipCode = school.ZipCode,
+                    CityId = school.CityId,
+                    CityTitle = school.CityTitle,
+                    CountryId = school.CountryId,
+                    CountryTitle = school.CountryTitle,
+                    StateId = school.StateId,
+                    StateTitle = school.StateTitle,
+                    WebSite = school.WebSite,
+                    FaxNumber = school.FaxNumber,
+                    PhoneNumber = school.PhoneNumber,
+                    Email = school.Email,
+                    Quarter = school.Quarter,
+                    OsmId = school.OsmId,
+                    DefaultImageUri = fileService.Value.GetFileUri(school.DefaultImageId, ContainerType.School).Data,
+                    Tags = school.Tags,
+                };
+                return new(OperationResult.Succeeded) { Data = result };
             }
             catch (Exception exc)
             {
@@ -182,7 +239,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var repository = uow.GetRepository<School, long>();
+                var repository = uow.GetRepository<School>();
                 School? school = null;
 
                 if (requestDto.Id.HasValue)
@@ -310,7 +367,8 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var school = await uow.GetRepository<School, long>().GetAsync(specification);
+                var repository = uow.GetRepository<School>();
+                var school = await repository.GetAsync(specification);
                 if (school is null)
                 {
                     return new(OperationResult.NotFound)
@@ -320,8 +378,9 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                uow.GetRepository<School, long>().Remove(school);
+                repository.Remove(school);
                 _ = await uow.SaveChangesAsync();
+
                 return new(OperationResult.Succeeded) { Data = true };
             }
             catch (ReferenceConstraintException)
@@ -340,7 +399,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var exists = await uow.GetRepository<School, long>().AnyAsync(specification);
+                var exists = await uow.GetRepository<School>().AnyAsync(specification);
                 return new(OperationResult.Succeeded) { Data = exists };
             }
             catch (Exception exc)
@@ -649,6 +708,7 @@ namespace GamaEdtech.Application.Service
                     SchoolId = t.SchoolId,
                     SchoolName = t.School!.Name,
                     TagId = t.TagId,
+                    IsDefault = t.IsDefault,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -674,6 +734,7 @@ namespace GamaEdtech.Application.Service
                         TagName = t.Tag != null ? t.Tag.Name : null,
                         TagIcon = t.Tag != null ? t.Tag.Icon : null,
                         t.TagId,
+                        t.IsDefault,
                     }).ToListAsync();
 
                 return new(OperationResult.Succeeded)
@@ -682,12 +743,13 @@ namespace GamaEdtech.Application.Service
                         new SchoolImageInfoDto
                         {
                             Id = t.Id,
-                            FileUri = fileService.Value.GetFileUri(t.FileId!, ContainerType.School).Data,
+                            FileUri = fileService.Value.GetFileUri(t.FileId, ContainerType.School).Data,
                             CreationUserId = t.CreationUserId,
                             CreationUser = t.CreationUser,
                             TagName = t.TagName,
                             TagIcon = t.TagIcon,
                             TagId = t.TagId,
+                            IsDefault = t.IsDefault,
                         })
                 };
             }
@@ -733,6 +795,7 @@ namespace GamaEdtech.Application.Service
                     FileType = requestDto.FileType,
                     SchoolId = requestDto.SchoolId,
                     TagId = requestDto.TagId,
+                    IsDefault = requestDto.IsDefault,
                 };
                 var contributionResult = await contributionService.Value.ManageContributionAsync(new ManageContributionRequestDto
                 {
@@ -770,7 +833,7 @@ namespace GamaEdtech.Application.Service
                             var point = geometryFactory.CreatePoint(new Coordinate(gps.Longitude, gps.Latitude));
 
                             var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                            var schoolRepository = uow.GetRepository<School, long>();
+                            var schoolRepository = uow.GetRepository<School>();
                             var schoolCoordinates = await schoolRepository.GetManyQueryable(t => t.Id == requestDto.SchoolId).Select(t => t.Coordinates).FirstOrDefaultAsync();
                             if (schoolCoordinates is not null && schoolCoordinates.Distance(point) < 200)
                             {
@@ -809,16 +872,28 @@ namespace GamaEdtech.Application.Service
                 var dto = JsonSerializer.Deserialize<SchoolImageContributionDto>(result.Data.Data!)!;
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var schoolImageRepository = uow.GetRepository<SchoolImage>();
-                schoolImageRepository.Add(new()
+                var schoolImage = new SchoolImage
                 {
                     FileId = dto.FileId,
                     FileType = dto.FileType,
                     SchoolId = dto.SchoolId,
                     TagId = dto.TagId,
+                    IsDefault = dto.IsDefault,
                     CreationUserId = result.Data.CreationUserId,
                     CreationDate = result.Data.CreationDate,
-                });
+                    ContributionId = requestDto.ContributionId,
+                };
+                schoolImageRepository.Add(schoolImage);
                 _ = await uow.SaveChangesAsync();
+
+                if (dto.IsDefault)
+                {
+                    _ = await SetDefaultSchoolImageAsync(new()
+                    {
+                        Id = schoolImage.Id,
+                        SchoolId = schoolImage.SchoolId,
+                    });
+                }
 
                 var schoolRepository = uow.GetRepository<School>();
                 _ = await schoolRepository.GetManyQueryable(t => t.Id == dto.SchoolId).ExecuteUpdateAsync(t => t
@@ -893,15 +968,42 @@ namespace GamaEdtech.Application.Service
                 }
 
                 schoolImage.TagId = requestDto.TagId;
+                schoolImage.IsDefault = requestDto.IsDefault;
 
                 _ = repository.Update(schoolImage);
                 _ = await uow.SaveChangesAsync();
+
+                if (requestDto.IsDefault)
+                {
+                    _ = await SetDefaultSchoolImageAsync(new()
+                    {
+                        Id = schoolImage.Id,
+                        SchoolId = schoolImage.SchoolId,
+                    });
+                }
 
                 return new(OperationResult.Succeeded) { Data = true };
             }
             catch (ReferenceConstraintException)
             {
                 return new(OperationResult.NotValid) { Errors = [new() { Message = Localizer.Value["InvalidTagId"], }] };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<bool>> SetDefaultSchoolImageAsync([NotNull] SetDefaultSchoolImageRequestDto requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var affectedRows = await uow.GetRepository<SchoolImage>().GetManyQueryable(t => t.SchoolId == requestDto.SchoolId)
+                    .ExecuteUpdateAsync(t => t.SetProperty(p => p.IsDefault, p => p.Id == requestDto.Id));
+
+                return new(OperationResult.Succeeded) { Data = affectedRows > 0 };
             }
             catch (Exception exc)
             {
@@ -919,7 +1021,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var exists = await uow.GetRepository<School, long>().AnyAsync(t => t.Id == requestDto.SchoolId);
+                var exists = await uow.GetRepository<School>().AnyAsync(t => t.Id == requestDto.SchoolId);
                 if (!exists)
                 {
                     return new(OperationResult.Failed) { Errors = [new() { Message = "School not found", },] };
@@ -928,10 +1030,14 @@ namespace GamaEdtech.Application.Service
                 if (requestDto.Id.HasValue)
                 {
                     var specification = new IdEqualsSpecification<Contribution, long>(requestDto.Id.Value)
-                        .And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.SchoolId))
                         .And(new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(requestDto.UserId))
                         .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.School))
                         .And(new StatusEqualsSpecification<Contribution>(Status.Draft).Or(new StatusEqualsSpecification<Contribution>(Status.Rejected)));
+                    if (requestDto.SchoolId.HasValue)
+                    {
+                        specification = specification.And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.SchoolId.Value));
+                    }
+
                     var data = await contributionService.Value.ExistsContributionAsync(specification);
                     if (!data.Data)
                     {
@@ -939,12 +1045,34 @@ namespace GamaEdtech.Application.Service
                     }
                 }
 
+                SchoolContributionDto dto = new()
+                {
+                    Address = requestDto.Address,
+                    CityId = requestDto.CityId,
+                    CountryId = requestDto.CountryId,
+                    Email = requestDto.Email,
+                    FaxNumber = requestDto.FaxNumber,
+                    Latitude = requestDto.Latitude,
+                    LocalAddress = requestDto.LocalAddress,
+                    LocalName = requestDto.LocalName,
+                    Longitude = requestDto.Longitude,
+                    Name = requestDto.Name,
+                    PhoneNumber = requestDto.PhoneNumber,
+                    Quarter = requestDto.Quarter,
+                    SchoolType = requestDto.SchoolType,
+                    StateId = requestDto.StateId,
+                    WebSite = requestDto.WebSite,
+                    ZipCode = requestDto.ZipCode,
+                    Tags = requestDto.Tags,
+                    DefaultImageId = requestDto.DefaultImageId,
+                };
+
                 var contributionResult = await contributionService.Value.ManageContributionAsync(new ManageContributionRequestDto
                 {
                     CategoryType = CategoryType.School,
                     IdentifierId = requestDto.SchoolId,
                     Status = Status.Draft,
-                    Data = JsonSerializer.Serialize(requestDto.Data),
+                    Data = JsonSerializer.Serialize(dto),
                     Id = requestDto.Id,
                 });
                 if (contributionResult.OperationResult is not OperationResult.Succeeded)
@@ -959,7 +1087,7 @@ namespace GamaEdtech.Application.Service
                     {
                         ContributionId = contributionResult.Data,
                         SchoolId = requestDto.SchoolId,
-                        Data = requestDto.Data,
+                        Data = dto,
                     });
                 }
 
@@ -977,15 +1105,23 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var school = await uow.GetRepository<School, long>().GetAsync(requestDto.SchoolId);
-                if (school is null)
+
+                if (requestDto.SchoolId.HasValue)
                 {
-                    return new(OperationResult.Failed) { Errors = [new() { Message = "School not found", },] };
+                    var schoolExists = await uow.GetRepository<School>().AnyAsync(t => t.Id == requestDto.SchoolId.Value);
+                    if (!schoolExists)
+                    {
+                        return new(OperationResult.Failed) { Errors = [new() { Message = "School not found", },] };
+                    }
                 }
 
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
-                    .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.School))
-                    .And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.SchoolId));
+                    .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.School));
+                if (requestDto.SchoolId.HasValue)
+                {
+                    contributionSpecification = contributionSpecification.And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.SchoolId.Value));
+                }
+
                 var contributionResult = await contributionService.Value.ConfirmContributionAsync(contributionSpecification);
                 if (contributionResult.Data is null)
                 {
@@ -1019,6 +1155,15 @@ namespace GamaEdtech.Application.Service
                     manageSchoolRequestDto.Coordinates = geometryFactory.CreatePoint(new Coordinate(requestDto.Data.Longitude.Value, requestDto.Data.Latitude.Value));
                 }
                 var manageSchoolResult = await ManageSchoolAsync(manageSchoolRequestDto, true);
+
+                if (requestDto.Data.DefaultImageId.HasValue && requestDto.SchoolId.HasValue)
+                {
+                    _ = await SetDefaultSchoolImageAsync(new()
+                    {
+                        Id = requestDto.Data.DefaultImageId.Value,
+                        SchoolId = requestDto.SchoolId.Value,
+                    });
+                }
 
                 return manageSchoolResult.OperationResult is OperationResult.Succeeded
                     ? new(OperationResult.Failed) { Errors = contributionResult.Errors }

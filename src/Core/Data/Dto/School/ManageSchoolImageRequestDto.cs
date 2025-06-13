@@ -5,5 +5,6 @@ namespace GamaEdtech.Data.Dto.School
         public long Id { get; set; }
         public long SchoolId { get; set; }
         public long? TagId { get; set; }
+        public bool IsDefault { get; set; }
     }
 }

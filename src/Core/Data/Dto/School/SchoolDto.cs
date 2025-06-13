@@ -29,6 +29,7 @@ namespace GamaEdtech.Data.Dto.School
         public string? Email { get; set; }
         public string? Quarter { get; set; }
         public long? OsmId { get; set; }
+        public Uri? DefaultImageUri { get; set; }
         public IEnumerable<TagDto>? Tags { get; set; }
     }
 }

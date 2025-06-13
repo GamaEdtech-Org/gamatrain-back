@@ -41,7 +41,7 @@ namespace GamaEdtech.Infrastructure.Provider.Authentication
                     ValidateActor = false,
                     ValidateIssuerSigningKey = false,
                     ValidateSignatureLast = false,
-                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JwtSecurityToken(token),
+                    SignatureValidator = (token, parameters) => new JwtSecurityToken(token),
                     ValidateAudience = false,
                     //ValidAudience = "",
                 });

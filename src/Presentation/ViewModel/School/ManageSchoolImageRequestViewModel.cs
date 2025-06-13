@@ -6,5 +6,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
     {
         [Display]
         public long? TagId { get; set; }
+
+        [Display]
+        public bool IsDefault { get; set; }
     }
 }

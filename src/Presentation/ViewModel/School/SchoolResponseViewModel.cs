@@ -33,5 +33,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public string? Quarter { get; set; }
         public long? OsmId { get; set; }
         public IEnumerable<TagResponseViewModel>? Tags { get; set; }
+        public Uri? DefaultImageUri { get; set; }
     }
 }
