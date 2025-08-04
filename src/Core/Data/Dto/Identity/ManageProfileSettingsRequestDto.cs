@@ -5,6 +5,6 @@ namespace GamaEdtech.Data.Dto.Identity
     {
         public required int UserId { get; set; }
         public int? CityId { get; set; }
-        public int? SchoolId { get; set; }
+        public long? SchoolId { get; set; }
     }
 }
