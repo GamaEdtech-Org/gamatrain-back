@@ -11,6 +11,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.Data.Enumeration;
+    using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
@@ -337,7 +338,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await identityService.Value.GetProfileSettingsAsync();
+                var result = await identityService.Value.GetProfileSettingsAsync(new IdEqualsSpecification<ApplicationUser, int>(User.UserId()));
 
                 return Ok<ProfileSettingsResponseViewModel>(new(result.Errors)
                 {
@@ -358,42 +359,31 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPut("profiles"), Produces(typeof(ApiResponse<ProfileSettingsUpdateResultDto>))]
+        [HttpPut("profiles"), Produces(typeof(ApiResponse<bool>))]
         [Permission(policy: null)]
         public async Task<IActionResult> UpdateProfileSettings([NotNull] ProfileSettingsRequestViewModel request)
         {
             try
             {
-                var result = await identityService.Value.UpdateProfileSettingsAsync(new ProfileSettingsDto
+                var result = await identityService.Value.ManageProfileSettingsAsync(new()
                 {
                     CityId = request.CityId,
                     SchoolId = request.SchoolId,
+                    UserId = User.UserId(),
                 });
 
-                var success = result.OperationResult == OperationResult.Succeeded;
-
-                if (!success)
-                {
-                    return Ok(new ApiResponse<ProfileSettingsUpdateResultDto>(result.Errors));
-                }
-
-                var response = new ApiResponse<ProfileSettingsUpdateResultDto>
+                return Ok<bool>(new(result.Errors)
                 {
                     Data = result.Data,
-                    Errors = null,
-                };
-
-                return Ok(response);
+                });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<ProfileSettingsUpdateResultDto>(new Error { Message = exc.Message }));
+                return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
-
-
 
 #pragma warning disable CA1034 // Nested types should not be visible
         //this is temporary, must delete

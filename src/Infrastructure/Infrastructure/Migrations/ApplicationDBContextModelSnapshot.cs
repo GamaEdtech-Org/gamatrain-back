@@ -559,8 +559,8 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("RegistrationDate");
 
-                    b.Property<int?>("SchoolId")
-                        .HasColumnType("int")
+                    b.Property<long?>("SchoolId")
+                        .HasColumnType("bigint")
                         .HasColumnName("SchoolId");
 
                     b.Property<string>("SecurityStamp")
@@ -581,6 +581,8 @@ namespace GamaEdtech.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CityId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("IX_ApplicationUser_NormalizedEmail");
 
@@ -588,6 +590,8 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_ApplicationUser_NormalizedUserName")
                         .HasFilter("([NormalizedUserName] IS NOT NULL)");
+
+                    b.HasIndex("SchoolId");
 
                     b.ToTable("ApplicationUsers");
 
@@ -1035,7 +1039,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnName("DefaultImageId");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("Description");
 
                     b.Property<string>("Email")
@@ -1719,6 +1723,21 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUser", b =>
+                {
+                    b.HasOne("GamaEdtech.Domain.Entity.Location", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId");
+
+                    b.HasOne("GamaEdtech.Domain.Entity.School", "School")
+                        .WithMany()
+                        .HasForeignKey("SchoolId");
+
+                    b.Navigation("City");
+
+                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUserClaim", b =>

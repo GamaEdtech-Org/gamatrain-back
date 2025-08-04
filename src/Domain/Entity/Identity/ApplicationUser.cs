@@ -119,9 +119,11 @@ namespace GamaEdtech.Domain.Entity.Identity
 
         [Column(nameof(CityId), DataType.Int)]
         public int? CityId { get; set; }
+        public Location? City { get; set; }
 
-        [Column(nameof(SchoolId), DataType.Int)]
-        public int? SchoolId { get; set; }
+        [Column(nameof(SchoolId), DataType.Long)]
+        public long? SchoolId { get; set; }
+        public School? School { get; set; }
 
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 

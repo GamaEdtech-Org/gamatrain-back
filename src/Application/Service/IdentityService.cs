@@ -25,7 +25,6 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Common.Service.Factory;
     using GamaEdtech.Data.Dto.Identity;
-    using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
@@ -744,30 +743,21 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync()
+        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync([NotNull] ISpecification<ApplicationUser> specification)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
-                {
-                    return new(OperationResult.Failed)
-                    {
-                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
-                    };
-                }
-
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var userRepo = uow.GetRepository<ApplicationUser, int>();
-                var locationRepo = uow.GetRepository<Location, int>();
+                var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
+                    .Select(t => new
+                    {
+                        t.SchoolId,
+                        t.CityId,
+                        StateId = t.City != null ? t.City.ParentId : null,
+                        CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                    }).FirstOrDefaultAsync();
 
-                // Get SchoolId and CityId from user table
-                var userInfo = await userRepo
-                    .GetManyQueryable(u => u.Id == userId.Value)
-                    .Select(u => new { u.SchoolId, u.CityId })
-                    .FirstOrDefaultAsync();
-
-                if (userInfo == null)
+                if (userInfo is null)
                 {
                     return new(OperationResult.Failed)
                     {
@@ -775,52 +765,17 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var cityId = userInfo.CityId != 0 ? userInfo.CityId : null;
-                int? stateId = null;
-                int? countryId = null;
-
-                // Traverse from City → State → Country
-                var currentId = cityId;
-
-                while (currentId.HasValue)
+                var data = new ProfileSettingsDto
                 {
-                    var location = await locationRepo
-                        .GetManyQueryable(l => l.Id == currentId.Value)
-                        .Select(l => new { l.Id, l.LocationType, l.ParentId })
-                        .FirstOrDefaultAsync();
-
-                    if (location == null)
-                    {
-
-                        break;
-                    }
-
-                    if (location.LocationType != null)
-                    {
-                        if (location.LocationType == LocationType.State)
-                        {
-                            stateId ??= location.Id;
-
-                        }
-                        else if (location.LocationType == LocationType.Country)
-                        {
-
-                            countryId ??= location.Id;
-                        }
-                    }
-
-                    currentId = location.ParentId;
-                }
+                    SchoolId = userInfo.SchoolId,
+                    CityId = userInfo.CityId,
+                    StateId = userInfo.StateId,
+                    CountryId = userInfo.CountryId,
+                };
 
                 return new(OperationResult.Succeeded)
                 {
-                    Data = new ProfileSettingsDto
-                    {
-                        SchoolId = userInfo.SchoolId != 0 ? userInfo.SchoolId : null,
-                        CityId = cityId,
-                        StateId = stateId,
-                        CountryId = countryId
-                    }
+                    Data = data,
                 };
             }
             catch (Exception exc)
@@ -834,48 +789,20 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ProfileSettingsUpdateResultDto>> UpdateProfileSettingsAsync([NotNull] ProfileSettingsDto requestDto)
+        public async Task<ResultData<bool>> ManageProfileSettingsAsync([NotNull] ManageProfileSettingsRequestDto requestDto)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
-                {
-                    return new(OperationResult.Failed)
-                    {
-                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
-                    };
-                }
-
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var userRepo = uow.GetRepository<ApplicationUser, int>();
 
-                var user = await userRepo
-                    .GetManyQueryable(u => u.Id == userId.Value)
-                    .FirstOrDefaultAsync();
-
-                if (user == null)
-                {
-                    return new(OperationResult.Failed)
-                    {
-                        Errors = new[] { new Error { Message = "User not found." } }
-                    };
-                }
-
-                // Update CityId and SchoolId (default to 0 if null)
-                user.CityId = requestDto.CityId ?? 0;
-                user.SchoolId = requestDto.SchoolId ?? 0;
-
-                _ = userRepo.Update(user);
-                _ = await uow.SaveChangesAsync();
+                var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
+                    .ExecuteUpdateAsync(t => t
+                        .SetProperty(p => p.CityId, requestDto.CityId)
+                        .SetProperty(p => p.SchoolId, requestDto.SchoolId));
 
                 return new(OperationResult.Succeeded)
                 {
-                    Data = new ProfileSettingsUpdateResultDto
-                    {
-                        SchoolId = user.SchoolId,
-                        CityId = user.CityId
-                    }
+                    Data = affectedRows > 0
                 };
             }
             catch (Exception exc)
@@ -887,8 +814,6 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
-
-
 
         public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)
         {
@@ -926,6 +851,7 @@ namespace GamaEdtech.Application.Service
                 return UtcTimeZoneId;
             }
         }
+
         private static IEnumerable<Error> MapUserManagerErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
