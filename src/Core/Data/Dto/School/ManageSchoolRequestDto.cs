@@ -31,5 +31,6 @@ namespace GamaEdtech.Data.Dto.School
         public int UserId { get; set; }
         public DateTimeOffset Date { get; set; }
         public long? DefaultImageId { get; set; }
+        public string? Description { get; set; }
     }
 }

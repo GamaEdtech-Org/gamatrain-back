@@ -743,81 +743,75 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync()
+        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync([NotNull] ISpecification<ApplicationUser> specification)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
+                    .Select(t => new
+                    {
+                        t.SchoolId,
+                        t.CityId,
+                        StateId = t.City != null ? t.City.ParentId : null,
+                        CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                    }).FirstOrDefaultAsync();
+
+                if (userInfo is null)
                 {
                     return new(OperationResult.Failed)
                     {
-                        Errors = new Error[] { new() { Message = Localizer.Value["AuthenticationError"].Value }, },
+                        Errors = new[] { new Error { Message = "User not found." } }
                     };
                 }
-                var timeZone = await GetTimeZoneIdAsync(userId.Value);
+
+                var data = new ProfileSettingsDto
+                {
+                    SchoolId = userInfo.SchoolId,
+                    CityId = userInfo.CityId,
+                    StateId = userInfo.StateId,
+                    CountryId = userInfo.CountryId,
+                };
+
                 return new(OperationResult.Succeeded)
                 {
-                    Data = new ProfileSettingsDto
-                    {
-                        TimeZoneId = timeZone,
-                    }
+                    Data = data,
                 };
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message } } };
+
+                return new(OperationResult.Failed)
+                {
+                    Errors = new[] { new Error { Message = exc.Message } }
+                };
             }
         }
 
-        public async Task<ResultData<Void>> UpdateProfileSettingsAsync([NotNull] ProfileSettingsDto requestDto)
+        public async Task<ResultData<bool>> ManageProfileSettingsAsync([NotNull] ManageProfileSettingsRequestDto requestDto)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
-                {
-                    return new(OperationResult.Failed)
-                    {
-                        Errors = new Error[] { new() { Message = Localizer.Value["AuthenticationError"].Value }, },
-                    };
-                }
-
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var userClaimRepository = uow.GetRepository<ApplicationUserClaim, int>();
-                var userClaim = await userClaimRepository.GetManyQueryable(t => t.UserId == userId.Value && t.ClaimType == TimeZoneIdClaim).FirstOrDefaultAsync();
 
-                if (userClaim is null)
-                {
-                    if (string.IsNullOrEmpty(requestDto.TimeZoneId))
-                    {
-                        return new(OperationResult.Succeeded);
-                    }
+                var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
+                    .ExecuteUpdateAsync(t => t
+                        .SetProperty(p => p.CityId, requestDto.CityId)
+                        .SetProperty(p => p.SchoolId, requestDto.SchoolId));
 
-                    userClaimRepository.Add(new ApplicationUserClaim
-                    {
-                        UserId = userId.Value,
-                        ClaimType = TimeZoneIdClaim,
-                        ClaimValue = requestDto.TimeZoneId,
-                    });
-                }
-                else if (string.IsNullOrEmpty(requestDto.TimeZoneId))
+                return new(OperationResult.Succeeded)
                 {
-                    userClaimRepository.Remove(userClaim);
-                }
-                else
-                {
-                    userClaim.ClaimValue = requestDto.TimeZoneId;
-                    _ = userClaimRepository.Update(userClaim);
-                }
-                _ = await uow.SaveChangesAsync();
-                return new(OperationResult.Succeeded);
+                    Data = affectedRows > 0
+                };
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message } } };
+                return new(OperationResult.Failed)
+                {
+                    Errors = new[] { new Error { Message = exc.Message } }
+                };
             }
         }
 

@@ -23,5 +23,9 @@ namespace GamaEdtech.Data.Dto.School
         public IEnumerable<long>? Tags { get; set; }
         public long? DefaultImageId { get; set; }
         public decimal? Tuition { get; set; }
+        public string? Description { get; set; }
+        public SchoolCommentContributionDto? Comment { get; set; }
+        public string? ImageFileId { get; set; }
+        public bool IsDefault { get; set; }
     }
 }

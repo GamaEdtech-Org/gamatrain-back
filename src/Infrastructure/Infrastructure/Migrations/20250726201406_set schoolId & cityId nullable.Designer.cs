@@ -4,6 +4,7 @@ using GamaEdtech.Infrastructure.EntityFramework.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250726201406_set schoolId & cityId nullable")]
+    partial class setschoolIdcityIdnullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -559,8 +562,8 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("RegistrationDate");
 
-                    b.Property<long?>("SchoolId")
-                        .HasColumnType("bigint")
+                    b.Property<int?>("SchoolId")
+                        .HasColumnType("int")
                         .HasColumnName("SchoolId");
 
                     b.Property<string>("SecurityStamp")
@@ -581,8 +584,6 @@ namespace GamaEdtech.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("IX_ApplicationUser_NormalizedEmail");
 
@@ -590,8 +591,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_ApplicationUser_NormalizedUserName")
                         .HasFilter("([NormalizedUserName] IS NOT NULL)");
-
-                    b.HasIndex("SchoolId");
 
                     b.ToTable("ApplicationUsers");
 
@@ -1037,10 +1036,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<long?>("DefaultImageId")
                         .HasColumnType("bigint")
                         .HasColumnName("DefaultImageId");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Description");
 
                     b.Property<string>("Email")
                         .HasMaxLength(200)
@@ -1723,21 +1718,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUser", b =>
-                {
-                    b.HasOne("GamaEdtech.Domain.Entity.Location", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId");
-
-                    b.HasOne("GamaEdtech.Domain.Entity.School", "School")
-                        .WithMany()
-                        .HasForeignKey("SchoolId");
-
-                    b.Navigation("City");
-
-                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUserClaim", b =>

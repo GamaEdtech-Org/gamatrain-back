@@ -20,5 +20,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> RejectContributionAsync([NotNull] RejectContributionRequestDto requestDto);
         Task<ResultData<bool>> DeleteContributionAsync([NotNull] ISpecification<Contribution> specification);
         Task<ResultData<bool>> IsCreatorOfContributionAsync(long contributionId, int userId);
+        Task<ResultData<bool>> UpdateIdentifierIdAsync(long contributionId, long identifierId);
+        Task<ResultData<long?>> GetIdentifierIdAsync([NotNull] ISpecification<Contribution> specification);
     }
 }

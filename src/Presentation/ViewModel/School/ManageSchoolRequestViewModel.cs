@@ -68,5 +68,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         public decimal? Tuition { get; set; }
+
+        [Display]
+        public string? Description { get; set; }
     }
 }

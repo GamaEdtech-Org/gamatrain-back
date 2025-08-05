@@ -140,16 +140,13 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
+                long? identifierId = null;
                 if (requestDto.ContributionId.HasValue)
                 {
                     var specification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId.Value)
                         .And(new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(requestDto.UserId))
                         .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post))
-                        .And(
-                            new StatusEqualsSpecification<Contribution>(Status.Draft)
-                            .Or(new StatusEqualsSpecification<Contribution>(Status.Rejected))
-                            .Or(new StatusEqualsSpecification<Contribution>(Status.Review))
-                        );
+                        .AndNot(new StatusEqualsSpecification<Contribution>(Status.Deleted));
                     var data = await contributionService.Value.ExistsContributionAsync(specification);
 
                     if (data.OperationResult is not OperationResult.Succeeded)
@@ -163,7 +160,17 @@ namespace GamaEdtech.Application.Service
                     }
                 }
 
-                var exists = await PostExistsAsync(new SlugEqualsSpecification(requestDto.Slug!));
+                ISpecification<Post> slugSpecification = new SlugEqualsSpecification(requestDto.Slug!);
+                if (requestDto.ContributionId.HasValue)
+                {
+                    identifierId = (await contributionService.Value.GetIdentifierIdAsync(new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId.Value))).Data;
+                    if (identifierId.HasValue)
+                    {
+                        slugSpecification = slugSpecification.AndNot(new IdEqualsSpecification<Post, long>(identifierId.Value));
+                    }
+                }
+
+                var exists = await PostExistsAsync(slugSpecification);
                 if (exists.Data)
                 {
                     return new(OperationResult.Duplicate) { Errors = [new() { Message = Localizer.Value["DuplicateSlug"] },], };
@@ -206,7 +213,7 @@ namespace GamaEdtech.Application.Service
                 var contributionResult = await contributionService.Value.ManageContributionAsync(new ManageContributionRequestDto<PostContributionDto>
                 {
                     CategoryType = CategoryType.Post,
-                    IdentifierId = null,
+                    IdentifierId = identifierId,
                     Status = requestDto.Draft.GetValueOrDefault() ? Status.Draft : Status.Review,
                     Data = dto,
                     Id = requestDto.ContributionId,
@@ -245,13 +252,17 @@ namespace GamaEdtech.Application.Service
                 var repository = uow.GetRepository<Post>();
                 Post? post = null;
 
-                var (imageId, errors) = await SaveImageAsync(requestDto.Image);
-                if (errors is not null)
+                if (string.IsNullOrEmpty(requestDto.ImageId))
                 {
-                    return new(OperationResult.Failed)
+                    var (imageId, errors) = await SaveImageAsync(requestDto.Image);
+                    if (errors is not null)
                     {
-                        Errors = errors,
-                    };
+                        return new(OperationResult.Failed)
+                        {
+                            Errors = errors,
+                        };
+                    }
+                    requestDto.ImageId = imageId;
                 }
 
                 if (requestDto.Id.HasValue)
@@ -269,7 +280,7 @@ namespace GamaEdtech.Application.Service
                     post.Title = requestDto.Title ?? post.Title;
                     post.Summary = requestDto.Summary ?? post.Summary;
                     post.Body = requestDto.Body ?? post.Body;
-                    post.ImageId = imageId ?? post.ImageId;
+                    post.ImageId = requestDto.ImageId ?? post.ImageId;
                     post.PublishDate = requestDto.PublishDate ?? post.PublishDate;
                     post.VisibilityType = requestDto.VisibilityType ?? post.VisibilityType;
                     post.Keywords = requestDto.Keywords ?? post.Keywords;
@@ -317,7 +328,9 @@ namespace GamaEdtech.Application.Service
                         PublishDate = requestDto.PublishDate.GetValueOrDefault(),
                         VisibilityType = requestDto.VisibilityType!,
                         Keywords = requestDto.Keywords,
-                        ImageId = imageId,
+                        ImageId = requestDto.ImageId,
+                        CreationUserId = requestDto.CreationUserId,
+                        CreationDate = requestDto.CreationDate,
                     };
                     if (requestDto.Tags is not null)
                     {
@@ -485,6 +498,9 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                using var scope = uow.CreateTransactionScope();
+
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post));
                 var result = await contributionService.Value.ConfirmContributionAsync<PostContributionDto>(contributionSpecification);
@@ -493,28 +509,53 @@ namespace GamaEdtech.Application.Service
                     return new(OperationResult.Failed) { Errors = result.Errors };
                 }
 
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var postRepository = uow.GetRepository<Post>();
-                postRepository.Add(new()
+                if (result.Data.IdentifierId.HasValue)
                 {
-                    Body = result.Data.Data!.Body,
-                    CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
-                    CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
-                    ImageId = result.Data.Data!.ImageId,
-                    Title = result.Data.Data!.Title,
-                    Slug = result.Data.Data!.Slug,
-                    Summary = result.Data.Data!.Summary,
-                    PublishDate = result.Data.Data!.PublishDate.GetValueOrDefault(),
-                    VisibilityType = result.Data.Data!.VisibilityType!,
-                    Keywords = result.Data.Data!.Keywords,
-                    PostTags = result.Data.Data!.Tags?.Select(t => new PostTag
+                    _ = await ManagePostAsync(new()
                     {
+                        Body = result.Data.Data!.Body,
                         CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
                         CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
-                        TagId = t,
-                    }).ToList(),
-                });
-                _ = await uow.SaveChangesAsync();
+                        ImageId = result.Data.Data!.ImageId,
+                        Title = result.Data.Data!.Title,
+                        Slug = result.Data.Data!.Slug,
+                        Summary = result.Data.Data!.Summary,
+                        PublishDate = result.Data.Data!.PublishDate.GetValueOrDefault(),
+                        VisibilityType = result.Data.Data!.VisibilityType!,
+                        Keywords = result.Data.Data!.Keywords,
+                        Tags = result.Data.Data!.Tags,
+                    });
+                }
+                else
+                {
+                    Post post = new()
+                    {
+                        Body = result.Data.Data!.Body,
+                        CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
+                        CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
+                        ImageId = result.Data.Data!.ImageId,
+                        Title = result.Data.Data!.Title,
+                        Slug = result.Data.Data!.Slug,
+                        Summary = result.Data.Data!.Summary,
+                        PublishDate = result.Data.Data!.PublishDate.GetValueOrDefault(),
+                        VisibilityType = result.Data.Data!.VisibilityType!,
+                        Keywords = result.Data.Data!.Keywords,
+                        PostTags = result.Data.Data!.Tags?.Select(t => new PostTag
+                        {
+                            CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
+                            CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
+                            TagId = t,
+                        }).ToList(),
+                    };
+                    var postRepository = uow.GetRepository<Post>();
+                    postRepository.Add(post);
+                    _ = await uow.SaveChangesAsync();
+
+                    _ = await contributionService.Value.UpdateIdentifierIdAsync(requestDto.ContributionId, post.Id);
+
+                }
+
+                scope.Complete();
 
                 return new(OperationResult.Succeeded) { Data = true };
             }

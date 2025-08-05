@@ -32,5 +32,6 @@ namespace GamaEdtech.Data.Dto.School
         public decimal? Tuition { get; set; }
         public Uri? DefaultImageUri { get; set; }
         public IEnumerable<TagDto>? Tags { get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -117,6 +117,14 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Avatar), DataType.UnicodeMaxString)]
         public string? Avatar { get; set; }
 
+        [Column(nameof(CityId), DataType.Int)]
+        public int? CityId { get; set; }
+        public Location? City { get; set; }
+
+        [Column(nameof(SchoolId), DataType.Long)]
+        public long? SchoolId { get; set; }
+        public School? School { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

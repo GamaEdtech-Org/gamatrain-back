@@ -97,6 +97,9 @@ namespace GamaEdtech.Domain.Entity
         public long? DefaultImageId { get; set; }
         public SchoolImage? DefaultImage { get; set; }
 
+        [Column(nameof(Description), DataType.UnicodeMaxString)]
+        public string? Description { get; set; }
+
         public virtual ICollection<SchoolComment> SchoolComments { get; set; } = [];
         public virtual ICollection<SchoolTag> SchoolTags { get; set; } = [];
         public virtual ICollection<SchoolImage> SchoolImages { get; set; } = [];

@@ -4,6 +4,7 @@ using GamaEdtech.Infrastructure.EntityFramework.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250720182943_add CityId to user table")]
+    partial class addCityIdtousertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -489,7 +492,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Avatar");
 
-                    b.Property<int?>("CityId")
+                    b.Property<int>("CityId")
                         .HasColumnType("int")
                         .HasColumnName("CityId");
 
@@ -559,8 +562,8 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("RegistrationDate");
 
-                    b.Property<long?>("SchoolId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int")
                         .HasColumnName("SchoolId");
 
                     b.Property<string>("SecurityStamp")
@@ -581,8 +584,6 @@ namespace GamaEdtech.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("IX_ApplicationUser_NormalizedEmail");
 
@@ -591,8 +592,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasDatabaseName("IX_ApplicationUser_NormalizedUserName")
                         .HasFilter("([NormalizedUserName] IS NOT NULL)");
 
-                    b.HasIndex("SchoolId");
-
                     b.ToTable("ApplicationUsers");
 
                     b.HasData(
@@ -600,6 +599,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                         {
                             Id = 1,
                             AccessFailedCount = 0,
+                            CityId = 0,
                             ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17",
                             Email = "admin@gamaedtech.com",
                             EmailConfirmed = true,
@@ -611,6 +611,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                             PhoneNumber = "09355028981",
                             PhoneNumberConfirmed = true,
                             RegistrationDate = new DateTimeOffset(new DateTime(2023, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            SchoolId = 0,
                             SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1",
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -1038,10 +1039,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("DefaultImageId");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Description");
-
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar")
@@ -1105,10 +1102,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("StateId");
 
-                    b.Property<decimal?>("Tuition")
-                        .HasColumnType("numeric")
-                        .HasColumnName("Tuition");
-
                     b.Property<string>("WebSite")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar")
@@ -1137,8 +1130,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsDescending();
 
                     b.HasIndex("StateId");
-
-                    b.HasIndex("IsDeleted", "Name");
 
                     b.HasIndex("LastModifyDate", "CreationDate")
                         .IsDescending();
@@ -1723,21 +1714,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUser", b =>
-                {
-                    b.HasOne("GamaEdtech.Domain.Entity.Location", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId");
-
-                    b.HasOne("GamaEdtech.Domain.Entity.School", "School")
-                        .WithMany()
-                        .HasForeignKey("SchoolId");
-
-                    b.Navigation("City");
-
-                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Identity.ApplicationUserClaim", b =>

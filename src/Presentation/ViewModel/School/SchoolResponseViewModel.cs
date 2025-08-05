@@ -36,5 +36,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public IEnumerable<TagResponseViewModel>? Tags { get; set; }
         public Uri? DefaultImageUri { get; set; }
         public decimal? Tuition { get; set; }
+        public string? Description { get; set; }
     }
 }

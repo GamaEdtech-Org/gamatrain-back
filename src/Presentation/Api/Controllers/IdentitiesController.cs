@@ -11,6 +11,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.Data.Enumeration;
+    using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
@@ -337,13 +338,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await identityService.Value.GetProfileSettingsAsync();
+                var result = await identityService.Value.GetProfileSettingsAsync(new IdEqualsSpecification<ApplicationUser, int>(User.UserId()));
 
                 return Ok<ProfileSettingsResponseViewModel>(new(result.Errors)
                 {
                     Data = new()
                     {
-                        TimeZoneId = result.Data?.TimeZoneId,
+                        CountryId = result.Data?.CountryId,
+                        StateId = result.Data?.StateId,
+                        CityId = result.Data?.CityId,
+                        SchoolId = result.Data?.SchoolId,
                     },
                 });
             }
@@ -355,24 +359,29 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPut("profiles"), Produces(typeof(ApiResponse<Void>))]
+        [HttpPut("profiles"), Produces(typeof(ApiResponse<bool>))]
         [Permission(policy: null)]
-        public async Task<IActionResult<Void>> UpdateProfileSettings([NotNull] ProfileSettingsRequestViewModel request)
+        public async Task<IActionResult> UpdateProfileSettings([NotNull] ProfileSettingsRequestViewModel request)
         {
             try
             {
-                var result = await identityService.Value.UpdateProfileSettingsAsync(new ProfileSettingsDto
+                var result = await identityService.Value.ManageProfileSettingsAsync(new()
                 {
-                    TimeZoneId = request.TimeZoneId,
+                    CityId = request.CityId,
+                    SchoolId = request.SchoolId,
+                    UserId = User.UserId(),
                 });
 
-                return Ok<Void>(new(result.Errors));
+                return Ok<bool>(new(result.Errors)
+                {
+                    Data = result.Data,
+                });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<Void>(new(new Error { Message = exc.Message }));
+                return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
 

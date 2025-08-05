@@ -166,6 +166,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         DefaultImageUri = result.Data.DefaultImageUri,
                         Tuition = result.Data.Tuition,
                         Slug = result.Data.Name.Slugify(),
+                        Description = result.Data.Description,
                         Tags = result.Data.Tags?.Select(t => new TagResponseViewModel
                         {
                             Id = t.Id,
@@ -261,20 +262,25 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await schoolService.Value.CreateSchoolCommentContributionAsync(new ManageSchoolCommentContributionRequestDto
+                var result = await schoolService.Value.CreateSchoolCommentContributionAsync(new()
                 {
-                    ArtisticActivitiesRate = request.ArtisticActivitiesRate,
-                    BehaviorRate = request.BehaviorRate,
-                    ClassesQualityRate = request.ClassesQualityRate,
-                    Comment = request.Comment,
-                    EducationRate = request.EducationRate,
-                    FacilitiesRate = request.FacilitiesRate,
-                    ITTrainingRate = request.ITTrainingRate,
-                    SafetyAndHappinessRate = request.SafetyAndHappinessRate,
+                    UserId = User.UserId(),
                     SchoolId = schoolId,
-                    TuitionRatioRate = request.TuitionRatioRate,
-                    CreationDate = DateTimeOffset.UtcNow,
-                    CreationUserId = User.UserId(),
+                    CommentContribution = new()
+                    {
+                        ArtisticActivitiesRate = request.ArtisticActivitiesRate,
+                        BehaviorRate = request.BehaviorRate,
+                        ClassesQualityRate = request.ClassesQualityRate,
+                        Comment = request.Comment,
+                        EducationRate = request.EducationRate,
+                        FacilitiesRate = request.FacilitiesRate,
+                        ITTrainingRate = request.ITTrainingRate,
+                        SafetyAndHappinessRate = request.SafetyAndHappinessRate,
+                        SchoolId = schoolId,
+                        TuitionRatioRate = request.TuitionRatioRate,
+                        CreationDate = DateTimeOffset.UtcNow,
+                        CreationUserId = User.UserId(),
+                    }
                 });
                 return Ok<ManageSchoolCommentResponseViewModel>(new(result.Errors)
                 {
@@ -538,6 +544,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Tags = request.Tags,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
+                        Description = request.Description,
                     },
                 });
 
@@ -586,6 +593,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Tags = request.Tags,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
+                        Description = request.Description,
                     },
                 });
 
@@ -604,13 +612,15 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpPost("contributions"), Produces<ApiResponse<ManageSchoolContributionResponseViewModel>>()]
         [Permission(policy: null)]
-        public async Task<IActionResult<ManageSchoolContributionResponseViewModel>> CreateNewSchoolContribution([NotNull, FromBody] ManageNewSchoolContributionRequestViewModel request)
+        public async Task<IActionResult<ManageSchoolContributionResponseViewModel>> CreateNewSchoolContribution([NotNull, FromForm] ManageNewSchoolContributionRequestViewModel request)
         {
             try
             {
-                var result = await schoolService.Value.ManageSchoolContributionAsync(new ManageSchoolContributionRequestDto
+                var result = await schoolService.Value.ManageSchoolContributionAsync(new()
                 {
                     UserId = User.UserId(),
+                    File = request.File,
+                    IsDefault = true,
                     SchoolContribution = new()
                     {
                         Address = request.Address,
@@ -631,6 +641,21 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
                         Tuition = request.Tuition,
+                        Description = request.Description,
+                        Comment = request.Comment is null ? null : new()
+                        {
+                            ArtisticActivitiesRate = request.Comment.ArtisticActivitiesRate,
+                            BehaviorRate = request.Comment.BehaviorRate,
+                            ClassesQualityRate = request.Comment.ClassesQualityRate,
+                            Comment = request.Comment.Comment,
+                            EducationRate = request.Comment.EducationRate,
+                            FacilitiesRate = request.Comment.FacilitiesRate,
+                            ITTrainingRate = request.Comment.ITTrainingRate,
+                            SafetyAndHappinessRate = request.Comment.SafetyAndHappinessRate,
+                            TuitionRatioRate = request.Comment.TuitionRatioRate,
+                            CreationDate = DateTimeOffset.UtcNow,
+                            CreationUserId = User.UserId(),
+                        },
                     },
                 });
 
@@ -750,6 +775,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     ZipCode = dto.ZipCode,
                     Tags = dto.Tags,
                     Tuition = dto.Tuition,
+                    Description = dto.Description,
                 };
     }
 }

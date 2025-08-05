@@ -4,16 +4,8 @@ namespace GamaEdtech.Data.Dto.School
     {
         public long? Id { get; set; }
         public long SchoolId { get; set; }
-        public int CreationUserId { get; set; }
-        public DateTimeOffset CreationDate { get; set; }
-        public string? Comment { get; set; }
-        public double ClassesQualityRate { get; set; }
-        public double EducationRate { get; set; }
-        public double ITTrainingRate { get; set; }
-        public double SafetyAndHappinessRate { get; set; }
-        public double BehaviorRate { get; set; }
-        public double TuitionRatioRate { get; set; }
-        public double FacilitiesRate { get; set; }
-        public double ArtisticActivitiesRate { get; set; }
+        public int UserId { get; set; }
+
+        public required SchoolCommentContributionDto CommentContribution { get; set; }
     }
 }

@@ -9,14 +9,9 @@ namespace GamaEdtech.Common.Service
     using Microsoft.Extensions.Logging;
 
     public abstract class LocalizableServiceBase<T>(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<T>> localizer, Lazy<ILogger<T>> logger)
+        : ServiceBase<T>(unitOfWorkProvider, httpContextAccessor, logger)
         where T : class
     {
-        protected Lazy<ILogger<T>> Logger { get; } = logger;
-
-        protected Lazy<IHttpContextAccessor> HttpContextAccessor { get; } = httpContextAccessor;
-
         protected Lazy<IStringLocalizer<T>> Localizer { get; } = localizer;
-
-        protected Lazy<IUnitOfWorkProvider> UnitOfWorkProvider { get; } = unitOfWorkProvider;
     }
 }

@@ -1,11 +1,13 @@
-﻿namespace GamaEdtech.Presentation.ViewModel.Identity
+namespace GamaEdtech.Presentation.ViewModel.Identity
 {
     using GamaEdtech.Common.DataAnnotation;
 
     public class ProfileSettingsRequestViewModel
     {
         [Display]
-        [TimeZoneId]
-        public string? TimeZoneId { get; set; }
+        public int? CityId { get; set; }
+
+        [Display]
+        public long? SchoolId { get; set; }
     }
 }

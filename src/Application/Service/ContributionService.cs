@@ -349,5 +349,44 @@ namespace GamaEdtech.Application.Service
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
             }
         }
+
+        public async Task<ResultData<bool>> UpdateIdentifierIdAsync(long contributionId, long identifierId)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<Contribution>();
+
+                var affectedRows = await repository.GetManyQueryable(t => t.Id == contributionId)
+                    .ExecuteUpdateAsync(t => t.SetProperty(p => p.IdentifierId, identifierId));
+
+                return new(OperationResult.Succeeded) { Data = affectedRows > 0 };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<long?>> GetIdentifierIdAsync([NotNull] ISpecification<Contribution> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var identifierId = await uow.GetRepository<Contribution>().GetManyQueryable(specification).Select(t => t.IdentifierId).FirstOrDefaultAsync();
+
+                return new(OperationResult.Succeeded) { Data = identifierId };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new () { Message = exc.Message
+    },]
+                };
+            }
+        }
     }
 }
