@@ -56,7 +56,7 @@ namespace GamaEdtech.Application.Service
                 {
                     return new(OperationResult.NotFound)
                     {
-                        Errors = [new() { Message = $"User not found. {userId}" }]
+                        Errors = [new() { Message = "User not found" }]
                     };
                 }
 
