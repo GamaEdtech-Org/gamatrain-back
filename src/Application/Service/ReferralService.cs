@@ -3,18 +3,18 @@ namespace GamaEdtech.Application.Service
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
+
     using EntityFramework.Exceptions.Common;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
-    using GamaEdtech.Common.Core.Extensions.Linq;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
 
     using GamaEdtech.Domain.Entity;
+
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Localization;
