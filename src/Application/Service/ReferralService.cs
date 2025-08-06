@@ -1,7 +1,6 @@
 namespace GamaEdtech.Application.Service
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
 
     using EntityFramework.Exceptions.Common;
@@ -9,10 +8,9 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
-
+    using GamaEdtech.Data.Dto.UserReferral;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Entity.Identity;
 
@@ -78,14 +76,7 @@ namespace GamaEdtech.Application.Service
                 var referralCode = cleanString[..10];
 
                 var repository = uow.GetRepository<ReferralUser, int>();
-                var exists = await repository.GetManyQueryable(t => t.ReferralId == referralCode).AnyAsync();
-                if (exists)
-                {
-                    return new(OperationResult.Duplicate)
-                    {
-                        Errors = [new() { Message = Localizer.Value["ReferralIdAlreadyExists"] }]
-                    };
-                }
+
 
                 var referralUser = new ReferralUser
                 {
@@ -118,66 +109,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ReferralUser>> GetReferralUserAsync([NotNull] ISpecification<ReferralUser> specification)
-        {
-            try
-            {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var referralUser = await uow.GetRepository<ReferralUser, int>().GetAsync(specification);
+        public Task<ResultData<ListDataSource<UserReferralDto>>> GetAllUsersRefrralAsync() => throw new NotImplementedException();
 
-                return referralUser is null
-                    ? new(OperationResult.NotFound)
-                    {
-                        Errors = [new() { Message = Localizer.Value["ReferralUserNotFound"] }]
-                    }
-                    : new(OperationResult.Succeeded) { Data = referralUser };
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-                return new(OperationResult.Failed)
-                {
-                    Errors = [new() { Message = exc.Message }]
-                };
-            }
-        }
-
-        public async Task<ResultData<bool>> RemoveReferralUserAsync([NotNull] ISpecification<ReferralUser> specification)
-        {
-            try
-            {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var referralUser = await uow.GetRepository<ReferralUser, int>().GetAsync(specification);
-                if (referralUser is null)
-                {
-                    return new(OperationResult.NotFound)
-                    {
-                        Data = false,
-                        Errors = [new() { Message = Localizer.Value["ReferralUserNotFound"] }]
-                    };
-                }
-
-                uow.GetRepository<ReferralUser, int>().Remove(referralUser);
-                _ = await uow.SaveChangesAsync();
-                return new(OperationResult.Succeeded) { Data = true };
-            }
-            catch (ReferenceConstraintException)
-            {
-                return new(OperationResult.NotValid)
-                {
-                    Data = false,
-                    Errors = [new() { Message = Localizer.Value["ReferralUserCantBeRemoved"] }]
-                };
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-                return new(OperationResult.Failed)
-                {
-                    Data = false,
-                    Errors = [new() { Message = exc.Message }]
-                };
-            }
-        }
     }
 }
