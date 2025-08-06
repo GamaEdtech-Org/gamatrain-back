@@ -28,7 +28,7 @@ namespace GamaEdtech.Application.Service
         Lazy<ILogger<ReferralService>> logger)
         : LocalizableServiceBase<ReferralService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IReferralService
     {
-        public async Task<ResultData<string>> CreateRefrralUserAsync()
+        public async Task<ResultData<string>> CreateReferralUserAsync()
         {
             try
             {
@@ -108,8 +108,43 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+        public async Task<ResultData<ListDataSource<UserReferralDto>>> GetAllUsersReferralAsync()
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var referralRepo = uow.GetRepository<ReferralUser, int>();
 
-        public Task<ResultData<ListDataSource<UserReferralDto>>> GetAllUsersRefrralAsync() => throw new NotImplementedException();
+                var allReferralUsers = await referralRepo.GetAllAsync();
 
+                if (allReferralUsers == null)
+                {
+                    return new(OperationResult.Succeeded)
+                    {
+                        Data = new ListDataSource<UserReferralDto>()
+                    };
+                }
+
+                var data = allReferralUsers
+                    .Select(r => new UserReferralDto
+                    {
+                        Id = r.Id,
+                        Name = r.Name,
+                        Family = r.Family,
+                        ReferralId = r.ReferralId,
+                        CreationDate = r.CreationDate
+                    })
+                    .ToList();
+                return new(OperationResult.Succeeded) { Data = new() { List = data } };
+            }
+            catch (Exception ex)
+            {
+                Logger.Value.LogException(ex);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new() { Message = ex.Message }]
+                };
+            }
+        }
     }
 }

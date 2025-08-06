@@ -7,7 +7,7 @@ namespace GamaEdtech.Application.Interface
     [Injectable]
     public interface IReferralService
     {
-        Task<ResultData<string>> CreateRefrralUserAsync();
-        Task<ResultData<ListDataSource<UserReferralDto>>> GetAllUsersRefrralAsync();
+        Task<ResultData<string>> CreateReferralUserAsync();
+        Task<ResultData<ListDataSource<UserReferralDto>>> GetAllUsersReferralAsync();
     }
 }

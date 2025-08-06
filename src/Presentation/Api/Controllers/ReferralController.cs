@@ -25,7 +25,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await referralService.Value.CreateRefrralUserAsync();
+                var result = await referralService.Value.CreateReferralUserAsync();
 
                 if (result.OperationResult != OperationResult.Succeeded)
                 {
