@@ -30,18 +30,20 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var result = await referralService.Value.GetAllUsersReferralAsync();
 
-
-                var response = new ListDataSource<UsersReferralReponseViewModel>
+                return Ok(new ApiResponse<ListDataSource<UsersReferralReponseViewModel>>
                 {
-                    List = result.Data.List?.Select(r => new UsersReferralReponseViewModel
+                    Errors = result.Errors,
+                    Data = result.Data.List is null ? new() : new()
                     {
-                        Name = r.Name,
-                        Family = r.Family,
-                        ReferralId = r.ReferralId,
-                    }).ToList(),
-                };
-
-                return Ok(new ApiResponse<ListDataSource<UsersReferralReponseViewModel>> { Data = response });
+                        List = result.Data.List.Select(r => new UsersReferralReponseViewModel
+                        {
+                            Name = r.Name,
+                            Family = r.Family,
+                            ReferralId = r.ReferralId
+                        }),
+                        TotalRecordsCount = result.Data.TotalRecordsCount,
+                    }
+                });
             }
             catch (Exception ex)
             {
