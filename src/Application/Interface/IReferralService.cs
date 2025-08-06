@@ -1,10 +1,11 @@
 namespace GamaEdtech.Application.Interface
 {
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Domain.Entity;
+    using GamaEdtech.Common.DataAnnotation;
 
+    [Injectable]
     public interface IReferralService
     {
-        Task<ResultData<bool>> CreateRefrralUserAsync(ReferralUser referralUser);
+        Task<ResultData<string>> CreateRefrralUserAsync();
     }
 }
