@@ -1,6 +1,7 @@
 namespace GamaEdtech.Application.Service
 {
     using System;
+    using System.Text;
     using System.Threading.Tasks;
 
     using EntityFramework.Exceptions.Common;
@@ -20,6 +21,8 @@ namespace GamaEdtech.Application.Service
     using Microsoft.Extensions.Logging;
 
     using static GamaEdtech.Common.Core.Constants;
+
+    using System.Security.Cryptography;
 
     public class ReferralService(
         Lazy<IUnitOfWorkProvider> unitOfWorkProvider,
@@ -66,15 +69,10 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var uniqueSourceString = $"{userId}-{Guid.NewGuid()}";
-                var bytes = System.Text.Encoding.UTF8.GetBytes(uniqueSourceString);
-                var base64String = Convert.ToBase64String(bytes);
-                var cleanString = base64String
-                    .Replace("+", string.Empty, StringComparison.Ordinal)
-                    .Replace("/", string.Empty, StringComparison.Ordinal)
-                    .TrimEnd('=');
+                var uniqueSource = $"{userId}-{DateTimeOffset.UtcNow.Ticks}-{Guid.NewGuid()}";
+                var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(uniqueSource));
+                var referralCode = ToBase32(hashBytes)[..10];
 
-                var referralCode = cleanString[..10];
 
                 var repository = uow.GetRepository<ReferralUser, int>();
 
@@ -147,5 +145,40 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+
+        private static string ToBase32(byte[] data)
+        {
+            const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+            StringBuilder result = new();
+
+            int buffer = data[0];
+            var next = 1;
+            var bitsLeft = 8;
+            while (bitsLeft > 0 || next < data.Length)
+            {
+                if (bitsLeft < 5)
+                {
+                    if (next < data.Length)
+                    {
+                        buffer <<= 8;
+                        buffer |= data[next++] & 0xFF;
+                        bitsLeft += 8;
+                    }
+                    else
+                    {
+                        var pad = 5 - bitsLeft;
+                        buffer <<= pad;
+                        bitsLeft += pad;
+                    }
+                }
+
+                var index = (buffer >> (bitsLeft - 5)) & 0x1F;
+                bitsLeft -= 5;
+                _ = result.Append(alphabet[index]);
+            }
+
+            return result.ToString();
+        }
+
     }
 }
