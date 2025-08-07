@@ -73,6 +73,7 @@ namespace GamaEdtech.Application.Service
                     .Replace("+", string.Empty, StringComparison.Ordinal)
                     .Replace("/", string.Empty, StringComparison.Ordinal)
                     .TrimEnd('=');
+
                 var referralCode = cleanString[..10];
 
                 var repository = uow.GetRepository<ReferralUser, int>();
@@ -135,7 +136,7 @@ namespace GamaEdtech.Application.Service
                         CreationDate = r.CreationDate
                     })
                     .ToList();
-                return new(OperationResult.Succeeded) { Data = new() { List = data } };
+                return new(OperationResult.Succeeded) { Data = new() { List = data, TotalRecordsCount = data.Count } };
             }
             catch (Exception ex)
             {

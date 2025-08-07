@@ -13,8 +13,6 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 
     using Microsoft.AspNetCore.Mvc;
 
-
-
     [Common.DataAnnotation.Area(nameof(Admin), "Admin")]
     [Route("api/v{version:apiVersion}/[area]/[controller]")]
     [ApiVersion("1.0")]
@@ -52,6 +50,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
-
     }
+
 }
+
+
