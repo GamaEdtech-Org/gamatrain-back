@@ -19,6 +19,7 @@ namespace GamaEdtech.Data.Dto.Identity
         public string? PhoneNumber { get; set; }
 
         public bool PhoneNumberConfirmed { get; set; }
+        public long? ReferralId { get; set; }
 
         public DateTimeOffset? RegistrationDate { get; set; }
 

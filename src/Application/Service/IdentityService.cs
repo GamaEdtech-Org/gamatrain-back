@@ -67,6 +67,7 @@ namespace GamaEdtech.Application.Service
                     PhoneNumber = t.PhoneNumber,
                     UserName = t.UserName,
                     RegistrationDate = t.RegistrationDate,
+                    ReferralId = t.ReferralId,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new ListDataSource<ApplicationUserDto> { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }

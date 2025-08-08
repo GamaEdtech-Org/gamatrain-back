@@ -36,20 +36,41 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                var result = await identityService.Value.GetUsersAsync(new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto });
+                var result = await identityService.Value.GetUsersAsync(
+                    new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto }
+                );
+
+                var users = result.Data.List;
+
+                // Filter based on HasReferral
+                if (request.HasReferral.HasValue)
+                {
+                    if (request.HasReferral.Value)
+                    {
+                        // Only users with referral
+                        users = users?.Where(u => u.ReferralId != null).ToList();
+                    }
+                    else
+                    {
+                        // Only users without referral
+                        users = users?.Where(u => u.ReferralId == null).ToList();
+                    }
+                }
+
                 return Ok<ListDataSource<UserListResponseViewModel>>(new(result.Errors)
                 {
-                    Data = result.Data.List is null ? new() : new()
+                    Data = new()
                     {
-                        List = result.Data.List.Select(t => new UserListResponseViewModel
+                        List = users?.Select(t => new UserListResponseViewModel
                         {
                             Id = t.Id,
                             Username = t.UserName,
                             Email = t.Email,
                             PhoneNumber = t.PhoneNumber,
                             Enabled = t.Enabled,
+                            ReferralId = t.ReferralId,
                         }),
-                        TotalRecordsCount = result.Data.TotalRecordsCount,
+                        TotalRecordsCount = request.HasReferral.HasValue ? (users?.Count() ?? 0) : result.Data.TotalRecordsCount,
                     }
                 });
             }
@@ -57,9 +78,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<ListDataSource<UserListResponseViewModel>>(new() { Errors = new[] { new Error { Message = exc.Message } } });
+                return Ok<ListDataSource<UserListResponseViewModel>>(new()
+                {
+                    Errors = new[] { new Error { Message = exc.Message } }
+                });
             }
         }
+
 
         [HttpGet("{userId:int}"), Produces(typeof(ApiResponse<UserResponseViewModel>))]
         [Display(Name = "User Details")]
