@@ -30,6 +30,8 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.Identity;
 
+    using IdGen;
+
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -892,6 +894,61 @@ namespace GamaEdtech.Application.Service
             {
                 Errors = errors,
             };
+        }
+
+        public async Task<ResultData<long>> GenerateReferralUserAsync()
+        {
+            try
+            {
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
+
+                if (!userId.HasValue)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                    };
+                }
+
+                var generator = new IdGenerator(0);
+                var referralId = generator.CreateId();
+
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userRepo = uow.GetRepository<ApplicationUser, int>();
+
+                var user = await userRepo.GetAsync(userId.Value);
+
+                if (user == null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["UserNotFound"].Value } },
+                    };
+                }
+
+                user.ReferralId = referralId;
+                _ = userRepo.Update(user);
+
+                _ = await uow.SaveChangesAsync();
+
+
+                return new(OperationResult.Succeeded) { Data = referralId };
+            }
+            catch (ReferenceConstraintException)
+            {
+                return new(OperationResult.NotValid)
+                {
+                    Errors = [new() { Message = Localizer.Value["ReferralUserConstraintError"] }]
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new() { Message = exc.Message }]
+                };
+            }
         }
     }
 }

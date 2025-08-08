@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+      <PackageReference Include="IdGen" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Compile Update="Domain\Enumeration\LocationType.Designer.cs">
         <DependentUpon>LocationType.resx</DependentUpon>
         <DesignTime>True</DesignTime>
