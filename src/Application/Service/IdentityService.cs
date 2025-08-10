@@ -924,6 +924,14 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
+                if (user.ReferralId != null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AlreadyHaveReferralId"].Value } },
+                    };
+                }
+
                 user.ReferralId = referralId;
                 _ = userRepo.Update(user);
 
