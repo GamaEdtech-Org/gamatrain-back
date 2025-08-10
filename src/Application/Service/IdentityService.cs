@@ -65,6 +65,7 @@ namespace GamaEdtech.Application.Service
                     PhoneNumber = t.PhoneNumber,
                     UserName = t.UserName,
                     RegistrationDate = t.RegistrationDate,
+                    ReferralId = t.ReferralId,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new ListDataSource<ApplicationUserDto> { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -755,6 +756,7 @@ namespace GamaEdtech.Application.Service
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                        t.ReferralId
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
@@ -771,6 +773,7 @@ namespace GamaEdtech.Application.Service
                     CityId = userInfo.CityId,
                     StateId = userInfo.StateId,
                     CountryId = userInfo.CountryId,
+                    ReferralId = userInfo.ReferralId,
                 };
 
                 return new(OperationResult.Succeeded)
@@ -886,6 +889,118 @@ namespace GamaEdtech.Application.Service
             {
                 Errors = errors,
             };
+        }
+
+        public async Task<ResultData<string>> GenerateReferralUserAsync()
+        {
+            try
+            {
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
+
+                if (!userId.HasValue)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                    };
+                }
+
+                var referralId = GenerateReferralId();
+
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userRepo = uow.GetRepository<ApplicationUser, int>();
+
+                var user = await userRepo.GetAsync(userId.Value);
+
+                if (user == null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["UserNotFound"].Value } },
+                    };
+                }
+
+                if (user.ReferralId != null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AlreadyHaveReferralId"].Value } },
+                    };
+                }
+
+                user.ReferralId = referralId;
+                _ = userRepo.Update(user);
+
+                _ = await uow.SaveChangesAsync();
+
+
+                return new(OperationResult.Succeeded) { Data = referralId };
+            }
+            catch (ReferenceConstraintException)
+            {
+                return new(OperationResult.NotValid)
+                {
+                    Errors = [new() { Message = Localizer.Value["ReferralUserConstraintError"] }]
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new() { Message = exc.Message }]
+                };
+            }
+        }
+
+        public static string GenerateReferralId()
+        {
+            // Get current timestamp in seconds
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            // Convert to base36 string (letters and digits)
+            var base36Timestamp = Base36Encode(timestamp);
+
+            // Generate random chars to fill up to 10 chars
+            var remainingLength = 10 - base36Timestamp.Length;
+            var randomPart = GenerateRandomAlphaNumeric(remainingLength);
+
+            return base36Timestamp + randomPart;
+        }
+
+        // Helper: base36 encode a long
+        private static string Base36Encode(long input)
+        {
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var result = new StringBuilder();
+
+            do
+            {
+                _ = result.Insert(0, chars[(int)(input % 36)]);
+                input /= 36;
+            } while (input > 0);
+
+            return result.ToString();
+        }
+
+        // Helper: random alphanumeric string
+        private static string GenerateRandomAlphaNumeric(int length)
+        {
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var data = new byte[length];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(data);
+            }
+
+            var result = new char[length];
+            for (var i = 0; i < length; i++)
+            {
+                // Map each byte to index of chars (0 to chars.Length-1)
+                result[i] = chars[data[i] % chars.Length];
+            }
+
+            return new string(result);
         }
     }
 }

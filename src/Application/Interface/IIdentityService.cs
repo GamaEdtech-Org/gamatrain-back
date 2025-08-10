@@ -60,6 +60,8 @@ namespace GamaEdtech.Application.Interface
 
         Task<ResultData<bool>> ManageProfileSettingsAsync([NotNull] ManageProfileSettingsRequestDto requestDto);
 
+        Task<ResultData<string>> GenerateReferralUserAsync();
+
         Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims);
     }
 }
