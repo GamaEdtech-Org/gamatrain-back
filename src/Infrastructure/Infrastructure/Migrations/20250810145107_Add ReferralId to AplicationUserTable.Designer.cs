@@ -13,8 +13,8 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250808124753_Add ReferralId Column To ApplicationUser Table")]
-    partial class AddReferralIdColumnToApplicationUserTable
+    [Migration("20250810145107_Add ReferralId to AplicationUserTable")]
+    partial class AddReferralIdtoAplicationUserTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -558,8 +558,9 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("PhoneNumberConfirmed");
 
-                    b.Property<int?>("ReferralId")
-                        .HasColumnType("int")
+                    b.Property<string>("ReferralId")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar")
                         .HasColumnName("ReferralId");
 
                     b.Property<DateTimeOffset?>("RegistrationDate")

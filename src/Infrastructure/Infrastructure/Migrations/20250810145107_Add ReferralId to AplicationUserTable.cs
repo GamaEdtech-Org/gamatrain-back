@@ -5,18 +5,19 @@
 namespace GamaEdtech.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangeinttolongReferralId : Migration
+    public partial class AddReferralIdtoAplicationUserTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<long>(
+            migrationBuilder.AlterColumn<string>(
                 name: "ReferralId",
                 table: "ApplicationUsers",
-                type: "bigint",
+                type: "varchar(10)",
+                maxLength: 10,
                 nullable: true,
-                oldClrType: typeof(int),
-                oldType: "int",
+                oldClrType: typeof(long),
+                oldType: "bigint",
                 oldNullable: true);
 
             migrationBuilder.UpdateData(
@@ -30,13 +31,14 @@ namespace GamaEdtech.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.AlterColumn<long>(
                 name: "ReferralId",
                 table: "ApplicationUsers",
-                type: "int",
+                type: "bigint",
                 nullable: true,
-                oldClrType: typeof(long),
-                oldType: "bigint",
+                oldClrType: typeof(string),
+                oldType: "varchar(10)",
+                oldMaxLength: 10,
                 oldNullable: true);
 
             migrationBuilder.UpdateData(

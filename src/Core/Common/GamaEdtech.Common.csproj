@@ -5,7 +5,6 @@
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" />
     <PackageReference Include="DynamicExpresso.Core" />
-    <PackageReference Include="IdGen" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="Mapster.Async" />
     <PackageReference Include="Mapster.DependencyInjection" />

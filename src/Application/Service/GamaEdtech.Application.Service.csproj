@@ -10,7 +10,6 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="FreeSpire.Office" />
     <PackageReference Include="Freeware.Pdf2Png" />
-    <PackageReference Include="IdGen" />
     <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
   </ItemGroup>

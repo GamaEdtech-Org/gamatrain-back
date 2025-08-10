@@ -14,6 +14,6 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
 
         public bool LocalAccount { get; set; }
 
-        public long? ReferralId { get; set; }
+        public string? ReferralId { get; set; }
     }
 }

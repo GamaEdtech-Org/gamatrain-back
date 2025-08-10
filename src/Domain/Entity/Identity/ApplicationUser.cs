@@ -125,8 +125,9 @@ namespace GamaEdtech.Domain.Entity.Identity
         public long? SchoolId { get; set; }
         public School? School { get; set; }
 
-        [Column(nameof(ReferralId), DataType.Long)]
-        public long? ReferralId { get; set; }
+        [Column(nameof(ReferralId), DataType.String)]
+        [StringLength(10)]
+        public string? ReferralId { get; set; }
 
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 

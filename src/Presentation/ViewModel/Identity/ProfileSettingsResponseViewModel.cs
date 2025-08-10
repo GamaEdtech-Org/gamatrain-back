@@ -8,6 +8,6 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? CityId { get; set; }
         public int? StateId { get; set; }
         public long? SchoolId { get; set; }
-        public long? ReferralId { get; set; }
+        public string? ReferralId { get; set; }
     }
 }

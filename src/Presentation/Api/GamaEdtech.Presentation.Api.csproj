@@ -12,7 +12,6 @@
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.SqlServer" />
-    <PackageReference Include="IdGen" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="NetTopologySuite" />

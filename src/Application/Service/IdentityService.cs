@@ -30,8 +30,6 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.Identity;
 
-    using IdGen;
-
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -897,7 +895,7 @@ namespace GamaEdtech.Application.Service
             };
         }
 
-        public async Task<ResultData<long>> GenerateReferralUserAsync()
+        public async Task<ResultData<string>> GenerateReferralUserAsync()
         {
             try
             {
@@ -911,8 +909,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var generator = new IdGenerator(0);
-                var referralId = generator.CreateId();
+                var referralId = "";
 
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var userRepo = uow.GetRepository<ApplicationUser, int>();

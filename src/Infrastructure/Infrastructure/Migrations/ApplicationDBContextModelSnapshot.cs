@@ -555,8 +555,9 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("PhoneNumberConfirmed");
 
-                    b.Property<long?>("ReferralId")
-                        .HasColumnType("bigint")
+                    b.Property<string>("ReferralId")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar")
                         .HasColumnName("ReferralId");
 
                     b.Property<DateTimeOffset?>("RegistrationDate")

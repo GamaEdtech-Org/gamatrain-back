@@ -6,7 +6,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="IdGen" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="NetTopologySuite" />
