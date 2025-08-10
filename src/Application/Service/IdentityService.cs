@@ -955,38 +955,36 @@ namespace GamaEdtech.Application.Service
 
         public static string GenerateReferralId()
         {
-            // Get current timestamp in seconds
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-            // Convert to base36 string (letters and digits)
-            var base36Timestamp = Base36Encode(timestamp);
+            var base62Timestamp = Base62Encode(timestamp);
 
-            // Generate random chars to fill up to 10 chars
-            var remainingLength = 10 - base36Timestamp.Length;
+            var remainingLength = 10 - base62Timestamp.Length;
+
             var randomPart = GenerateRandomAlphaNumeric(remainingLength);
 
-            return base36Timestamp + randomPart;
+            return base62Timestamp + randomPart;
         }
 
-        // Helper: base36 encode a long
-        private static string Base36Encode(long input)
+        // Helper: base62 encode a long
+        private static string Base62Encode(long input)
         {
-            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             var result = new StringBuilder();
 
             do
             {
-                _ = result.Insert(0, chars[(int)(input % 36)]);
-                input /= 36;
+                _ = result.Insert(0, chars[(int)(input % 62)]);
+                input /= 62;
             } while (input > 0);
 
             return result.ToString();
         }
 
-        // Helper: random alphanumeric string
+        // Helper: random alphanumeric string (base62)
         private static string GenerateRandomAlphaNumeric(int length)
         {
-            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             var data = new byte[length];
             using (var rng = RandomNumberGenerator.Create())
             {
@@ -996,7 +994,6 @@ namespace GamaEdtech.Application.Service
             var result = new char[length];
             for (var i = 0; i < length; i++)
             {
-                // Map each byte to index of chars (0 to chars.Length-1)
                 result[i] = chars[data[i] % chars.Length];
             }
 
