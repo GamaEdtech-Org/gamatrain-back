@@ -909,7 +909,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var referralId = "";
+                var referralId = GenerateReferralId();
 
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var userRepo = uow.GetRepository<ApplicationUser, int>();
@@ -956,5 +956,56 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+
+        public static string GenerateReferralId()
+        {
+            // Get current timestamp in seconds
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            // Convert to base36 string (letters and digits)
+            var base36Timestamp = Base36Encode(timestamp);
+
+            // Generate random chars to fill up to 10 chars
+            var remainingLength = 10 - base36Timestamp.Length;
+            var randomPart = GenerateRandomAlphaNumeric(remainingLength);
+
+            return base36Timestamp + randomPart;
+        }
+
+        // Helper: base36 encode a long
+        private static string Base36Encode(long input)
+        {
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var result = new StringBuilder();
+
+            do
+            {
+                _ = result.Insert(0, chars[(int)(input % 36)]);
+                input /= 36;
+            } while (input > 0);
+
+            return result.ToString();
+        }
+
+        // Helper: random alphanumeric string
+        private static string GenerateRandomAlphaNumeric(int length)
+        {
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var data = new byte[length];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(data);
+            }
+
+            var result = new char[length];
+            for (var i = 0; i < length; i++)
+            {
+                // Map each byte to index of chars (0 to chars.Length-1)
+                result[i] = chars[data[i] % chars.Length];
+            }
+
+            return new string(result);
+        }
+
     }
 }
