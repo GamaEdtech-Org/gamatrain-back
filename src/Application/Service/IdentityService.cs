@@ -909,8 +909,6 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var referralId = GenerateReferralId();
-
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var userRepo = uow.GetRepository<ApplicationUser, int>();
 
@@ -931,6 +929,8 @@ namespace GamaEdtech.Application.Service
                         Errors = new[] { new Error { Message = Localizer.Value["AlreadyHaveReferralId"].Value } },
                     };
                 }
+
+                var referralId = GenerateReferralId();
 
                 user.ReferralId = referralId;
                 _ = userRepo.Update(user);
