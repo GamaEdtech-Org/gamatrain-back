@@ -752,6 +752,8 @@ namespace GamaEdtech.Application.Service
                 var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
                     .Select(t => new
                     {
+                        t.FirstName,
+                        t.LastName,
                         t.SchoolId,
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
@@ -769,6 +771,8 @@ namespace GamaEdtech.Application.Service
 
                 var data = new ProfileSettingsDto
                 {
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
                     SchoolId = userInfo.SchoolId,
                     CityId = userInfo.CityId,
                     StateId = userInfo.StateId,
