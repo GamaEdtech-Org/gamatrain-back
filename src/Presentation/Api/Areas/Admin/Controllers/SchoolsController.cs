@@ -435,7 +435,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 SchoolImageContributionReviewViewModel result = new()
                 {
                     Id = contributionResult.Data.Id,
-                    FileId = contributionResult.Data.Data!.FileId,
+                    FileUri = fileService.Value.GetFileUri(contributionResult.Data.Data!.FileId, ContainerType.School).Data,
                     FileType = contributionResult.Data.Data!.FileType,
                     SchoolId = contributionResult.Data.Data!.SchoolId,
                     IsDefault = contributionResult.Data.Data!.IsDefault,
