@@ -37,25 +37,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             try
             {
                 var result = await identityService.Value.GetUsersAsync(
-                    new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto }
+                    new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto, HasReferral = request.HasReferral }
                 );
 
                 var users = result.Data.List;
 
-                // Filter based on HasReferral
-                if (request.HasReferral.HasValue)
-                {
-                    if (request.HasReferral.Value)
-                    {
-                        // Only users with referral
-                        users = users?.Where(u => u.ReferralId != null).ToList();
-                    }
-                    else
-                    {
-                        // Only users without referral
-                        users = users?.Where(u => u.ReferralId == null).ToList();
-                    }
-                }
 
                 return Ok<ListDataSource<UserListResponseViewModel>>(new(result.Errors)
                 {
