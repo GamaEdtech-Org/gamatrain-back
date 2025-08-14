@@ -930,7 +930,16 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                var referralId = GenerateReferralId();
+                var referralId = "";
+                bool exists;
+
+                do
+                {
+                    referralId = GenerateReferralId();
+                    exists = await userRepo.AnyAsync(u => u.ReferralId == referralId);
+                }
+                while (exists);
+
 
                 user.ReferralId = referralId;
                 _ = userRepo.Update(user);
