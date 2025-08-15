@@ -268,6 +268,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             CreationUser = t.CreationUser,
                             CreationDate = t.CreationDate,
                             Title = t.Data?.Title,
+                            PostId = t.IdentifierId,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -314,6 +315,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     VisibilityType = dto.VisibilityType!,
                     Keywords = dto.Keywords,
                     Slug = dto.Slug,
+                    PostId = result.Data.IdentifierId,
                 };
             }
             catch (Exception exc)
