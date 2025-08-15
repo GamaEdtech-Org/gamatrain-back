@@ -3,6 +3,7 @@ namespace GamaEdtech.Application.Service
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Numerics;
     using System.Security.Claims;
     using System.Security.Cryptography;
     using System.Text;
@@ -963,7 +964,7 @@ namespace GamaEdtech.Application.Service
                             Errors = [new() { Message = Localizer.Value["ReferralIdGenerationFailed"] }]
                         };
                     }
-                    referralId = GenerateReferralId();
+                    referralId = GenerateReferralId(userId ?? 0);
                     exists = await userRepo.AnyAsync(u => u.ReferralId == referralId);
                     tryCount--;
                 }
@@ -995,51 +996,59 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public static string GenerateReferralId()
+        public static string GenerateReferralId(int userId)
         {
-            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var inputBytes = Encoding.UTF8.GetBytes(
+                $"{userId}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}-{Guid.NewGuid()}"
+            );
 
-            var base62Timestamp = Base62Encode(timestamp);
+            var hashBytes = SHA256.HashData(inputBytes);
+            var base62Hash = Base62Encode(hashBytes);
 
-            var remainingLength = 10 - base62Timestamp.Length;
+            // Take the first 10 characters
+            var id = base62Hash[..10].ToCharArray();
 
-            var randomPart = GenerateRandomAlphaNumeric(remainingLength);
+            // Ensure at least 1 uppercase
+            if (!id.Any(char.IsUpper))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('A' + RandomNumberGenerator.GetInt32(26));
+            }
 
-            return base62Timestamp + randomPart;
+            // Ensure at least 1 lowercase
+            if (!id.Any(char.IsLower))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('a' + RandomNumberGenerator.GetInt32(26));
+            }
+
+            // Ensure at least 1 digit
+            if (!id.Any(char.IsDigit))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('0' + RandomNumberGenerator.GetInt32(10));
+
+            }
+
+            return new string(id);
         }
+
+
 
         // Helper: base62 encode a long
-        private static string Base62Encode(long input)
+        private static string Base62Encode(byte[] bytes)
         {
             const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            var result = new StringBuilder();
+            var sb = new StringBuilder();
 
-            do
+            // Convert to a big integer
+            var value = new BigInteger(bytes.Concat(new byte[] { 0 }).ToArray());
+
+            while (value > 0)
             {
-                _ = result.Insert(0, chars[(int)(input % 62)]);
-                input /= 62;
-            } while (input > 0);
-
-            return result.ToString();
-        }
-
-        // Helper: random alphanumeric string (base62)
-        private static string GenerateRandomAlphaNumeric(int length)
-        {
-            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            var data = new byte[length];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(data);
+                var remainder = (int)(value % 62);
+                _ = sb.Insert(0, chars[remainder]);
+                value /= 62;
             }
 
-            var result = new char[length];
-            for (var i = 0; i < length; i++)
-            {
-                result[i] = chars[data[i] % chars.Length];
-            }
-
-            return new string(result);
+            return sb.ToString();
         }
     }
 }
