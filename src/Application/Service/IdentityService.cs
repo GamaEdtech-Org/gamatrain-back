@@ -952,11 +952,20 @@ namespace GamaEdtech.Application.Service
 
                 var referralId = "";
                 bool exists;
+                var tryCount = 5;
 
                 do
                 {
+                    if (tryCount <= 0)
+                    {
+                        return new(OperationResult.Failed)
+                        {
+                            Errors = [new() { Message = Localizer.Value["ReferralIdGenerationFailed"] }]
+                        };
+                    }
                     referralId = GenerateReferralId();
                     exists = await userRepo.AnyAsync(u => u.ReferralId == referralId);
+                    tryCount--;
                 }
                 while (exists);
 
