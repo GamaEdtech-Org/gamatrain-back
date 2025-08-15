@@ -147,6 +147,12 @@ namespace GamaEdtech.Domain.Entity.Identity
                 .IsUnique()
                 .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(NormalizedUserName), pluralize: false)}] IS NOT NULL)");
 
+            _ = builder.HasIndex(e => e.ReferralId)
+                .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName(
+                    $"IX_{nameof(ApplicationUser)}_{nameof(ReferralId)}"))
+                .IsUnique()
+                .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(ReferralId), pluralize: false)}] IS NOT NULL)");
+
             var now = new DateTimeOffset(2023, 3, 21, 0, 0, 0, TimeSpan.Zero);
             List<ApplicationUser> seedData =
             [
