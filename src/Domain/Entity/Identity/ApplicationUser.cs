@@ -125,6 +125,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         public long? SchoolId { get; set; }
         public School? School { get; set; }
 
+        [Column(nameof(ReferralId), DataType.String)]
+        [StringLength(10)]
+        public string? ReferralId { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }
@@ -142,6 +146,12 @@ namespace GamaEdtech.Domain.Entity.Identity
                 .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName($"IX_{nameof(ApplicationUser)}_{nameof(NormalizedUserName)}"))
                 .IsUnique()
                 .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(NormalizedUserName), pluralize: false)}] IS NOT NULL)");
+
+            _ = builder.HasIndex(e => e.ReferralId)
+                .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName(
+                    $"IX_{nameof(ApplicationUser)}_{nameof(ReferralId)}"))
+                .IsUnique()
+                .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(ReferralId), pluralize: false)}] IS NOT NULL)");
 
             var now = new DateTimeOffset(2023, 3, 21, 0, 0, 0, TimeSpan.Zero);
             List<ApplicationUser> seedData =

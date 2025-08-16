@@ -4,6 +4,7 @@ using GamaEdtech.Infrastructure.EntityFramework.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250810155344_add ReferralId To ApplicationUsers Table")]
+    partial class addReferralIdToApplicationUsersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -595,11 +598,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_ApplicationUser_NormalizedUserName")
                         .HasFilter("([NormalizedUserName] IS NOT NULL)");
-
-                    b.HasIndex("ReferralId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_ApplicationUser_ReferralId")
-                        .HasFilter("([ReferralId] IS NOT NULL)");
 
                     b.HasIndex("SchoolId");
 

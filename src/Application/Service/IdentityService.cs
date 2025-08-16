@@ -3,6 +3,7 @@ namespace GamaEdtech.Application.Service
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Numerics;
     using System.Security.Claims;
     using System.Security.Cryptography;
     using System.Text;
@@ -56,7 +57,27 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var result = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+
+                var query = uow.GetRepository<ApplicationUser, int>()
+                               .GetManyQueryable(requestDto?.Specification);
+
+                // Filter based on HasReferral
+                if (requestDto != null && requestDto.HasReferral.HasValue)
+                {
+                    if (requestDto.HasReferral.Value)
+                    {
+                        // Only users with referral
+                        query = query.Where(u => u.ReferralId != null);
+                    }
+                    else
+                    {
+                        // Only users without referral
+                        query = query.Where(u => u.ReferralId == null);
+                    }
+                }
+
+                var result = await query.FilterListAsync(requestDto?.PagingDto);
+
                 var users = await result.List.Select(t => new ApplicationUserDto
                 {
                     Id = t.Id,
@@ -65,6 +86,7 @@ namespace GamaEdtech.Application.Service
                     PhoneNumber = t.PhoneNumber,
                     UserName = t.UserName,
                     RegistrationDate = t.RegistrationDate,
+                    ReferralId = t.ReferralId,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new ListDataSource<ApplicationUserDto> { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -751,10 +773,13 @@ namespace GamaEdtech.Application.Service
                 var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
                     .Select(t => new
                     {
+                        t.FirstName,
+                        t.LastName,
                         t.SchoolId,
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                        t.ReferralId
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
@@ -767,10 +792,13 @@ namespace GamaEdtech.Application.Service
 
                 var data = new ProfileSettingsDto
                 {
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
                     SchoolId = userInfo.SchoolId,
                     CityId = userInfo.CityId,
                     StateId = userInfo.StateId,
                     CountryId = userInfo.CountryId,
+                    ReferralId = userInfo.ReferralId,
                 };
 
                 return new(OperationResult.Succeeded)
@@ -886,6 +914,141 @@ namespace GamaEdtech.Application.Service
             {
                 Errors = errors,
             };
+        }
+
+        public async Task<ResultData<string>> GenerateReferralUserAsync()
+        {
+            try
+            {
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
+
+                if (!userId.HasValue)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                    };
+                }
+
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userRepo = uow.GetRepository<ApplicationUser, int>();
+
+                var user = await userRepo.GetAsync(userId.Value);
+
+                if (user == null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["UserNotFound"].Value } },
+                    };
+                }
+
+                if (user.ReferralId != null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AlreadyHaveReferralId"].Value } },
+                    };
+                }
+
+                var referralId = "";
+                bool exists;
+                var tryCount = 5;
+
+                do
+                {
+                    if (tryCount <= 0)
+                    {
+                        return new(OperationResult.Failed)
+                        {
+                            Errors = [new() { Message = Localizer.Value["ReferralIdGenerationFailed"] }]
+                        };
+                    }
+                    referralId = GenerateReferralId(userId ?? 0);
+                    exists = await userRepo.AnyAsync(u => u.ReferralId == referralId);
+                    tryCount--;
+                }
+                while (exists);
+
+
+                user.ReferralId = referralId;
+                _ = userRepo.Update(user);
+
+                _ = await uow.SaveChangesAsync();
+
+
+                return new(OperationResult.Succeeded) { Data = referralId };
+            }
+            catch (ReferenceConstraintException)
+            {
+                return new(OperationResult.NotValid)
+                {
+                    Errors = [new() { Message = Localizer.Value["ReferralUserConstraintError"] }]
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new() { Message = exc.Message }]
+                };
+            }
+        }
+
+        public static string GenerateReferralId(int userId)
+        {
+            var inputBytes = Encoding.UTF8.GetBytes(
+                $"{userId}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}-{Guid.NewGuid()}"
+            );
+
+            var hashBytes = SHA256.HashData(inputBytes);
+            var base62Hash = Base62Encode(hashBytes);
+
+            // Take the first 10 characters
+            var id = base62Hash[..10].ToCharArray();
+
+            // Ensure at least 1 uppercase
+            if (!id.Any(char.IsUpper))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('A' + RandomNumberGenerator.GetInt32(26));
+            }
+
+            // Ensure at least 1 lowercase
+            if (!id.Any(char.IsLower))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('a' + RandomNumberGenerator.GetInt32(26));
+            }
+
+            // Ensure at least 1 digit
+            if (!id.Any(char.IsDigit))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('0' + RandomNumberGenerator.GetInt32(10));
+
+            }
+
+            return new string(id);
+        }
+
+
+
+        // Helper: base62 encode a long
+        private static string Base62Encode(byte[] bytes)
+        {
+            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            var sb = new StringBuilder();
+
+            // Convert to a big integer
+            var value = new BigInteger(bytes.Concat(new byte[] { 0 }).ToArray());
+
+            while (value > 0)
+            {
+                var remainder = (int)(value % 62);
+                _ = sb.Insert(0, chars[remainder]);
+                value /= 62;
+            }
+
+            return sb.ToString();
         }
     }
 }
