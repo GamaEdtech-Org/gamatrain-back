@@ -1,4 +1,4 @@
-﻿namespace GamaEdtech.Common.Data
+namespace GamaEdtech.Common.Data
 {
     using GamaEdtech.Common.DataAccess.Specification;
 
@@ -7,5 +7,7 @@
         public ISpecification<T>? Specification { get; set; }
 
         public PagingDto? PagingDto { get; set; }
+
+        public bool? HasReferral { get; set; }
     }
 }
