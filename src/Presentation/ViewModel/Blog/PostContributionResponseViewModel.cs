@@ -13,6 +13,7 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public string? Body { get; set; }
         public Uri? ImageUri { get; set; }
         public string? Keywords { get; set; }
+        public long? PostId { get; set; }
 
         [JsonConverter(typeof(EnumerationConverter<VisibilityType, byte>))]
         public VisibilityType VisibilityType { get; set; }
