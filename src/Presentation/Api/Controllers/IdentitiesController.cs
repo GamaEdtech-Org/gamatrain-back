@@ -344,10 +344,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 {
                     Data = new()
                     {
+                        FirstName = result.Data?.FirstName,
+                        LastName = result.Data?.LastName,
                         CountryId = result.Data?.CountryId,
                         StateId = result.Data?.StateId,
                         CityId = result.Data?.CityId,
                         SchoolId = result.Data?.SchoolId,
+                        ReferralId = result.Data?.ReferralId,
                     },
                 });
             }

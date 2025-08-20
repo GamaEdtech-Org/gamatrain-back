@@ -1,4 +1,4 @@
-﻿namespace GamaEdtech.Presentation.ViewModel.Identity
+namespace GamaEdtech.Presentation.ViewModel.Identity
 {
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAnnotation;
@@ -7,5 +7,6 @@
     {
         [Display]
         public PagingDto? PagingDto { get; set; } = new() { PageFilter = new(), };
+        public bool? HasReferral { get; set; }
     }
 }
