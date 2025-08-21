@@ -238,7 +238,7 @@ namespace GamaEdtech.Application.Service
                 {
                     _ = await transactionService.Value.IncreaseBalanceAsync(new()
                     {
-                        Description = "Successful Contribution",
+                        Description = $"Successful Contribution - {contribution.CategoryType.ApplicationSettingsName}",
                         Points = points.Data,
                         IdentifierId = contribution.Id,
                         UserId = contribution.CreationUserId,

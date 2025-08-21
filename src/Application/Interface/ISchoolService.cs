@@ -46,6 +46,8 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> RemoveSchoolImageAsync([NotNull] ISpecification<SchoolImage> specification);
         Task<ResultData<bool>> ManageSchoolImageAsync([NotNull] ManageSchoolImageRequestDto requestDto);
         Task<ResultData<bool>> SetDefaultSchoolImageAsync([NotNull] SetDefaultSchoolImageRequestDto requestDto);
+        Task<ResultData<long>> CreateRemoveSchoolImageContributionAsync([NotNull] CreateRemoveSchoolImageContributionRequestDto requestDto);
+        Task<ResultData<bool>> ConfirmRemoveSchoolImageContributionAsync([NotNull] ConfirmRemoveSchoolImageContributionRequestDto requestDto);
 
         #endregion
 
