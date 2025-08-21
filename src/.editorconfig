@@ -110,7 +110,7 @@ dotnet_style_prefer_auto_properties = true:error
 dotnet_style_prefer_conditional_expression_over_assignment = true:error
 dotnet_diagnostic.IDE0045.severity = error
 dotnet_style_prefer_conditional_expression_over_return = true:error
-dotnet_diagnostic.IDE0046.severity = error
+dotnet_diagnostic.IDE0046.severity = none
 dotnet_style_prefer_compound_assignment = true:error
 dotnet_style_prefer_simplified_interpolation = true:error
 dotnet_style_prefer_simplified_boolean_expressions = true:error
@@ -644,7 +644,7 @@ dotnet_diagnostic.IDE0034.severity = error
 dotnet_diagnostic.IDE0036.severity = error
 
 # IDE0078: Use pattern matching (may change code meaning)
-dotnet_diagnostic.IDE0078.severity = error
+dotnet_diagnostic.IDE0078.severity = none
 
 # IDE0083: Use pattern matchin
 dotnet_diagnostic.IDE0083.severity = error
