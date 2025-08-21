@@ -17,7 +17,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class GameController(
-        Lazy<ILogger<ReferralController>> logger,
+        Lazy<ILogger<GameController>> logger,
         Lazy<IGameService> gameService
     ) : ApiControllerBase<GameController>(logger)
     {
@@ -27,6 +27,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
+                if (request.Points < 1 || request.Points > 1000)
+                {
+                    return BadRequest(new ApiResponse<GameResponseViewModel>(
+                        new Error { Message = "Points value must be between 1 and 1000." }
+                    ));
+                }
+
                 var result = await gameService.Value.TakePointsAsync(new TakePointsDto
                 {
                     Points = request.Points,
@@ -39,7 +46,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
                 var responseViewModel = new GameResponseViewModel
                 {
-                    Points = 3,
+                    Points = result.Data
                 };
 
                 return Ok(new ApiResponse<GameResponseViewModel> { Data = responseViewModel });
