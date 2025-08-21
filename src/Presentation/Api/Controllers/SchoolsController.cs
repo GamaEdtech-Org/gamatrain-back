@@ -10,6 +10,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.Specification.Impl;
+    using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.School;
     using GamaEdtech.Domain.Entity;
@@ -409,7 +410,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpDelete("{schoolId:long}/images/{contributionId:long}"), Produces<ApiResponse<bool>>()]
         [Permission(policy: null)]
-        public async Task<IActionResult<bool>> RemoveSchoolImageContribution([FromRoute] long schoolId, [FromRoute] long contributionId)
+        [Display(Name = "Removing an Image by creator")]
+        public async Task<IActionResult<bool>> RemoveMySchoolImageContribution([FromRoute] long schoolId, [FromRoute] long contributionId)
         {
             try
             {
@@ -428,6 +430,34 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 Logger.Value.LogException(exc);
 
                 return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+            }
+        }
+
+        [HttpPost("{schoolId:long}/images/{imageId:long}/contributions"), Produces<ApiResponse<bool>>()]
+        [Permission(policy: null)]
+        [Display(Name = "Request Removing an Image as a Contribution")]
+        public async Task<IActionResult<RemoveSchoolImageContributionResponseViewModel>> RemoveSchoolImageContribution([FromRoute] long schoolId, [FromRoute] long imageId, [NotNull] RemoveSchoolImageContributionRequestViewModel request)
+        {
+            try
+            {
+                var result = await schoolService.Value.CreateRemoveSchoolImageContributionAsync(new()
+                {
+                    Description = request.Description,
+                    SchoolId = schoolId,
+                    ImageId = imageId,
+                    CreationUserId = User.UserId(),
+                });
+
+                return Ok<RemoveSchoolImageContributionResponseViewModel>(new(result.Errors)
+                {
+                    Data = new() { Id = result.Data, },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<RemoveSchoolImageContributionResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
 

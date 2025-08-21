@@ -33,12 +33,14 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     Data = result.Data is null ? null : new()
                     {
-                        DefaultTimeZoneId = result.Data.DefaultTimeZoneId,
                         GridPageSize = result.Data.GridPageSize,
-                        SchoolCommentContributionPoints = result.Data.SchoolCommentContributionPoints,
+                        DefaultTimeZoneId = result.Data.DefaultTimeZoneId,
                         SchoolContributionPoints = result.Data.SchoolContributionPoints,
                         SchoolImageContributionPoints = result.Data.SchoolImageContributionPoints,
+                        SchoolCommentContributionPoints = result.Data.SchoolCommentContributionPoints,
                         PostContributionPoints = result.Data.PostContributionPoints,
+                        SchoolIssuesContributionPoints = result.Data.SchoolIssuesContributionPoints,
+                        RemoveSchoolImageContributionPoints = result.Data.RemoveSchoolImageContributionPoints,
                     }
                 });
             }
@@ -58,12 +60,14 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var result = await applicationSettingsService.Value.ModifyApplicationSettingsAsync(new()
                 {
-                    DefaultTimeZoneId = request.DefaultTimeZoneId,
                     GridPageSize = request.GridPageSize,
-                    SchoolImageContributionPoints = request.SchoolImageContributionPoints,
+                    DefaultTimeZoneId = request.DefaultTimeZoneId,
                     SchoolContributionPoints = request.SchoolContributionPoints,
+                    SchoolImageContributionPoints = request.SchoolImageContributionPoints,
                     SchoolCommentContributionPoints = request.SchoolCommentContributionPoints,
                     PostContributionPoints = request.PostContributionPoints,
+                    SchoolIssuesContributionPoints = request.SchoolIssuesContributionPoints,
+                    RemoveSchoolImageContributionPoints = request.RemoveSchoolImageContributionPoints,
                 });
                 return Ok<bool>(new(result.Errors) { Data = result.Data });
             }

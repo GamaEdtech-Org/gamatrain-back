@@ -923,10 +923,7 @@ namespace GamaEdtech.Application.Service
                     });
                 }
 
-                var schoolRepository = uow.GetRepository<School>();
-                _ = await schoolRepository.GetManyQueryable(t => t.Id == result.Data.Data!.SchoolId).ExecuteUpdateAsync(t => t
-                    .SetProperty(p => p.LastModifyUserId, result.Data.CreationUserId)
-                    .SetProperty(p => p.LastModifyDate, DateTimeOffset.UtcNow));
+                await UpdateSchoolLastModifyDateAsync(uow, result.Data.CreationUserId, schoolImage.SchoolId);
 
                 return new(OperationResult.Succeeded) { Data = true };
             }
@@ -1058,6 +1055,120 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<long>> CreateRemoveSchoolImageContributionAsync([NotNull] CreateRemoveSchoolImageContributionRequestDto requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<SchoolImage>();
+                var fileId = await repository.GetManyQueryable(t => t.Id == requestDto.ImageId && t.SchoolId == requestDto.SchoolId).Select(t => t.FileId).FirstOrDefaultAsync();
+                if (string.IsNullOrEmpty(fileId))
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "School Image not found", },] };
+                }
+
+                var contributionSpecification = new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(requestDto.CreationUserId)
+                    .And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.ImageId))
+                    .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.RemoveSchoolImage))
+                    .And(
+                        new StatusEqualsSpecification<Contribution>(Status.Draft)
+                        .Or(new StatusEqualsSpecification<Contribution>(Status.Review))
+                    );
+                var contributionExists = await contributionService.Value.ExistsContributionAsync(contributionSpecification);
+                if (contributionExists.Data)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "there is a pending remove image request", }] };
+                }
+
+                var contributionResult = await contributionService.Value.ManageContributionAsync<RemoveSchoolImageContributionDto>(new()
+                {
+                    CategoryType = CategoryType.RemoveSchoolImage,
+                    IdentifierId = requestDto.ImageId,
+                    Status = Status.Review,
+                    Data = new()
+                    {
+                        SchoolId = requestDto.SchoolId,
+                        FileId = fileId,
+                        Description = requestDto.Description,
+                    },
+                });
+                if (contributionResult.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(contributionResult.OperationResult) { Errors = contributionResult.Errors };
+                }
+
+                var hasAutoConfirmRemoveSchoolImage = await identityService.Value.HasClaimAsync(requestDto.CreationUserId, SystemClaim.AutoConfirmRemoveSchoolImage);
+                if (hasAutoConfirmRemoveSchoolImage.Data)
+                {
+                    _ = await ConfirmRemoveSchoolImageContributionAsync(new()
+                    {
+                        ContributionId = contributionResult.Data,
+                    });
+                }
+
+                return new(OperationResult.Succeeded) { Data = contributionResult.Data };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<bool>> ConfirmRemoveSchoolImageContributionAsync([NotNull] ConfirmRemoveSchoolImageContributionRequestDto requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                using var trn = uow.CreateTransactionScope();
+
+                var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
+                    .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.RemoveSchoolImage));
+                var result = await contributionService.Value.ConfirmContributionAsync<RemoveSchoolImageContributionDto?>(contributionSpecification);
+                if (result.Data is null)
+                {
+                    return new(OperationResult.Failed) { Errors = result.Errors };
+                }
+
+                var schoolImageRepository = uow.GetRepository<SchoolImage>();
+                var schoolImage = await schoolImageRepository.GetAsync(result.Data.IdentifierId.GetValueOrDefault());
+                if (schoolImage is null)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "School Image not found", },] };
+                }
+
+                if (schoolImage.IsDefault)
+                {
+                    var firstImageId = await schoolImageRepository.GetManyQueryable(t => t.SchoolId == schoolImage.SchoolId).Select(t => (long?)t.Id).FirstOrDefaultAsync();
+                    if (firstImageId.HasValue)
+                    {
+                        _ = await SetDefaultSchoolImageAsync(new()
+                        {
+                            Id = schoolImage.Id,
+                            SchoolId = schoolImage.SchoolId,
+                        });
+                    }
+                    else
+                    {
+                        _ = await uow.GetRepository<School>().GetManyQueryable(t => t.Id == schoolImage.SchoolId).ExecuteUpdateAsync(t => t.SetProperty(p => p.DefaultImageId, (long?)null));
+                    }
+                }
+
+                schoolImageRepository.Remove(schoolImage);
+                _ = await uow.SaveChangesAsync();
+
+                await UpdateSchoolLastModifyDateAsync(uow, result.Data.CreationUserId, schoolImage.SchoolId);
+
+                trn.Complete();
+                return new(OperationResult.Succeeded) { Data = true };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
             }
         }
 
@@ -1458,6 +1569,14 @@ namespace GamaEdtech.Application.Service
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
             }
         }
+
+        #endregion
+
+        #region Private methods
+
+        private static async Task UpdateSchoolLastModifyDateAsync(IUnitOfWork uow, int userId, long schoolId) => _ = await uow.GetRepository<School>().GetManyQueryable(t => t.Id == schoolId).ExecuteUpdateAsync(t => t
+            .SetProperty(p => p.LastModifyUserId, userId)
+            .SetProperty(p => p.LastModifyDate, DateTimeOffset.UtcNow));
 
         #endregion
     }
