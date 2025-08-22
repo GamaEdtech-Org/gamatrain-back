@@ -55,11 +55,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
         [Permission(policy: null)]
-        public IActionResult GetCoins()
+        public async Task<IActionResult> GetCoins()
         {
             try
             {
-                var coins = gameService.Value.GenerateCoins();
+                var coins = await gameService.Value.GenerateCoinsAsync();
 
                 var response = new GameCoinResponseViewModel
                 {

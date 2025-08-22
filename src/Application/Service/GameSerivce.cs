@@ -54,7 +54,7 @@ namespace GamaEdtech.Application.Service
 
         }
 
-        public IReadOnlyList<string> GenerateCoins()
+        public static IReadOnlyList<string> GenerateCoins()
         {
             var target = RandomNumberGenerator.GetInt32(0, 4);
 
@@ -75,5 +75,6 @@ namespace GamaEdtech.Application.Service
 
             return coins.AsReadOnly();
         }
+        public Task<IReadOnlyList<string>> GenerateCoinsAsync() => Task.Run(GenerateCoins);
     }
 }
