@@ -1,6 +1,7 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Security.Cryptography;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
@@ -11,6 +12,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Presentation.ViewModel.Referral;
 
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
 
     using static GamaEdtech.Common.Core.Constants;
 
@@ -57,5 +59,47 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 return Ok<GameResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
+
+
+
+        [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
+        [Permission(policy: null)]
+        public IActionResult GetCoins()
+        {
+            try
+            {
+                int target = RandomNumberGenerator.GetInt32(0, 4);
+
+                var coins = new List<string>();
+
+                for (int i = 0; i < target; i++)
+                {
+                    int roll = RandomNumberGenerator.GetInt32(1, 11);
+
+                    string reward = roll switch
+                    {
+                        <= 6 => "Bronze",
+                        <= 9 => "Silver",
+                        _ => "Gold"
+                    };
+
+                    coins.Add(reward);
+                }
+
+                var response = new GameCoinResponseViewModel
+                {
+                    Coins = coins.AsReadOnly()
+                };
+
+                return Ok(new ApiResponse<GameCoinResponseViewModel> { Data = response });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<GameCoinResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+
     }
 }
