@@ -6,10 +6,10 @@ namespace GamaEdtech.Application.Interface
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Data.Dto.Game;
 
-
     [Injectable]
     public interface IGameService
     {
         Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsDto requestDto);
+        IReadOnlyList<string> GenerateCoins();
     }
 }

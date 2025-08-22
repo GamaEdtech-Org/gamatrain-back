@@ -1,7 +1,6 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Security.Cryptography;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
@@ -68,27 +67,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                int target = RandomNumberGenerator.GetInt32(0, 4);
-
-                var coins = new List<string>();
-
-                for (int i = 0; i < target; i++)
-                {
-                    int roll = RandomNumberGenerator.GetInt32(1, 11);
-
-                    string reward = roll switch
-                    {
-                        <= 6 => "Bronze",
-                        <= 9 => "Silver",
-                        _ => "Gold"
-                    };
-
-                    coins.Add(reward);
-                }
+                var coins = gameService.Value.GenerateCoins();
 
                 var response = new GameCoinResponseViewModel
                 {
-                    Coins = coins.AsReadOnly()
+                    Coins = coins
                 };
 
                 return Ok(new ApiResponse<GameCoinResponseViewModel> { Data = response });
@@ -99,7 +82,5 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 return Ok<GameCoinResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
-
-
     }
 }
