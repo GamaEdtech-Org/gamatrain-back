@@ -8,7 +8,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Presentation.ViewModel.Game;
-    using GamaEdtech.Presentation.ViewModel.Referral;
 
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -28,13 +27,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                if (request.Points < 1 || request.Points > 1000)
-                {
-                    return BadRequest(new ApiResponse<GameResponseViewModel>(
-                        new Error { Message = "Points value must be between 1 and 1000." }
-                    ));
-                }
-
                 var result = await gameService.Value.TakePointsAsync(new TakePointsDto
                 {
                     Points = request.Points,
@@ -42,7 +34,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
                 if (result.OperationResult != OperationResult.Succeeded)
                 {
-                    return BadRequest(new ApiResponse<ReferralReponseViewModel>(result.Errors));
+                    return BadRequest(new ApiResponse<GameResponseViewModel>(result.Errors));
                 }
 
                 var responseViewModel = new GameResponseViewModel

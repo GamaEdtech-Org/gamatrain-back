@@ -49,24 +49,21 @@ namespace GamaEdtech.Application.Service
 
             var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
 
-            if (result.OperationResult == OperationResult.Succeeded)
-            {
-                return new(OperationResult.Succeeded) { Data = requestDto.Points };
-            }
+            return result.OperationResult == OperationResult.Succeeded ? new(OperationResult.Succeeded) { Data = requestDto.Points }
+            : new(OperationResult.Failed) { Errors = result.Errors };
 
-            return new(OperationResult.Failed) { Errors = result.Errors };
         }
 
         public IReadOnlyList<string> GenerateCoins()
         {
-            int target = RandomNumberGenerator.GetInt32(0, 4);
+            var target = RandomNumberGenerator.GetInt32(0, 4);
 
             var coins = new List<string>();
-            for (int i = 0; i < target; i++)
+            for (var i = 0; i < target; i++)
             {
-                int roll = RandomNumberGenerator.GetInt32(1, 11);
+                var roll = RandomNumberGenerator.GetInt32(1, 11);
 
-                string reward = roll switch
+                var reward = roll switch
                 {
                     <= 6 => "Bronze",
                     <= 9 => "Silver",
