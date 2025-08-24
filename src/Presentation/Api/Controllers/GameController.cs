@@ -14,7 +14,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
     using static GamaEdtech.Common.Core.Constants;
 
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class GameController(
         Lazy<ILogger<GameController>> logger,
@@ -23,24 +23,22 @@ namespace GamaEdtech.Presentation.Api.Controllers
     {
         [HttpPost("easter-egg"), Produces(typeof(ApiResponse<GameResponseViewModel>))]
         [Permission(policy: null)]
-        public async Task<IActionResult> TakePoints([NotNull][FromBody] GameRequestViewModel request)
+        public async Task<IActionResult> TakePoints(
+            [NotNull] [FromBody] GameRequestViewModel request
+        )
         {
             try
             {
-                var result = await gameService.Value.TakePointsAsync(new TakePointsDto
-                {
-                    Points = request.Points,
-                });
+                var result = await gameService.Value.TakePointsAsync(
+                    new TakePointsDto { Points = request.Points, }
+                );
 
                 if (result.OperationResult != OperationResult.Succeeded)
                 {
                     return BadRequest(new ApiResponse<GameResponseViewModel>(result.Errors));
                 }
 
-                var responseViewModel = new GameResponseViewModel
-                {
-                    Points = result.Data
-                };
+                var responseViewModel = new GameResponseViewModel { Points = result.Data };
 
                 return Ok(new ApiResponse<GameResponseViewModel> { Data = responseViewModel });
             }
@@ -51,8 +49,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-
-
         [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
         [Permission(policy: null)]
         public async Task<IActionResult> GetCoins()
@@ -61,10 +57,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var coins = await gameService.Value.GenerateCoinsAsync();
 
-                var response = new GameCoinResponseViewModel
-                {
-                    Coins = coins
-                };
+                var response = new GameCoinResponseViewModel { Coins = coins };
 
                 return Ok(new ApiResponse<GameCoinResponseViewModel> { Data = response });
             }
