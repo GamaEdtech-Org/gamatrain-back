@@ -80,6 +80,15 @@ namespace GamaEdtech.Presentation.Api
                     Scheme = "Bearer",
                 });
 
+                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter into field the word 'ApiKey' following by space and Token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "ApiKey",
+                });
+
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -89,6 +98,17 @@ namespace GamaEdtech.Presentation.Api
                               {
                                   Type = ReferenceType.SecurityScheme,
                                   Id = "Bearer",
+                              }
+                          },
+                         Array.Empty<string>()
+                    },
+                    {
+                          new OpenApiSecurityScheme
+                          {
+                              Reference = new OpenApiReference
+                              {
+                                  Type = ReferenceType.SecurityScheme,
+                                  Id = "ApiKey",
                               }
                           },
                          Array.Empty<string>()

@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class SignInRequestDto
+    public sealed class SignInRequestDto
     {
         public required ApplicationUserDto User { get; set; }
 

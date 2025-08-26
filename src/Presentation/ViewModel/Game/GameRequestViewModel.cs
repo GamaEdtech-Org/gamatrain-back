@@ -1,10 +1,11 @@
 namespace GamaEdtech.Presentation.ViewModel.Game
 {
-    using System.ComponentModel.DataAnnotations;
+    using GamaEdtech.Common.DataAnnotation;
 
-    public class GameRequestViewModel
+    public sealed class GameRequestViewModel
     {
-        [Range(1, 1000, ErrorMessage = "Points value must be between 1 and 1000.")]
-        public int Points { get; set; }
+        [Required]
+        [Range(1, 1000)]
+        public int? Points { get; set; }
     }
 }

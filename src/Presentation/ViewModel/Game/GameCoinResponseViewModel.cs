@@ -1,7 +1,7 @@
 namespace GamaEdtech.Presentation.ViewModel.Game
 {
-    public class GameCoinResponseViewModel
+    public sealed class GameCoinResponseViewModel
     {
-        public IReadOnlyList<string> Coins { get; set; } = Array.Empty<string>();
+        public IEnumerable<string?>? Coins { get; set; }
     }
 }

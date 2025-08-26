@@ -14,30 +14,24 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class ReferralController(
-        Lazy<ILogger<ReferralController>> logger,
-        Lazy<IIdentityService> referralService
-    ) : ApiControllerBase<ReferralController>(logger)
+    public class ReferralController(Lazy<ILogger<ReferralController>> logger, Lazy<IIdentityService> referralService)
+        : ApiControllerBase<ReferralController>(logger)
     {
         [HttpPost("generate"), Produces(typeof(ApiResponse<ReferralReponseViewModel>))]
         [Permission(policy: null)]
-        public async Task<IActionResult> GenerateRefferalId()
+        public async Task<IActionResult<ReferralReponseViewModel>> GenerateRefferalId()
         {
             try
             {
                 var result = await referralService.Value.GenerateReferralUserAsync();
 
-                if (result.OperationResult != OperationResult.Succeeded)
+                return Ok<ReferralReponseViewModel>(new(result.Errors)
                 {
-                    return BadRequest(new ApiResponse<ReferralReponseViewModel>(result.Errors));
-                }
-
-                var responseViewModel = new ReferralReponseViewModel
-                {
-                    ReferralId = result.Data,
-                };
-
-                return Ok(new ApiResponse<ReferralReponseViewModel> { Data = responseViewModel });
+                    Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
+                    {
+                        ReferralId = result.Data,
+                    }
+                });
             }
             catch (Exception exc)
             {

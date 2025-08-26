@@ -18,63 +18,63 @@ namespace GamaEdtech.Application.Service
 
     using static GamaEdtech.Common.Core.Constants;
 
-
-    public class GameService(
-        Lazy<IUnitOfWorkProvider> unitOfWorkProvider,
-        Lazy<IHttpContextAccessor> httpContextAccessor,
-        Lazy<IStringLocalizer<GameService>> localizer,
-        Lazy<ILogger<GameService>> logger,
-        Lazy<ITransactionService> transactionService)
+    public class GameService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor,
+        Lazy<IStringLocalizer<GameService>> localizer, Lazy<ILogger<GameService>> logger, Lazy<ITransactionService> transactionService)
         : LocalizableServiceBase<GameService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IGameService
     {
-
-        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsDto requestDto)
+        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto)
         {
-            var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-
-            if (!userId.HasValue)
+            try
             {
-                return new(OperationResult.Failed)
+                var transactionRequest = new CreateTransactionRequestDto
                 {
-                    Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                    UserId = requestDto.UserId,
+                    Points = requestDto.Points,
+                    Description = "the Easter Egg game.",
+                };
+                var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
+
+                return new(OperationResult.Succeeded)
+                {
+                    Errors = result.Errors,
+                    Data = requestDto.Points,
                 };
             }
-
-            var transactionRequest = new CreateTransactionRequestDto
+            catch (Exception exc)
             {
-                UserId = userId.Value,
-                Points = requestDto.Points,
-                Description = "the Easter Egg game."
-            };
-
-            var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
-
-            return result.OperationResult == OperationResult.Succeeded ? new(OperationResult.Succeeded) { Data = requestDto.Points }
-            : new(OperationResult.Failed) { Errors = result.Errors };
-
-        }
-
-        public static IReadOnlyList<string> GenerateCoins()
-        {
-            var target = RandomNumberGenerator.GetInt32(0, 4);
-
-            var coins = new List<string>();
-            for (var i = 0; i < target; i++)
-            {
-                var roll = RandomNumberGenerator.GetInt32(1, 11);
-
-                var reward = roll switch
-                {
-                    <= 6 => "Bronze",
-                    <= 9 => "Silver",
-                    _ => "Gold"
-                };
-
-                coins.Add(reward);
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
             }
-
-            return coins.AsReadOnly();
         }
-        public Task<IReadOnlyList<string>> GenerateCoinsAsync() => Task.Run(GenerateCoins);
+
+        public ResultData<IEnumerable<string?>> GenerateCoins()
+        {
+            try
+            {
+                var length = RandomNumberGenerator.GetInt32(0, 4);
+
+                var coins = new List<string?>();
+                for (var i = 0; i < length; i++)
+                {
+                    var roll = RandomNumberGenerator.GetInt32(1, 11);
+
+                    var reward = roll switch
+                    {
+                        <= 6 => "Bronze",
+                        <= 9 => "Silver",
+                        _ => "Gold"
+                    };
+
+                    coins.Add(reward);
+                }
+
+                return new(OperationResult.Succeeded) { Data = coins };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
     }
 }

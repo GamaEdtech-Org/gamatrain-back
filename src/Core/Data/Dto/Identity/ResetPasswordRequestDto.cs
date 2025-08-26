@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class ResetPasswordRequestDto
+    public sealed class ResetPasswordRequestDto
     {
         public required int UserId { get; set; }
 
