@@ -54,7 +54,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
 
         [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
-        [Permission(policy: null)]
         public async Task<IActionResult> GetCoins()
         {
             try
@@ -76,3 +75,4 @@ namespace GamaEdtech.Presentation.Api.Controllers
         }
     }
 }
+
