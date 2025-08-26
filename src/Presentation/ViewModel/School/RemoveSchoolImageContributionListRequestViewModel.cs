@@ -1,4 +1,4 @@
-namespace GamaEdtech.Presentation.ViewModel.Blog
+namespace GamaEdtech.Presentation.ViewModel.School
 {
     using System.Text.Json.Serialization;
 
@@ -7,13 +7,13 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Domain.Enumeration;
 
-    public sealed class PostContributionListRequestViewModel
+    public sealed class RemoveSchoolImageContributionListRequestViewModel
     {
         [Display]
         public PagingDto? PagingDto { get; set; } = new() { PageFilter = new(), };
 
         [Display]
         [JsonConverter(typeof(EnumerationConverter<Status, byte>))]
-        public Status Status { get; set; }
+        public Status? Status { get; set; }
     }
 }

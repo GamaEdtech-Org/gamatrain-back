@@ -524,6 +524,7 @@ namespace GamaEdtech.Application.Service
                         VisibilityType = result.Data.Data!.VisibilityType!,
                         Keywords = result.Data.Data!.Keywords,
                         Tags = result.Data.Data!.Tags,
+                        Id = result.Data.IdentifierId.Value,
                     });
                 }
                 else

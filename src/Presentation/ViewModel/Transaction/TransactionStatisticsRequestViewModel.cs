@@ -1,5 +1,8 @@
 namespace GamaEdtech.Presentation.ViewModel.Transaction
 {
+    using System.Text.Json.Serialization;
+
+    using GamaEdtech.Common.Converter;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Domain.Enumeration;
 
@@ -13,6 +16,7 @@ namespace GamaEdtech.Presentation.ViewModel.Transaction
 
         [Display]
         [Required]
+        [JsonConverter(typeof(EnumerationConverter<Period, byte>))]
         public Period Period { get; set; }
     }
 }

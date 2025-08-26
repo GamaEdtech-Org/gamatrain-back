@@ -550,6 +550,143 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
+        [HttpGet("images/issues/contributions"), Produces<ApiResponse<ListDataSource<RemoveSchoolImageContributionListResponseViewModel>>>()]
+        public async Task<IActionResult<ListDataSource<RemoveSchoolImageContributionListResponseViewModel>>> GetRemoveSchoolImageContributionList([NotNull, FromQuery] RemoveSchoolImageContributionListRequestViewModel request)
+        {
+            try
+            {
+                ISpecification<Contribution> specification = new CategoryTypeEqualsSpecification<Contribution>(CategoryType.RemoveSchoolImage);
+                if (request.Status is not null)
+                {
+                    specification = specification.And(new StatusEqualsSpecification<Contribution>(request.Status));
+                }
+                var result = await contributionService.Value.GetContributionsAsync<RemoveSchoolImageContributionDto>(new ListRequestDto<Contribution>
+                {
+                    PagingDto = request.PagingDto,
+                    Specification = specification,
+                }, true);
+
+                List<RemoveSchoolImageContributionListResponseViewModel> lst = [];
+                if (result.Data.List is not null)
+                {
+                    foreach (var item in result.Data.List)
+                    {
+                        lst.Add(new RemoveSchoolImageContributionListResponseViewModel
+                        {
+                            Id = item.Id,
+                            CreationUser = item.CreationUser,
+                            CreationDate = item.CreationDate,
+                            SchoolId = item.Data?.SchoolId,
+                            Description = item.Data?.Description,
+                            Status = item.Status,
+                            FileUri = fileService.Value.GetFileUri(item.Data?.FileId, ContainerType.School).Data,
+                        });
+                    }
+                }
+
+                return Ok<ListDataSource<RemoveSchoolImageContributionListResponseViewModel>>(new(result.Errors)
+                {
+                    Data = new()
+                    {
+                        List = lst,
+                        TotalRecordsCount = result.Data.TotalRecordsCount,
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<ListDataSource<RemoveSchoolImageContributionListResponseViewModel>>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpGet("images/issues/contributions/{contributionId:long}"), Produces<ApiResponse<RemoveSchoolImageContributionReviewViewModel>>()]
+        public async Task<IActionResult<RemoveSchoolImageContributionReviewViewModel>> GetRemoveSchoolImageContribution([FromRoute] long contributionId)
+        {
+            try
+            {
+                var specification = new IdEqualsSpecification<Contribution, long>(contributionId)
+                    .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.RemoveSchoolImage));
+                var contributionResult = await contributionService.Value.GetContributionAsync<SchoolImageContributionDto>(specification);
+                if (contributionResult.Data?.Data is null)
+                {
+                    return Ok<RemoveSchoolImageContributionReviewViewModel>(new(contributionResult.Errors));
+                }
+
+                var schoolResult = await schoolService.Value.GetSchoolAsync(new IdEqualsSpecification<School, long>(contributionResult.Data.Data.SchoolId));
+                if (schoolResult.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok<RemoveSchoolImageContributionReviewViewModel>(new(schoolResult.Errors));
+                }
+
+                RemoveSchoolImageContributionReviewViewModel result = new()
+                {
+                    Id = contributionResult.Data.Id,
+                    FileUri = fileService.Value.GetFileUri(contributionResult.Data.Data.FileId, ContainerType.School).Data,
+                    SchoolId = contributionResult.Data.Data!.SchoolId,
+                    SchoolName = schoolResult.Data?.Name,
+                };
+
+                return Ok<RemoveSchoolImageContributionReviewViewModel>(new()
+                {
+                    Data = result,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<RemoveSchoolImageContributionReviewViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPatch("images/issues/contributions/{contributionId:long}/confirm"), Produces<ApiResponse<bool>>()]
+        public async Task<IActionResult> ConfirmRemoveSchoolImageContribution([FromRoute] long contributionId)
+        {
+            try
+            {
+                var result = await schoolService.Value.ConfirmRemoveSchoolImageContributionAsync(new()
+                {
+                    ContributionId = contributionId,
+                });
+
+                return Ok(new ApiResponse<bool>(result.Errors)
+                {
+                    Data = result.Data,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<bool>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPatch("images/issues/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
+        public async Task<IActionResult> RejectRemoveSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        {
+            try
+            {
+                var result = await contributionService.Value.RejectContributionAsync(new RejectContributionRequestDto
+                {
+                    Id = contributionId,
+                    Comment = request.Comment,
+                });
+                return Ok(new ApiResponse<bool>(result.Errors)
+                {
+                    Data = result.Data,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<bool>(new(new Error { Message = exc.Message }));
+            }
+        }
+
         #endregion
 
         #region Contributions
