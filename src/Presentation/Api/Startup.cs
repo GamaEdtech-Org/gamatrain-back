@@ -55,7 +55,11 @@ namespace GamaEdtech.Presentation.Api
                 .UseSqlServerStorage(Configuration.GetValue<string>("Connection:ConnectionString")));
             _ = services.AddHangfireServer();
 
-            _ = services.AddDistributedMemoryCache();
+            _ = services.AddStackExchangeRedisCache(options =>
+            {
+                options.InstanceName = Configuration.GetValue<string>("Cache:InstanceName");
+                options.Configuration = Configuration.GetValue<string>("Cache:Configuration");
+            });
 
             _ = services.AddApiVersioning(config =>
             {

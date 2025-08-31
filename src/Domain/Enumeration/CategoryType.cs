@@ -23,7 +23,7 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly CategoryType RemoveSchoolImage = new(nameof(RemoveSchoolImage), 6, "RemoveSchoolImageContributionPoints");
 
-        public string ApplicationSettingsName { get; set; }
+        public string ApplicationSettingsName { get; }
 
         public CategoryType()
         {

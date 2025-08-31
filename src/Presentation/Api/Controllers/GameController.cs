@@ -1,6 +1,7 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Threading.Tasks;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
@@ -20,19 +21,19 @@ namespace GamaEdtech.Presentation.Api.Controllers
     public class GameController(Lazy<ILogger<GameController>> logger, Lazy<IGameService> gameService)
         : ApiControllerBase<GameController>(logger)
     {
-        [HttpPost("easter-egg"), Produces(typeof(ApiResponse<GameResponseViewModel>))]
+        [HttpPost("easter-egg"), Produces(typeof(ApiResponse<PointResponseViewModel>))]
         [Permission(policy: null)]
-        public async Task<IActionResult<GameResponseViewModel>> TakePoints([NotNull][FromBody] GameRequestViewModel request)
+        public async Task<IActionResult<PointResponseViewModel>> TakePoint([NotNull][FromBody] PointRequestViewModel request)
         {
             try
             {
                 var result = await gameService.Value.TakePointsAsync(new TakePointsRequestDto
                 {
-                    Points = request.Points.GetValueOrDefault(),
+                    Id = request.Id.GetValueOrDefault(),
                     UserId = User.UserId(),
                 });
 
-                return Ok<GameResponseViewModel>(new(result.Errors)
+                return Ok<PointResponseViewModel>(new(result.Errors)
                 {
                     Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
                     {
@@ -43,30 +44,35 @@ namespace GamaEdtech.Presentation.Api.Controllers
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return Ok<GameResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<PointResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
 
-        [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
+        [HttpGet("coins"), Produces(typeof(ApiResponse<CoinsResponseViewModel>))]
         [ApiKey]
-        public IActionResult<GameCoinResponseViewModel> GetCoins()
+        public async Task<IActionResult<CoinsResponseViewModel>> GenerateCoins()
         {
             try
             {
-                var result = gameService.Value.GenerateCoins();
+                var result = await gameService.Value.GenerateCoinsAsync();
 
-                return Ok<GameCoinResponseViewModel>(new(result.Errors)
+                return Ok<CoinsResponseViewModel>(new(result.Errors)
                 {
                     Data = new()
                     {
-                        Coins = result.Data,
+                        Coins = result.Data?.Select(t => new CoinViewModel
+                        {
+                            Id = t.Id,
+                            CoinType = t.CoinType,
+                            ExpirationTime = t.ExpirationTime,
+                        }),
                     }
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return Ok<GameCoinResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<CoinsResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
     }
