@@ -8,6 +8,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Caching;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Game;
@@ -42,7 +43,7 @@ namespace GamaEdtech.Application.Service
                 var transactionRequest = new CreateTransactionRequestDto
                 {
                     UserId = requestDto.UserId,
-                    Points = coin.Points,
+                    Points = EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).Points,
                     Description = "the Easter Egg game.",
                 };
                 var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
@@ -64,15 +65,27 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                const int maxGeneratedCoin = 3;
-                var coins = new List<CoinDto>(maxGeneratedCoin);
-                ReadOnlySpan<CoinType> types = [CoinType.Bronze, CoinType.Silver, CoinType.Gold];
-                var randomTypes = RandomNumberGenerator.GetItems(types, maxGeneratedCoin);
-                for (var i = 0; i < randomTypes.Length; i++)
+                var maxGeneratedCoin = RandomNumberGenerator.GetInt32(3);
+                if (maxGeneratedCoin == 0)
                 {
+                    return new(OperationResult.Succeeded);
+                }
+
+                var coins = new List<CoinDto>(maxGeneratedCoin);
+                for (var i = 0; i < maxGeneratedCoin; i++)
+                {
+                    var roll = RandomNumberGenerator.GetInt32(1, 11);
+
+                    var coinType = roll switch
+                    {
+                        <= 6 => CoinType.Bronze,
+                        <= 9 => CoinType.Silver,
+                        _ => CoinType.Gold,
+                    };
+
                     var coin = new CoinDto
                     {
-                        CoinType = randomTypes[i],
+                        CoinType = coinType,
                         Id = Guid.NewGuid(),
                         ExpirationTime = DateTimeOffset.UtcNow.AddMinutes(10),
                     };
