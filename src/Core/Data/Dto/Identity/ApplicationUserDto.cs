@@ -4,7 +4,7 @@ namespace GamaEdtech.Data.Dto.Identity
 
     using GamaEdtech.Common.DataAccess.Entities;
 
-    public class ApplicationUserDto : Common.Mapping.IRegister, IEnablable
+    public sealed class ApplicationUserDto : Common.Mapping.IRegister, IEnablable
     {
         public int Id { get; set; }
 

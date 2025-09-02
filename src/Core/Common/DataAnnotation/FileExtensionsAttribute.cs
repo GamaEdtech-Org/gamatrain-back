@@ -57,21 +57,19 @@ namespace GamaEdtech.Common.DataAnnotation
 
             if (value is IEnumerable<IFormFile> lst)
             {
-                foreach (var item in lst)
-                {
-                    if (!Validate(item))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return lst.All(Validate);
             }
 
-            return value is IFormFile file && Validate(file);
+            var file = value as IFormFile;
+            return file is not null && Validate(file);
 
-            bool Validate(IFormFile file)
+            bool Validate(IFormFile? file)
             {
+                if (file is null)
+                {
+                    return false;
+                }
+
                 if (!Extensions!.Exists(t => t.Equals(Path.GetExtension(file.FileName).TrimStart('.'), StringComparison.OrdinalIgnoreCase)))
                 {
                     return false;

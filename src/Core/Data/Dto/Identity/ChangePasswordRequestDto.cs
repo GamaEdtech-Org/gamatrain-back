@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class ChangePasswordRequestDto
+    public sealed class ChangePasswordRequestDto
     {
         public required string CurrentPassword { get; set; }
 

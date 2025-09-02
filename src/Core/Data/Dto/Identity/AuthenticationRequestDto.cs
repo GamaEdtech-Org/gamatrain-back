@@ -2,7 +2,7 @@ namespace GamaEdtech.Data.Dto.Identity
 {
     using GamaEdtech.Domain.Enumeration;
 
-    public class AuthenticationRequestDto
+    public sealed class AuthenticationRequestDto
     {
         public required string Username { get; set; }
 

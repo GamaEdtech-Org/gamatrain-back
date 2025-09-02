@@ -1,6 +1,6 @@
 namespace GamaEdtech.Presentation.ViewModel.Referral
 {
-    public class ReferralReponseViewModel
+    public sealed class ReferralReponseViewModel
     {
         public string? ReferralId { get; set; }
     }

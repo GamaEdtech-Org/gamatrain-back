@@ -17,6 +17,7 @@ namespace GamaEdtech.Common.Startup
     using GamaEdtech.Common.DataAccess.Context;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
+    using GamaEdtech.Common.Identity.ApiKey;
     using GamaEdtech.Common.Identity.DataProtection;
     using GamaEdtech.Common.Localization;
     using GamaEdtech.Common.Logging;
@@ -287,6 +288,34 @@ namespace GamaEdtech.Common.Startup
             if (startupOption.Authentication)
             {
                 _ = services.AddAuthorization(options => options.AddPolicy(PermissionConstants.PermissionPolicy, policy => policy.RequireAssertion(context =>
+                    {
+                        if (context.Resource is not HttpContext httpContext)
+                        {
+                            return false;
+                        }
+
+                        var endPoint = httpContext.GetEndpoint();
+                        if (endPoint is null)
+                        {
+                            return false;
+                        }
+
+                        var permission = endPoint.Metadata.OfType<PermissionAttribute>().LastOrDefault();
+                        if (permission is null)
+                        {
+                            return false;
+                        }
+
+                        if (permission.Roles?.Exists(t => context.User.IsInRole(t)) == true)
+                        {
+                            return true;
+                        }
+
+                        var claims = context.User.Claims.Where(t => t.Type == PermissionConstants.PermissionPolicy);
+                        return claims.Any(t => t.Value.Equals(endPoint?.DisplayName, StringComparison.OrdinalIgnoreCase));
+                    })));
+
+                _ = services.AddAuthorization(options => options.AddPolicy(PermissionConstants.ApiKeyPolicy, policy => policy.RequireAssertion(context =>
                 {
                     if (context.Resource is not HttpContext httpContext)
                     {
@@ -299,22 +328,13 @@ namespace GamaEdtech.Common.Startup
                         return false;
                     }
 
-                    var permission = endPoint.Metadata.OfType<PermissionAttribute>().LastOrDefault();
-                    if (permission is null)
-                    {
-                        return false;
-                    }
-
-                    if (permission.Roles?.Exists(t => context.User.IsInRole(t)) == true)
-                    {
-                        return true;
-                    }
-
-                    var claims = context.User.Claims.Where(t => t.Type == PermissionConstants.PermissionPolicy);
-                    return claims.Any(t => t.Value.Equals(endPoint?.DisplayName, StringComparison.OrdinalIgnoreCase));
+                    var permission = endPoint.Metadata.OfType<ApiKeyAttribute>().LastOrDefault();
+                    return permission is not null && context.User.Claims.Any(t => t.Type == PermissionConstants.ApiKeyPolicy);
                 })));
 
-                _ = services.AddAuthentication().AddScheme<TokenAuthenticationSchemeOptions, TokenAuthenticationHandler>(PermissionConstants.TokenAuthenticationScheme, t => { });
+                _ = services.AddAuthentication()
+                    .AddScheme<TokenAuthenticationSchemeOptions, TokenAuthenticationHandler>(PermissionConstants.TokenAuthenticationScheme, t => { })
+                    .AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(PermissionConstants.ApiKeyAuthenticationScheme, t => { });
                 _ = services.Configure<ApiDataProtectorTokenProviderOptions>(Configuration.GetSection("IdentityOptions:Tokens:ApiDataProtectorTokenProviderOptions"));
                 _ = services.Configure<IdentityOptions>(options => options.Tokens.ProviderMap[PermissionConstants.ApiDataProtectorTokenProvider] = new TokenProviderDescriptor(typeof(IApiDataProtectorTokenProvider<TUser>)));
             }

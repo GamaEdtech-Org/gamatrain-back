@@ -49,8 +49,9 @@ namespace GamaEdtech.Common.Converter
             }
 
             var lst = System.Enum.GetNames(typeToConvert);
-            foreach (var item in lst)
+            for (var i = 0; i < lst.Length; i++)
             {
+                var item = lst[i];
                 if (EnumHelper.LocalizeEnum(item) == value)
                 {
                     return (T)System.Enum.Parse(underlyingType, item, ignoreCase: false);

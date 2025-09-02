@@ -5,12 +5,15 @@ namespace GamaEdtech.Application.Service
     using System.Threading.Tasks;
 
     using GamaEdtech.Application.Interface;
+    using GamaEdtech.Common.Caching;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Data.Dto.Transaction;
+    using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Localization;
@@ -18,63 +21,88 @@ namespace GamaEdtech.Application.Service
 
     using static GamaEdtech.Common.Core.Constants;
 
-
-    public class GameService(
-        Lazy<IUnitOfWorkProvider> unitOfWorkProvider,
-        Lazy<IHttpContextAccessor> httpContextAccessor,
-        Lazy<IStringLocalizer<GameService>> localizer,
-        Lazy<ILogger<GameService>> logger,
-        Lazy<ITransactionService> transactionService)
+    public class GameService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor,
+        Lazy<IStringLocalizer<GameService>> localizer, Lazy<ILogger<GameService>> logger, Lazy<ITransactionService> transactionService
+        , Lazy<ICacheProvider> cacheProvider)
         : LocalizableServiceBase<GameService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IGameService
     {
+        private const string Prefix = "COIN_";
 
-        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsDto requestDto)
+        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto)
         {
-            var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-
-            if (!userId.HasValue)
+            try
             {
-                return new(OperationResult.Failed)
+                var key = $"{Prefix}{requestDto.Id}";
+                var coin = await cacheProvider.Value.GetAsync<CoinType>(key);
+                if (coin is null)
                 {
-                    Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Id is Invalid or has been Expired" },] };
+                }
+
+                await cacheProvider.Value.RemoveAsync(key);
+                var transactionRequest = new CreateTransactionRequestDto
+                {
+                    UserId = requestDto.UserId,
+                    Points = EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).Points,
+                    Description = "the Easter Egg game.",
+                };
+                var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
+
+                return new(result.OperationResult)
+                {
+                    Errors = result.Errors,
+                    Data = result.Data > 0 ? transactionRequest.Points : 0,
                 };
             }
-
-            var transactionRequest = new CreateTransactionRequestDto
+            catch (Exception exc)
             {
-                UserId = userId.Value,
-                Points = requestDto.Points,
-                Description = "the Easter Egg game."
-            };
-
-            var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
-
-            return result.OperationResult == OperationResult.Succeeded ? new(OperationResult.Succeeded) { Data = requestDto.Points }
-            : new(OperationResult.Failed) { Errors = result.Errors };
-
-        }
-
-        public static IReadOnlyList<string> GenerateCoins()
-        {
-            var target = RandomNumberGenerator.GetInt32(0, 4);
-
-            var coins = new List<string>();
-            for (var i = 0; i < target; i++)
-            {
-                var roll = RandomNumberGenerator.GetInt32(1, 11);
-
-                var reward = roll switch
-                {
-                    <= 6 => "Bronze",
-                    <= 9 => "Silver",
-                    _ => "Gold"
-                };
-
-                coins.Add(reward);
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
             }
-
-            return coins.AsReadOnly();
         }
-        public Task<IReadOnlyList<string>> GenerateCoinsAsync() => Task.Run(GenerateCoins);
+
+        public async Task<ResultData<IEnumerable<CoinDto>>> GenerateCoinsAsync()
+        {
+            try
+            {
+                var maxGeneratedCoin = RandomNumberGenerator.GetInt32(3);
+                if (maxGeneratedCoin == 0)
+                {
+                    return new(OperationResult.Succeeded);
+                }
+
+                var coins = new List<CoinDto>(maxGeneratedCoin);
+                for (var i = 0; i < maxGeneratedCoin; i++)
+                {
+                    var roll = RandomNumberGenerator.GetInt32(1, 11);
+
+                    var coinType = roll switch
+                    {
+                        <= 6 => CoinType.Bronze,
+                        <= 9 => CoinType.Silver,
+                        _ => CoinType.Gold,
+                    };
+
+                    var coin = new CoinDto
+                    {
+                        CoinType = coinType,
+                        Id = Guid.NewGuid(),
+                        ExpirationTime = DateTimeOffset.UtcNow.AddMinutes(10),
+                    };
+                    coins.Add(coin);
+                    await cacheProvider.Value.SetAsync($"{Prefix}{coin.Id}", coin.CoinType, new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpiration = coin.ExpirationTime,
+                    });
+                }
+
+                return new(OperationResult.Succeeded) { Data = coins };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
     }
 }

@@ -2,7 +2,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
 {
     using GamaEdtech.Common.DataAnnotation;
 
-    public class ProfileSettingsRequestViewModel
+    public sealed class ProfileSettingsRequestViewModel
     {
         [Display]
         public int? CityId { get; set; }
