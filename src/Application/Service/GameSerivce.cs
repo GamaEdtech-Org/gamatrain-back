@@ -48,10 +48,10 @@ namespace GamaEdtech.Application.Service
                 };
                 var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
 
-                return new(OperationResult.Succeeded)
+                return new(result.OperationResult)
                 {
                     Errors = result.Errors,
-                    Data = result.Data > 0 ? coin.Points : 0,
+                    Data = result.Data > 0 ? transactionRequest.Points : 0,
                 };
             }
             catch (Exception exc)
