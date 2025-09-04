@@ -28,39 +28,6 @@ namespace GamaEdtech.Application.Service
     {
         private const string Prefix = "COIN_";
 
-        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto)
-        {
-            try
-            {
-                var key = $"{Prefix}{requestDto.Id}";
-                var coin = await cacheProvider.Value.GetAsync<CoinType>(key);
-                if (coin is null)
-                {
-                    return new(OperationResult.Failed) { Errors = [new() { Message = "Id is Invalid or has been Expired" },] };
-                }
-
-                await cacheProvider.Value.RemoveAsync(key);
-                var transactionRequest = new CreateTransactionRequestDto
-                {
-                    UserId = requestDto.UserId,
-                    Points = EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).Points,
-                    Description = "the Easter Egg game.",
-                };
-                var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
-
-                return new(result.OperationResult)
-                {
-                    Errors = result.Errors,
-                    Data = result.Data > 0 ? transactionRequest.Points : 0,
-                };
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
-            }
-        }
-
         public async Task<ResultData<IEnumerable<CoinDto>>> GenerateCoinsAsync()
         {
             try
@@ -97,6 +64,75 @@ namespace GamaEdtech.Application.Service
                 }
 
                 return new(OperationResult.Succeeded) { Data = coins };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto)
+        {
+            try
+            {
+                var key = $"{Prefix}{requestDto.Id}";
+                var coin = await cacheProvider.Value.GetAsync<CoinType>(key);
+                if (coin is null)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Id is Invalid or has been Expired" },] };
+                }
+
+                await cacheProvider.Value.RemoveAsync(key);
+                var transactionRequest = new CreateTransactionRequestDto
+                {
+                    UserId = requestDto.UserId,
+                    Points = EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).Points,
+                    Description = "the Easter Egg game.",
+                };
+                var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
+
+                return new(result.OperationResult)
+                {
+                    Errors = result.Errors,
+                    Data = result.Data > 0 ? transactionRequest.Points : 0,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<bool>> ConsumePointsAsync([NotNull] ConsumePointsRequestDto requestDto)
+        {
+            try
+            {
+                var currentBalance = await transactionService.Value.GetCurrentBalanceAsync(new() { UserId = requestDto.UserId });
+                if (currentBalance.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(OperationResult.Failed) { Errors = currentBalance.Errors };
+                }
+
+                if (currentBalance.Data < requestDto.Points)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["InsufficientBalance"] },] };
+                }
+
+                var transactionRequest = new CreateTransactionRequestDto
+                {
+                    UserId = requestDto.UserId,
+                    Points = requestDto.Points,
+                    Description = "consume game points",
+                };
+                var result = await transactionService.Value.DecreaseBalanceAsync(transactionRequest);
+
+                return new(result.OperationResult)
+                {
+                    Errors = result.Errors,
+                    Data = result.Data > 0,
+                };
             }
             catch (Exception exc)
             {

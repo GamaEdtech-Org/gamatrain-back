@@ -11,5 +11,6 @@ namespace GamaEdtech.Application.Interface
     {
         Task<ResultData<IEnumerable<CoinDto>>> GenerateCoinsAsync();
         Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto);
+        Task<ResultData<bool>> ConsumePointsAsync([NotNull] ConsumePointsRequestDto requestDto);
     }
 }

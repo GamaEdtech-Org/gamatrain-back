@@ -121,7 +121,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpDelete("posts/{postId:long}"), Produces<ApiResponse<bool>>()]
         [Permission(policy: null)]
-        public async Task<IActionResult> RemovePost([FromRoute] long postId)
+        public async Task<IActionResult<bool>> RemovePost([FromRoute] long postId)
         {
             try
             {
@@ -132,13 +132,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 }
 
                 var result = await blogService.Value.RemovePostAsync(new IdEqualsSpecification<Post, long>(postId));
-                return Ok(new ApiResponse<bool>(result.Errors) { Data = result.Data });
+                return Ok<bool>(new(result.Errors) { Data = result.Data });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+                return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
 
