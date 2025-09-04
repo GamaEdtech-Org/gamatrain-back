@@ -1,6 +1,6 @@
 namespace GamaEdtech.Presentation.ViewModel.Game
 {
-    public sealed class PointResponseViewModel
+    public sealed class TakePointsResponseViewModel
     {
         public int Points { get; set; }
     }
