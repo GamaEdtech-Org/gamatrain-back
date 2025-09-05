@@ -55,7 +55,11 @@ namespace GamaEdtech.Presentation.Api
                 .UseSqlServerStorage(Configuration.GetValue<string>("Connection:ConnectionString")));
             _ = services.AddHangfireServer();
 
-            _ = services.AddDistributedMemoryCache();
+            _ = services.AddStackExchangeRedisCache(options =>
+            {
+                options.InstanceName = Configuration.GetValue<string>("Cache:InstanceName");
+                options.Configuration = Configuration.GetValue<string>("Cache:Configuration");
+            });
 
             _ = services.AddApiVersioning(config =>
             {
@@ -80,6 +84,15 @@ namespace GamaEdtech.Presentation.Api
                     Scheme = "Bearer",
                 });
 
+                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter into field the word 'ApiKey' following by space and Token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "ApiKey",
+                });
+
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -89,6 +102,17 @@ namespace GamaEdtech.Presentation.Api
                               {
                                   Type = ReferenceType.SecurityScheme,
                                   Id = "Bearer",
+                              }
+                          },
+                         Array.Empty<string>()
+                    },
+                    {
+                          new OpenApiSecurityScheme
+                          {
+                              Reference = new OpenApiReference
+                              {
+                                  Type = ReferenceType.SecurityScheme,
+                                  Id = "ApiKey",
                               }
                           },
                          Array.Empty<string>()

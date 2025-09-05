@@ -1,11 +1,13 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Threading.Tasks;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.Identity;
+    using GamaEdtech.Common.Identity.ApiKey;
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Presentation.ViewModel.Game;
 
@@ -16,63 +18,86 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
-    public class GameController(
-        Lazy<ILogger<GameController>> logger,
-        Lazy<IGameService> gameService
-    ) : ApiControllerBase<GameController>(logger)
+    public class GameController(Lazy<ILogger<GameController>> logger, Lazy<IGameService> gameService)
+        : ApiControllerBase<GameController>(logger)
     {
-        [HttpPost("easter-egg"), Produces(typeof(ApiResponse<GameResponseViewModel>))]
-        [Permission(policy: null)]
-        public async Task<IActionResult> TakePoints([NotNull][FromBody] GameRequestViewModel request)
+        [HttpGet("coins"), Produces(typeof(ApiResponse<CoinsResponseViewModel>))]
+        [ApiKey]
+        public async Task<IActionResult<CoinsResponseViewModel>> GenerateCoins()
         {
             try
             {
-                var result = await gameService.Value.TakePointsAsync(new TakePointsDto
+                var result = await gameService.Value.GenerateCoinsAsync();
+
+                return Ok<CoinsResponseViewModel>(new(result.Errors)
                 {
-                    Points = request.Points,
+                    Data = new()
+                    {
+                        Coins = result.Data?.Select(t => new CoinViewModel
+                        {
+                            Id = t.Id,
+                            CoinType = t.CoinType,
+                            ExpirationTime = t.ExpirationTime,
+                        }),
+                    }
                 });
-
-                if (result.OperationResult != OperationResult.Succeeded)
-                {
-                    return BadRequest(new ApiResponse<GameResponseViewModel>(result.Errors));
-                }
-
-                var responseViewModel = new GameResponseViewModel
-                {
-                    Points = result.Data
-                };
-
-                return Ok(new ApiResponse<GameResponseViewModel> { Data = responseViewModel });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return Ok<GameResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<CoinsResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
 
-
-
-        [HttpGet("coins"), Produces(typeof(ApiResponse<GameCoinResponseViewModel>))]
-        public async Task<IActionResult> GetCoins()
+        [HttpPost("easter-egg"), Produces(typeof(ApiResponse<TakePointsResponseViewModel>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<TakePointsResponseViewModel>> TakePoints([NotNull][FromBody] TakePointsRequestViewModel request)
         {
             try
             {
-                var coins = await gameService.Value.GenerateCoinsAsync();
-
-                var response = new GameCoinResponseViewModel
+                var result = await gameService.Value.TakePointsAsync(new TakePointsRequestDto
                 {
-                    Coins = coins
-                };
+                    Id = request.Id.GetValueOrDefault(),
+                    UserId = User.UserId(),
+                });
 
-                return Ok(new ApiResponse<GameCoinResponseViewModel> { Data = response });
+                return Ok<TakePointsResponseViewModel>(new(result.Errors)
+                {
+                    Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
+                    {
+                        Points = result.Data,
+                    }
+                });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return Ok<GameCoinResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<TakePointsResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPost("coins/consume"), Produces(typeof(ApiResponse<bool>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<bool>> ConsumePoints([NotNull][FromBody] ConsumePointsRequestViewModel request)
+        {
+            try
+            {
+                var result = await gameService.Value.ConsumePointsAsync(new ConsumePointsRequestDto
+                {
+                    UserId = User.UserId(),
+                    Points = request.Points.GetValueOrDefault(),
+                });
+
+                return Ok<bool>(new(result.Errors)
+                {
+                    Data = result.Data,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
     }
 }
-
