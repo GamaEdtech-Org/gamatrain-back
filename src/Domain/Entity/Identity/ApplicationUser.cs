@@ -1,16 +1,17 @@
 namespace GamaEdtech.Domain.Entity.Identity
 {
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.DataAnnotation.Schema;
 
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
 
     [Table(nameof(ApplicationUser))]
     [Audit((int)Common.Core.Constants.EntityType.ApplicationUser)]
@@ -128,6 +129,18 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(ReferralId), DataType.String)]
         [StringLength(10)]
         public string? ReferralId { get; set; }
+
+        [Column(nameof(Gender), DataType.String)]
+        public string? Gender { get; set; }
+
+        [Column(nameof(Section), DataType.Int)]
+        public int? Section { get; set; }
+
+        [Column(nameof(Grade), DataType.Int)]
+        public int? Grade { get; set; }
+
+        [NotMapped]
+        public IFormFile? AvatarFile { get; set; }
 
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 

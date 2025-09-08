@@ -9,5 +9,8 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? StateId { get; set; }
         public long? SchoolId { get; set; }
         public string? ReferralId { get; set; }
+        public string? Gender { get; set; }
+        public int? Section { get; set; }
+        public int? Grade { get; set; }
     }
 }

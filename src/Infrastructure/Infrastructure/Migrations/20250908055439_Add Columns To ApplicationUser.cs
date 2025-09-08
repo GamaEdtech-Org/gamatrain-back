@@ -1,0 +1,55 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace GamaEdtech.Infrastructure.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddColumnsToApplicationUser : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "Gender",
+                table: "ApplicationUsers",
+                type: "varchar",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "Grade",
+                table: "ApplicationUsers",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "Section",
+                table: "ApplicationUsers",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.UpdateData(
+                table: "ApplicationUsers",
+                keyColumn: "Id",
+                keyValue: 1,
+                columns: new[] { "Gender", "Grade", "Section" },
+                values: new object[] { null, null, null });
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "Gender",
+                table: "ApplicationUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Grade",
+                table: "ApplicationUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Section",
+                table: "ApplicationUsers");
+        }
+    }
+}

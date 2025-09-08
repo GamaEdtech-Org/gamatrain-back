@@ -779,7 +779,10 @@ namespace GamaEdtech.Application.Service
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
-                        t.ReferralId
+                        t.ReferralId,
+                        t.Gender,
+                        t.Section,
+                        t.Grade
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
