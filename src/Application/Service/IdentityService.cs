@@ -832,21 +832,34 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<ApplicationUser, int>();
 
-                var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
-                    .ExecuteUpdateAsync(t => t
-                        .SetProperty(p => p.CityId, requestDto.CityId)
-                        .SetProperty(p => p.SchoolId, requestDto.SchoolId)
-                        .SetProperty(p => p.FirstName, requestDto.FirstName)
-                        .SetProperty(p => p.LastName, requestDto.LastName)
-                        .SetProperty(p => p.Gender, requestDto.Gender)
-                        .SetProperty(p => p.Section, requestDto.Section)
-                        .SetProperty(p => p.Grade, requestDto.Grade)
-                        .SetProperty(p => p.Avatar, requestDto.Avatar)
-                        .SetProperty(p => p.UserName, requestDto.UserName));
+                var user = await repository.GetAsync(requestDto.UserId);
+                if (user == null)
+                {
+                    return new(OperationResult.NotFound)
+                    {
+                        Errors = new[] { new Error { Message = "User not found." } }
+                    };
+                }
+
+                user.CityId = requestDto.CityId ?? user.CityId;
+                user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
+                user.FirstName = !string.IsNullOrWhiteSpace(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
+                user.LastName = !string.IsNullOrWhiteSpace(requestDto.LastName) ? requestDto.LastName : user.LastName;
+                user.Gender = !string.IsNullOrWhiteSpace(requestDto.Gender) ? requestDto.Gender : user.Gender;
+                user.Section = requestDto.Section ?? user.Section;
+                user.Grade = requestDto.Grade ?? user.Grade;
+                user.Avatar = !string.IsNullOrWhiteSpace(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
+                user.UserName = !string.IsNullOrWhiteSpace(requestDto.UserName) ? requestDto.UserName : user.UserName;
+
+                _ = repository.Update(user);
+
+                _ = await uow.SaveChangesAsync();
+
                 return new(OperationResult.Succeeded)
                 {
-                    Data = affectedRows > 0
+                    Data = true
                 };
             }
             catch (Exception exc)
@@ -858,6 +871,8 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+
+
 
         public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)
         {

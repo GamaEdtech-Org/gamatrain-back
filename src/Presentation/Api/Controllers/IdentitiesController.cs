@@ -344,6 +344,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 {
                     Data = new()
                     {
+                        UserName = result.Data?.UserName,
                         FirstName = result.Data?.FirstName,
                         LastName = result.Data?.LastName,
                         CountryId = result.Data?.CountryId,
@@ -353,7 +354,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         ReferralId = result.Data?.ReferralId,
                         Gender = result.Data?.Gender,
                         Grade = result.Data?.Grade,
-                        Section = result.Data?.Section
+                        Section = result.Data?.Section,
                     },
                 });
             }
