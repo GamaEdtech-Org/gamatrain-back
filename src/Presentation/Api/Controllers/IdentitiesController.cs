@@ -373,9 +373,17 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var result = await identityService.Value.ManageProfileSettingsAsync(new()
                 {
+                    UserName = request.UserName,
                     CityId = request.CityId,
                     SchoolId = request.SchoolId,
                     UserId = User.UserId(),
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Section = request.Section,
+                    Grade = request.Grade,
+                    Gender = request.Gender,
+                    Avatar = request.Avatar,
+                    AvatarFile = request.AvatarFile,
                 });
 
                 return Ok<bool>(new(result.Errors)

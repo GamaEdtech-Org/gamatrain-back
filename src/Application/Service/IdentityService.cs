@@ -773,6 +773,7 @@ namespace GamaEdtech.Application.Service
                 var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
                     .Select(t => new
                     {
+                        t.UserName,
                         t.FirstName,
                         t.LastName,
                         t.SchoolId,
@@ -782,7 +783,8 @@ namespace GamaEdtech.Application.Service
                         t.ReferralId,
                         t.Gender,
                         t.Section,
-                        t.Grade
+                        t.Grade,
+                        t.Avatar
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
@@ -795,6 +797,7 @@ namespace GamaEdtech.Application.Service
 
                 var data = new ProfileSettingsDto
                 {
+                    UserName = userInfo.UserName,
                     FirstName = userInfo.FirstName,
                     LastName = userInfo.LastName,
                     SchoolId = userInfo.SchoolId,
@@ -802,6 +805,10 @@ namespace GamaEdtech.Application.Service
                     StateId = userInfo.StateId,
                     CountryId = userInfo.CountryId,
                     ReferralId = userInfo.ReferralId,
+                    Gender = userInfo.Gender,
+                    Grade = userInfo.Grade,
+                    Section = userInfo.Section,
+                    Avatar = userInfo.Avatar,
                 };
 
                 return new(OperationResult.Succeeded)
@@ -829,8 +836,14 @@ namespace GamaEdtech.Application.Service
                 var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
                     .ExecuteUpdateAsync(t => t
                         .SetProperty(p => p.CityId, requestDto.CityId)
-                        .SetProperty(p => p.SchoolId, requestDto.SchoolId));
-
+                        .SetProperty(p => p.SchoolId, requestDto.SchoolId)
+                        .SetProperty(p => p.FirstName, requestDto.FirstName)
+                        .SetProperty(p => p.LastName, requestDto.LastName)
+                        .SetProperty(p => p.Gender, requestDto.Gender)
+                        .SetProperty(p => p.Section, requestDto.Section)
+                        .SetProperty(p => p.Grade, requestDto.Grade)
+                        .SetProperty(p => p.Avatar, requestDto.Avatar)
+                        .SetProperty(p => p.UserName, requestDto.UserName));
                 return new(OperationResult.Succeeded)
                 {
                     Data = affectedRows > 0
