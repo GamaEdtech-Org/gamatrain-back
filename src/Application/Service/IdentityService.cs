@@ -840,6 +840,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
+                // Update basic fields
                 user.CityId = requestDto.CityId ?? user.CityId;
                 user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
                 user.FirstName = !string.IsNullOrWhiteSpace(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
@@ -847,8 +848,64 @@ namespace GamaEdtech.Application.Service
                 user.Gender = !string.IsNullOrWhiteSpace(requestDto.Gender) ? requestDto.Gender : user.Gender;
                 user.Section = requestDto.Section ?? user.Section;
                 user.Grade = requestDto.Grade ?? user.Grade;
-                user.Avatar = !string.IsNullOrWhiteSpace(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
                 user.UserName = !string.IsNullOrWhiteSpace(requestDto.UserName) ? requestDto.UserName : user.UserName;
+
+                // Handle avatar file upload securely
+                if (requestDto.AvatarFile != null && requestDto.AvatarFile.Length > 0)
+                {
+                    // 1. Validate file type (only images allowed)
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                    var fileExtension = Path.GetExtension(requestDto.AvatarFile.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return new(OperationResult.NotValid)
+                        {
+                            Data = false,
+                            Errors = new[] { new Error { Message = "Invalid file type. Only image files are allowed." } }
+                        };
+                    }
+
+                    // 2. Limit file size (e.g., 2MB)
+                    const long maxFileSize = 2 * 1024 * 1024; // 2MB
+                    if (requestDto.AvatarFile.Length > maxFileSize)
+                    {
+                        return new(OperationResult.NotValid)
+                        {
+                            Data = false,
+                            Errors = new[] { new Error { Message = "File size exceeds 2MB limit." } }
+                        };
+                    }
+
+                    // 3. Generate a safe file name
+                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                    var filePath = Path.Combine("wwwroot", "uploads", fileName);
+
+                    // 4. Save file to disk
+                    _ = Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+                    await using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await requestDto.AvatarFile.CopyToAsync(stream);
+                    }
+
+                    // 5. Set Avatar URL safely
+                    user.Avatar = $"/uploads/{fileName}";
+                }
+                else if (!string.IsNullOrWhiteSpace(requestDto.Avatar))
+                {
+                    // Validate URL if user provides Avatar string
+                    if (!Uri.TryCreate(requestDto.Avatar, UriKind.Absolute, out var avatarUri)
+                        || (avatarUri.Scheme != Uri.UriSchemeHttp && avatarUri.Scheme != Uri.UriSchemeHttps))
+                    {
+                        return new(OperationResult.NotValid)
+                        {
+                            Data = false,
+                            Errors = new[] { new Error { Message = "Invalid avatar URL." } }
+                        };
+                    }
+
+                    user.Avatar = requestDto.Avatar;
+                }
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
 
@@ -869,6 +926,7 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+
 
         public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)
         {
