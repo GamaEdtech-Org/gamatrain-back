@@ -831,10 +831,7 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var repository = uow.GetRepository<ApplicationUser, int>();
-
-                var user = await repository.GetAsync(requestDto.UserId);
+                var user = await userManager.Value.FindByIdAsync(requestDto.UserId.ToString());
                 if (user == null)
                 {
                     return new(OperationResult.NotFound)
@@ -853,14 +850,15 @@ namespace GamaEdtech.Application.Service
                 user.Avatar = !string.IsNullOrWhiteSpace(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
                 user.UserName = !string.IsNullOrWhiteSpace(requestDto.UserName) ? requestDto.UserName : user.UserName;
 
-                _ = repository.Update(user);
+                var updateResult = await userManager.Value.UpdateAsync(user);
 
-                _ = await uow.SaveChangesAsync();
-
-                return new(OperationResult.Succeeded)
-                {
-                    Data = true
-                };
+                return updateResult.Succeeded
+                    ? new ResultData<bool>(OperationResult.Succeeded) { Data = true }
+                    : new ResultData<bool>(OperationResult.NotValid)
+                    {
+                        Data = false,
+                        Errors = updateResult.Errors.Select(e => new Error { Message = e.Description }).ToArray()
+                    };
             }
             catch (Exception exc)
             {
@@ -871,8 +869,6 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
-
-
 
         public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)
         {
