@@ -384,7 +384,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     Section = request.Section,
                     Grade = request.Grade,
                     Gender = request.Gender,
-                    Avatar = request.Avatar,
                     AvatarFile = request.AvatarFile,
                 });
 

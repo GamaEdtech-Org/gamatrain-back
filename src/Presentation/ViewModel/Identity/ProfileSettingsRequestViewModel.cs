@@ -16,7 +16,6 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? Section { get; set; }
         public int? Grade { get; set; }
         public IFormFile? AvatarFile { get; set; }
-        public string? Avatar { get; set; }
         public string? UserName { get; set; }
     }
 }

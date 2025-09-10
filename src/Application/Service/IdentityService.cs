@@ -896,21 +896,6 @@ namespace GamaEdtech.Application.Service
                     // 4. Store Avatar URL 
                     user.Avatar = $"/files/{fileId.Data}";
                 }
-                else if (!string.IsNullOrWhiteSpace(requestDto.Avatar))
-                {
-                    // If Avatar is provided as URL
-                    if (!Uri.TryCreate(requestDto.Avatar, UriKind.Absolute, out var avatarUri)
-                        || (avatarUri.Scheme != Uri.UriSchemeHttp && avatarUri.Scheme != Uri.UriSchemeHttps))
-                    {
-                        return new(OperationResult.NotValid)
-                        {
-                            Data = false,
-                            Errors = new[] { new Error { Message = "Invalid avatar URL." } }
-                        };
-                    }
-
-                    user.Avatar = requestDto.Avatar;
-                }
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
 
