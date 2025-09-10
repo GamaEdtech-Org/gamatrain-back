@@ -46,7 +46,7 @@ namespace GamaEdtech.Application.Service
     using Void = Common.Data.Void;
 
     public class IdentityService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<IdentityService>> localizer, Lazy<ILogger<IdentityService>> logger
-            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
+            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IFileService> fileService, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
             , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration)
         : LocalizableServiceBase<IdentityService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IIdentityService, ITokenService
     {
@@ -850,11 +850,11 @@ namespace GamaEdtech.Application.Service
                 user.Grade = requestDto.Grade ?? user.Grade;
                 user.UserName = !string.IsNullOrWhiteSpace(requestDto.UserName) ? requestDto.UserName : user.UserName;
 
-                // Handle avatar file upload securely
+                // Handle Avatar File Upload
                 if (requestDto.AvatarFile != null && requestDto.AvatarFile.Length > 0)
                 {
-                    // 1. Validate file type (only images allowed)
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                    // 1. Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
                     var fileExtension = Path.GetExtension(requestDto.AvatarFile.FileName).ToLowerInvariant();
 
                     if (!allowedExtensions.Contains(fileExtension))
@@ -862,38 +862,43 @@ namespace GamaEdtech.Application.Service
                         return new(OperationResult.NotValid)
                         {
                             Data = false,
-                            Errors = new[] { new Error { Message = "Invalid file type. Only image files are allowed." } }
+                            Errors = new[] { new Error { Message = "Invalid file type. Allowed: jpg, jpeg, png, webp, gif." } }
                         };
                     }
 
-                    // 2. Limit file size (e.g., 2MB)
-                    const long maxFileSize = 2 * 1024 * 1024; // 2MB
+                    // 2. Limit file size (200KB)
+                    const long maxFileSize = 200 * 1024;
                     if (requestDto.AvatarFile.Length > maxFileSize)
                     {
                         return new(OperationResult.NotValid)
                         {
                             Data = false,
-                            Errors = new[] { new Error { Message = "File size exceeds 2MB limit." } }
+                            Errors = new[] { new Error { Message = "File size exceeds 200KB limit." } }
                         };
                     }
 
-                    // 3. Generate a safe file name
-                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine("wwwroot", "uploads", fileName);
+                    // 3. Upload file via fileService
+                    using MemoryStream stream = new();
+                    await requestDto.AvatarFile.CopyToAsync(stream);
 
-                    // 4. Save file to disk
-                    _ = Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-                    await using (var stream = new FileStream(filePath, FileMode.Create))
+                    var fileId = await fileService.Value.UploadFileAsync(new()
                     {
-                        await requestDto.AvatarFile.CopyToAsync(stream);
+                        File = stream.ToArray(),
+                        ContainerType = ContainerType.User,
+                        FileExtension = fileExtension,
+                    });
+
+                    if (fileId.OperationResult is not OperationResult.Succeeded)
+                    {
+                        return new(fileId.OperationResult) { Errors = fileId.Errors };
                     }
 
-                    // 5. Set Avatar URL safely
-                    user.Avatar = $"/uploads/{fileName}";
+                    // 4. Store Avatar URL 
+                    user.Avatar = $"/files/{fileId.Data}";
                 }
                 else if (!string.IsNullOrWhiteSpace(requestDto.Avatar))
                 {
-                    // Validate URL if user provides Avatar string
+                    // If Avatar is provided as URL
                     if (!Uri.TryCreate(requestDto.Avatar, UriKind.Absolute, out var avatarUri)
                         || (avatarUri.Scheme != Uri.UriSchemeHttp && avatarUri.Scheme != Uri.UriSchemeHttps))
                     {
@@ -926,6 +931,7 @@ namespace GamaEdtech.Application.Service
                 };
             }
         }
+
 
 
         public async Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims)

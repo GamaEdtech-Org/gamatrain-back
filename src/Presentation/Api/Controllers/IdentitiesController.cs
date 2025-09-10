@@ -355,6 +355,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Gender = result.Data?.Gender,
                         Grade = result.Data?.Grade,
                         Section = result.Data?.Section,
+                        Avatar = result.Data?.Avatar
                     },
                 });
             }
