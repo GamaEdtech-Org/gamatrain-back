@@ -842,13 +842,13 @@ namespace GamaEdtech.Application.Service
 
                 user.CityId = requestDto.CityId ?? user.CityId;
                 user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
-                user.FirstName = !string.IsNullOrWhiteSpace(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
-                user.LastName = !string.IsNullOrWhiteSpace(requestDto.LastName) ? requestDto.LastName : user.LastName;
-                user.Gender = !string.IsNullOrWhiteSpace(requestDto.Gender) ? requestDto.Gender : user.Gender;
-                user.Avatar = !string.IsNullOrWhiteSpace(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
+                user.FirstName = !string.IsNullOrEmpty(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
+                user.LastName = !string.IsNullOrEmpty(requestDto.LastName) ? requestDto.LastName : user.LastName;
+                user.Gender = !string.IsNullOrEmpty(requestDto.Gender) ? requestDto.Gender : user.Gender;
+                user.Avatar = !string.IsNullOrEmpty(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
                 user.Section = requestDto.Section ?? user.Section;
                 user.Grade = requestDto.Grade ?? user.Grade;
-                user.UserName = !string.IsNullOrWhiteSpace(requestDto.UserName) ? requestDto.UserName : user.UserName;
+                user.UserName = !string.IsNullOrEmpty(requestDto.UserName) ? requestDto.UserName : user.UserName;
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
 
