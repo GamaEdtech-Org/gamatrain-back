@@ -831,7 +831,13 @@ namespace GamaEdtech.Application.Service
                 var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
                     .ExecuteUpdateAsync(t => t
                         .SetProperty(p => p.CityId, requestDto.CityId)
-                        .SetProperty(p => p.SchoolId, requestDto.SchoolId));
+                        .SetProperty(p => p.SchoolId, requestDto.SchoolId)
+                        .SetProperty(p => p.FirstName, requestDto.FirstName)
+                        .SetProperty(p => p.LastName, requestDto.LastName)
+                        .SetProperty(p => p.Gender, requestDto.Gender)
+                        .SetProperty(p => p.Grade, requestDto.Grade)
+                        .SetProperty(p => p.UserName, requestDto.UserName)
+                        .SetProperty(p => p.Avatar, requestDto.Avatar));
 
                 return new(OperationResult.Succeeded)
                 {
