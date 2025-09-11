@@ -93,6 +93,7 @@ namespace GamaEdtech.Application.Service
                     t.DislikeCount,
                     t.VisibilityType,
                     CreationUser = t.CreationUser.FirstName + " " + t.CreationUser.LastName,
+                    t.CreationUser.Avatar,
                     t.PublishDate,
                     t.Keywords,
                     Tags = t.PostTags == null ? null : t.PostTags.Select(s => new TagDto
@@ -121,6 +122,7 @@ namespace GamaEdtech.Application.Service
                     LikeCount = post.LikeCount,
                     DislikeCount = post.DislikeCount,
                     CreationUser = post.CreationUser,
+                    CreationUserAvatar = post.Avatar,
                     Tags = post.Tags,
                     VisibilityType = post.VisibilityType,
                     PublishDate = post.PublishDate,

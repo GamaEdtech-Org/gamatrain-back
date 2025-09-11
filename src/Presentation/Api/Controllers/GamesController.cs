@@ -1,0 +1,103 @@
+namespace GamaEdtech.Presentation.Api.Controllers
+{
+    using System.Diagnostics.CodeAnalysis;
+    using System.Threading.Tasks;
+
+    using GamaEdtech.Application.Interface;
+    using GamaEdtech.Common.Core;
+    using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.Identity;
+    using GamaEdtech.Common.Identity.ApiKey;
+    using GamaEdtech.Data.Dto.Game;
+    using GamaEdtech.Presentation.ViewModel.Game;
+
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+
+    using static GamaEdtech.Common.Core.Constants;
+
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiController]
+    public class GamesController(Lazy<ILogger<GamesController>> logger, Lazy<IGameService> gameService)
+        : ApiControllerBase<GamesController>(logger)
+    {
+        [HttpGet("easter-egg/fortune-wheel"), Produces(typeof(ApiResponse<CoinsResponseViewModel>))]
+        [ApiKey]
+        public async Task<IActionResult<CoinsResponseViewModel>> EasterEggFortuneWheel()
+        {
+            try
+            {
+                var result = await gameService.Value.EasterEggFortuneWheelAsync();
+
+                return Ok<CoinsResponseViewModel>(new(result.Errors)
+                {
+                    Data = new()
+                    {
+                        Coins = result.Data?.Select(t => new CoinViewModel
+                        {
+                            Id = t.Id,
+                            CoinType = t.CoinType,
+                            ExpirationTime = t.ExpirationTime,
+                        }),
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<CoinsResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPost("easter-egg/points"), Produces(typeof(ApiResponse<EasterEggPointsResponseViewModel>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<EasterEggPointsResponseViewModel>> EasterEggPoints([NotNull][FromBody] EasterEggPointsRequestViewModel request)
+        {
+            try
+            {
+                var result = await gameService.Value.EasterEggPointsAsync(new EasterEggPointsRequestDto
+                {
+                    Id = request.Id.GetValueOrDefault(),
+                    UserId = User.UserId(),
+                });
+
+                return Ok<EasterEggPointsResponseViewModel>(new(result.Errors)
+                {
+                    Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
+                    {
+                        Points = result.Data,
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<EasterEggPointsResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPost("spends"), Produces(typeof(ApiResponse<bool>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<bool>> SpendPoints([NotNull][FromBody] SpendPointsRequestViewModel request)
+        {
+            try
+            {
+                var result = await gameService.Value.SpendPointsAsync(new SpendPointsRequestDto
+                {
+                    UserId = User.UserId(),
+                    Points = request.Points.GetValueOrDefault(),
+                });
+
+                return Ok<bool>(new(result.Errors)
+                {
+                    Data = result.Data,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<bool>(new(new Error { Message = exc.Message }));
+            }
+        }
+    }
+}

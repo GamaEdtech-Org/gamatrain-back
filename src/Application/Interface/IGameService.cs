@@ -9,8 +9,8 @@ namespace GamaEdtech.Application.Interface
     [Injectable]
     public interface IGameService
     {
-        Task<ResultData<IEnumerable<CoinDto>>> GenerateCoinsAsync();
-        Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto);
-        Task<ResultData<bool>> ConsumePointsAsync([NotNull] ConsumePointsRequestDto requestDto);
+        Task<ResultData<IEnumerable<CoinDto>>> EasterEggFortuneWheelAsync();
+        Task<ResultData<long>> EasterEggPointsAsync([NotNull] EasterEggPointsRequestDto requestDto);
+        Task<ResultData<bool>> SpendPointsAsync([NotNull] SpendPointsRequestDto requestDto);
     }
 }

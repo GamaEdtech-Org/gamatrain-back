@@ -66,13 +66,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpGet("balance"), Produces<ApiResponse<int>>()]
-        public async Task<IActionResult<int>> GetCurrentBalance()
+        [HttpGet("balance"), Produces<ApiResponse<long>>()]
+        public async Task<IActionResult<long>> GetCurrentBalance()
         {
             try
             {
                 var result = await transactionService.Value.GetCurrentBalanceAsync(new() { UserId = User.UserId() });
-                return Ok<int>(new()
+                return Ok<long>(new()
                 {
                     Errors = result.Errors,
                     Data = result.Data
@@ -82,7 +82,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<int>(new() { Errors = [new() { Message = exc.Message }] });
+                return Ok<long>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 
