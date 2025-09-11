@@ -773,13 +773,18 @@ namespace GamaEdtech.Application.Service
                 var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
                     .Select(t => new
                     {
+                        t.UserName,
                         t.FirstName,
                         t.LastName,
                         t.SchoolId,
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
-                        t.ReferralId
+                        t.ReferralId,
+                        t.Gender,
+                        t.Section,
+                        t.Grade,
+                        t.Avatar,
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
