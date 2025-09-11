@@ -130,6 +130,7 @@ namespace GamaEdtech.Domain.Entity.Identity
         public string? ReferralId { get; set; }
 
         [Column(nameof(Gender), DataType.String)]
+        [StringLength(50)]
         public string? Gender { get; set; }
 
         [Column(nameof(Section), DataType.Int)]
