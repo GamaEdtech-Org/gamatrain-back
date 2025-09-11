@@ -13,6 +13,6 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public string? Gender { get; set; }
         public int? Section { get; set; }
         public int? Grade { get; set; }
-        public string? Avatar { get; set; }
+        public Uri? Avatar { get; set; }
     }
 }

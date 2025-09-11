@@ -784,7 +784,7 @@ namespace GamaEdtech.Application.Service
                         t.Gender,
                         t.Section,
                         t.Grade,
-                        t.Avatar
+                        t.Avatar,
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
@@ -808,7 +808,7 @@ namespace GamaEdtech.Application.Service
                     Gender = userInfo.Gender,
                     Grade = userInfo.Grade,
                     Section = userInfo.Section,
-                    Avatar = userInfo.Avatar,
+                    Avatar = fileService.Value.GetFileUri(userInfo.Avatar, ContainerType.User).Data,
                 };
 
                 return new(OperationResult.Succeeded)
@@ -893,8 +893,7 @@ namespace GamaEdtech.Application.Service
                         return new(fileId.OperationResult) { Errors = fileId.Errors };
                     }
 
-                    // 4. Store Avatar URL 
-                    user.Avatar = $"/files/{fileId.Data}";
+                    user.Avatar = fileId.Data;
                 }
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
