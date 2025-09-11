@@ -18,7 +18,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? Grade { get; set; }
 
         [Display]
-        [FileSize(1024 * 1024 * 2)]//2MB
+        [FileSize(300 * 1024)] // 300KB
         [FileExtensions(Constants.ValidImageExtensions)]
         public IFormFile? Avatar { get; set; }
         public string? UserName { get; set; }
