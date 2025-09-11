@@ -184,11 +184,6 @@ namespace GamaEdtech.Presentation.Api
 
         protected override void ConfigureCore([NotNull] IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env != null && string.IsNullOrEmpty(env.WebRootPath))
-            {
-                env.WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            }
-
             _ = app.Use(async (context, next) =>
             {
                 context.Response.Headers.Server = "";
