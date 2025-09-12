@@ -17,7 +17,10 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public Status? Status { get; set; }
 
         [Display]
-        public RangeViewModel<DateTime>? Date { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+
+        [Display]
+        public DateTimeOffset? EndDate { get; set; }
 
         [Display]
         [EmailAddress]
