@@ -352,7 +352,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         CityId = result.Data?.CityId,
                         SchoolId = result.Data?.SchoolId,
                         ReferralId = result.Data?.ReferralId,
-                        Gender = result.Data?.Gender,
+                        Gender = result.Data?.Gender?.Name,
                         Grade = result.Data?.Grade,
                         Section = result.Data?.Section,
                         Avatar = result.Data?.Avatar

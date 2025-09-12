@@ -1,7 +1,5 @@
 namespace GamaEdtech.Presentation.ViewModel.Identity
 {
-    using GamaEdtech.Domain.Enumeration;
-
     public sealed class ProfileSettingsResponseViewModel
     {
         public string? UserName { get; set; }
@@ -12,7 +10,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? StateId { get; set; }
         public long? SchoolId { get; set; }
         public string? ReferralId { get; set; }
-        public GenderType? Gender { get; set; }
+        public string? Gender { get; set; }
         public int? Section { get; set; }
         public int? Grade { get; set; }
         public string? Avatar { get; set; }
