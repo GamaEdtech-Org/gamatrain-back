@@ -792,13 +792,18 @@ namespace GamaEdtech.Application.Service
                 var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
                     .Select(t => new
                     {
+                        t.UserName,
                         t.FirstName,
                         t.LastName,
                         t.SchoolId,
                         t.CityId,
                         StateId = t.City != null ? t.City.ParentId : null,
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
-                        t.ReferralId
+                        t.ReferralId,
+                        t.Gender,
+                        t.Section,
+                        t.Grade,
+                        t.Avatar,
                     }).FirstOrDefaultAsync();
 
                 if (userInfo is null)
@@ -811,6 +816,7 @@ namespace GamaEdtech.Application.Service
 
                 var data = new ProfileSettingsDto
                 {
+                    UserName = userInfo.UserName,
                     FirstName = userInfo.FirstName,
                     LastName = userInfo.LastName,
                     SchoolId = userInfo.SchoolId,
@@ -818,6 +824,10 @@ namespace GamaEdtech.Application.Service
                     StateId = userInfo.StateId,
                     CountryId = userInfo.CountryId,
                     ReferralId = userInfo.ReferralId,
+                    Gender = userInfo.Gender,
+                    Grade = userInfo.Grade,
+                    Section = userInfo.Section,
+                    Avatar = userInfo.Avatar,
                 };
 
                 return new(OperationResult.Succeeded)
@@ -840,17 +850,34 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-
-                var affectedRows = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => t.Id == requestDto.UserId)
-                    .ExecuteUpdateAsync(t => t
-                        .SetProperty(p => p.CityId, requestDto.CityId)
-                        .SetProperty(p => p.SchoolId, requestDto.SchoolId));
-
-                return new(OperationResult.Succeeded)
+                var user = await userManager.Value.FindByIdAsync(requestDto.UserId.ToString());
+                if (user == null)
                 {
-                    Data = affectedRows > 0
-                };
+                    return new(OperationResult.NotFound)
+                    {
+                        Errors = new[] { new Error { Message = "User not found." } }
+                    };
+                }
+
+                user.CityId = requestDto.CityId ?? user.CityId;
+                user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
+                user.FirstName = !string.IsNullOrEmpty(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
+                user.LastName = !string.IsNullOrEmpty(requestDto.LastName) ? requestDto.LastName : user.LastName;
+                user.Avatar = !string.IsNullOrEmpty(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
+                user.Gender = requestDto.Gender ?? user.Gender;
+                user.Section = requestDto.Section ?? user.Section;
+                user.Grade = requestDto.Grade ?? user.Grade;
+                user.UserName = !string.IsNullOrEmpty(requestDto.UserName) ? requestDto.UserName : user.UserName;
+
+                var updateResult = await userManager.Value.UpdateAsync(user);
+
+                return updateResult.Succeeded
+                    ? new ResultData<bool>(OperationResult.Succeeded) { Data = true }
+                    : new ResultData<bool>(OperationResult.NotValid)
+                    {
+                        Data = false,
+                        Errors = updateResult.Errors.Select(t => new Error { Message = t.Description }).ToArray()
+                    };
             }
             catch (Exception exc)
             {
