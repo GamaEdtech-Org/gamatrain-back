@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -27,13 +27,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                 table: "ApplicationUsers",
                 type: "int",
                 nullable: true);
-
-            migrationBuilder.UpdateData(
-                table: "ApplicationUsers",
-                keyColumn: "Id",
-                keyValue: 1,
-                columns: new[] { "Gender", "Grade", "Section" },
-                values: new object[] { null, null, null });
         }
 
         /// <inheritdoc />
