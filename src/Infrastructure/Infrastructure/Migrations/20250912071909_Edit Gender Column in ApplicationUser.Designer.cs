@@ -13,7 +13,7 @@ using NetTopologySuite.Geometries;
 namespace GamaEdtech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250911155951_Edit Gender Column in ApplicationUser")]
+    [Migration("20250912071909_Edit Gender Column in ApplicationUser")]
     partial class EditGenderColumninApplicationUser
     {
         /// <inheritdoc />
@@ -520,9 +520,8 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("FirstName");
 
-                    b.Property<string>("Gender")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
+                    b.Property<byte>("Gender")
+                        .HasColumnType("tinyint")
                         .HasColumnName("Gender");
 
                     b.Property<int?>("Grade")
@@ -630,6 +629,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                             Email = "admin@gamaedtech.com",
                             EmailConfirmed = true,
                             Enabled = true,
+                            Gender = (byte)1,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GAMAEDTECH.COM",
                             NormalizedUserName = "ADMIN",

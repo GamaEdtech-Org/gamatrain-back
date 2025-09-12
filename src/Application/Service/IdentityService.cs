@@ -844,8 +844,8 @@ namespace GamaEdtech.Application.Service
                 user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
                 user.FirstName = !string.IsNullOrEmpty(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
                 user.LastName = !string.IsNullOrEmpty(requestDto.LastName) ? requestDto.LastName : user.LastName;
-                user.Gender = !string.IsNullOrEmpty(requestDto.Gender) ? requestDto.Gender : user.Gender;
                 user.Avatar = !string.IsNullOrEmpty(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
+                user.Gender = requestDto.Gender ?? user.Gender;
                 user.Section = requestDto.Section ?? user.Section;
                 user.Grade = requestDto.Grade ?? user.Grade;
                 user.UserName = !string.IsNullOrEmpty(requestDto.UserName) ? requestDto.UserName : user.UserName;

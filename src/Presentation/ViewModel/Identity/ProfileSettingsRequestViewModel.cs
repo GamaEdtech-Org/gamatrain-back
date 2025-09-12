@@ -2,6 +2,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
 {
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.DataAnnotation;
+    using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Http;
 
@@ -13,7 +14,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public long? SchoolId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public string? Gender { get; set; }
+        public GenderType? Gender { get; set; }
         public int? Section { get; set; }
         public int? Grade { get; set; }
 
