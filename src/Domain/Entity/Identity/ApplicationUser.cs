@@ -1,16 +1,18 @@
 namespace GamaEdtech.Domain.Entity.Identity
 {
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.DataAnnotation.Schema;
+    using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
 
     [Table(nameof(ApplicationUser))]
     [Audit((int)Common.Core.Constants.EntityType.ApplicationUser)]
@@ -129,6 +131,15 @@ namespace GamaEdtech.Domain.Entity.Identity
         [StringLength(10)]
         public string? ReferralId { get; set; }
 
+        [Column(nameof(Gender), DataType.Byte)]
+        public GenderType Gender { get; set; }
+
+        [Column(nameof(Section), DataType.Int)]
+        public int? Section { get; set; }
+
+        [Column(nameof(Grade), DataType.Int)]
+        public int? Grade { get; set; }
+
         [Column(nameof(CurrentBalance), DataType.Long)]
         [Required]
         public long CurrentBalance { get; set; }
@@ -143,6 +154,8 @@ namespace GamaEdtech.Domain.Entity.Identity
 
         public void Configure([NotNull] EntityTypeBuilder<ApplicationUser> builder)
         {
+            _ = builder.OwnEnumeration<ApplicationUser, GenderType, byte>(t => t.Gender);
+
             _ = builder.HasIndex(e => e.NormalizedEmail)
                 .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName($"IX_{nameof(ApplicationUser)}_{nameof(NormalizedEmail)}"));
 
@@ -161,7 +174,7 @@ namespace GamaEdtech.Domain.Entity.Identity
             List<ApplicationUser> seedData =
             [
                 // Password: @Admin123
-                new ApplicationUser { Id = 1, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, },
+                new ApplicationUser { Id = 1, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, Gender=GenderType.Male },
             ];
             _ = builder.HasData(seedData);
         }
