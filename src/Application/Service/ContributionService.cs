@@ -233,7 +233,7 @@ namespace GamaEdtech.Application.Service
                 _ = repository.Update(contribution);
                 _ = await uow.SaveChangesAsync();
 
-                var points = await applicationSettingsService.Value.GetSettingAsync<int>(contribution.CategoryType.ApplicationSettingsName);
+                var points = await applicationSettingsService.Value.GetSettingAsync<long>(contribution.CategoryType.ApplicationSettingsName);
                 if (points.Data > 0)
                 {
                     _ = await transactionService.Value.IncreaseBalanceAsync(new()

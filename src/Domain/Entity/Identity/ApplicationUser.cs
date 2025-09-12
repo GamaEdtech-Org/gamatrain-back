@@ -140,6 +140,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Grade), DataType.Int)]
         public int? Grade { get; set; }
 
+        [Column(nameof(CurrentBalance), DataType.Long)]
+        [Required]
+        public long CurrentBalance { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

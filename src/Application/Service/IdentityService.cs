@@ -162,6 +162,25 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<List<int>>> GetUserIdsAsync([NotNull] ISpecification<ApplicationUser> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var ids = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => t.Id).ToListAsync();
+
+                return new(OperationResult.Succeeded)
+                {
+                    Data = ids,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogError(exc, nameof(GetUserAsync));
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
         public async Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId)
         {
             try
@@ -1057,7 +1076,26 @@ namespace GamaEdtech.Application.Service
             return new string(id);
         }
 
+        public async Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync()
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var lst = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable().Select(t => new UserPointsDto
+                {
+                    Name = t.FirstName + " " + t.LastName,
+                    Points = t.CurrentBalance,
+                    UserId = t.Id,
+                }).OrderByDescending(t => t.Points).Take(100).ToListAsync();
 
+                return new(OperationResult.Succeeded) { Data = lst };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
 
         // Helper: base62 encode a long
         private static string Base62Encode(byte[] bytes)

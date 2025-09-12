@@ -18,6 +18,7 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public int DislikeCount { get; set; }
         public IEnumerable<TagResponseViewModel>? Tags { get; set; }
         public string? CreationUser { get; set; }
+        public string? CreationUserAvatar { get; set; }
         public string? Keywords { get; set; }
         public DateTimeOffset PublishDate { get; set; }
 

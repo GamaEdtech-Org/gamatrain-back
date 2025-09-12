@@ -14,8 +14,10 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.School;
     using GamaEdtech.Domain.Entity;
+    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
+    using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Domain.Specification.School;
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
@@ -30,7 +32,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
     public class SchoolsController(Lazy<ILogger<SchoolsController>> logger, Lazy<ISchoolService> schoolService
-        , Lazy<IContributionService> contributionService, Lazy<IFileService> fileService, Lazy<ITagService> tagService)
+        , Lazy<IContributionService> contributionService, Lazy<IFileService> fileService, Lazy<ITagService> tagService, Lazy<IIdentityService> identityService)
         : ApiControllerBase<SchoolsController>(logger)
     {
         #region Schools
@@ -226,6 +228,30 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     specification = specification.And(new StatusEqualsSpecification<Contribution>(request.Status));
                 }
+
+                if (!string.IsNullOrEmpty(request.CommenterName))
+                {
+                    var userIds = await identityService.Value.GetUserIdsAsync(new Domain.Specification.Identity.NameContainsSpecification(request.CommenterName));
+                    if (userIds.Data?.Count > 0)
+                    {
+                        specification = specification.And(new CreationUserIdContainsSpecification<Contribution, ApplicationUser, int>(userIds.Data));
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(request.CommenterEmail))
+                {
+                    var userIds = await identityService.Value.GetUserIdsAsync(new EmailEqualsSpecification(request.CommenterEmail));
+                    if (userIds.Data?.Count > 0)
+                    {
+                        specification = specification.And(new CreationUserIdContainsSpecification<Contribution, ApplicationUser, int>(userIds.Data));
+                    }
+                }
+
+                if (request.Date is not null)
+                {
+                    specification = specification.And(new CreationDateBetweenSpecification<Contribution, ApplicationUser, int>(request.Date.Start, request.Date.End));
+                }
+
                 var result = await contributionService.Value.GetContributionsAsync<SchoolCommentContributionDto>(new ListRequestDto<Contribution>
                 {
                     PagingDto = request.PagingDto,
