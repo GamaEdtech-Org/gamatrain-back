@@ -857,7 +857,7 @@ namespace GamaEdtech.Application.Service
                     : new ResultData<bool>(OperationResult.NotValid)
                     {
                         Data = false,
-                        Errors = updateResult.Errors.Select(e => new Error { Message = e.Description }).ToArray()
+                        Errors = updateResult.Errors.Select(t => new Error { Message = t.Description }).ToArray()
                     };
             }
             catch (Exception exc)
