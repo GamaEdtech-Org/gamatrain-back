@@ -28,7 +28,7 @@ namespace GamaEdtech.Application.Service
     {
         private const string Prefix = "COIN_";
 
-        public async Task<ResultData<IEnumerable<CoinDto>>> GenerateCoinsAsync()
+        public async Task<ResultData<IEnumerable<CoinDto>>> EasterEggFortuneWheelAsync()
         {
             try
             {
@@ -72,7 +72,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<int>> TakePointsAsync([NotNull] TakePointsRequestDto requestDto)
+        public async Task<ResultData<long>> EasterEggPointsAsync([NotNull] EasterEggPointsRequestDto requestDto)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<bool>> ConsumePointsAsync([NotNull] ConsumePointsRequestDto requestDto)
+        public async Task<ResultData<bool>> SpendPointsAsync([NotNull] SpendPointsRequestDto requestDto)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace GamaEdtech.Application.Service
                 {
                     UserId = requestDto.UserId,
                     Points = requestDto.Points,
-                    Description = "consume game points",
+                    Description = "Spend Game Points",
                 };
                 var result = await transactionService.Value.DecreaseBalanceAsync(transactionRequest);
 

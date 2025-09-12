@@ -15,53 +15,31 @@ namespace GamaEdtech.Application.Interface
     public interface IIdentityService
     {
         Task<ResultData<ListDataSource<ApplicationUserDto>>> GetUsersAsync(ListRequestDto<ApplicationUser>? requestDto = null);
-
         Task<ResultData<IEnumerable<ApplicationRoleDto>>> GetRolesAsync(ISpecification<ApplicationRoleDto>? specification = null);
-
         Task<ResultData<ApplicationUserDto>> GetUserAsync([NotNull] ISpecification<ApplicationUser> specification);
-
+        Task<ResultData<List<int>>> GetUserIdsAsync([NotNull] ISpecification<ApplicationUser> specification);
         Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId);
-
         Task<ResultData<bool>> UserIsInRoleAsync([NotNull] int userId, [NotNull] string role);
-
         Task<ResultData<AuthenticationResponseDto>> AuthenticateAsync([NotNull] AuthenticationRequestDto requestDto);
-
         Task<ResultData<bool>> RegisterAsync([NotNull] RegistrationRequestDto requestDto);
-
         Task<ResultData<SignInResponseDto>> SignInAsync([NotNull] SignInRequestDto requestDto);
-
         Task<ResultData<Void>> SignOutAsync();
-
         Task<ResultData<bool>> CreateUserAsync([NotNull] CreateUserRequestDto requestDto);
-
         Task<ResultData<bool>> UpdateUserAsync([NotNull] UpdateUserRequestDto requestDto);
-
         Task<ResultData<bool>> ToggleUserAsync([NotNull] ISpecification<ApplicationUser> specification);
-
         Task<ResultData<bool>> RemoveUserAsync([NotNull] ISpecification<ApplicationUser> specification);
-
         Task<ResultData<string?>> GetUserTokenAsync([NotNull] GetUserTokenRequestDto requestDto);
-
         Task<ResultData<GenerateUserTokenResponseDto>> GenerateUserTokenAsync([NotNull] GenerateUserTokenRequestDto requestDto);
-
         Task<ResultData<bool>> RemoveUserTokenAsync([NotNull] RemoveUserTokenRequestDto requestDto);
-
         Task<ResultData<bool>> ChangePasswordAsync([NotNull] ChangePasswordRequestDto requestDto);
-
         Task<ResultData<bool>> ResetPasswordAsync([NotNull] ResetPasswordRequestDto requestDto);
-
         Task ValidatePrincipalAsync([NotNull] CookieValidatePrincipalContext context);
-
         Task<ResultData<UserPermissionsResponseDto>> GetUserPermissionsAsync([NotNull] UserPermissionsRequestDto requestDto);
-
         Task<ResultData<Void>> UpdateUserPermissionsAsync([NotNull] UpdateUserPermissionsRequestDto requestDto);
-
         Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync([NotNull] ISpecification<ApplicationUser> specification);
-
         Task<ResultData<bool>> ManageProfileSettingsAsync([NotNull] ManageProfileSettingsRequestDto requestDto);
-
         Task<ResultData<string>> GenerateReferralUserAsync();
-
         Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims);
+        Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync();
     }
 }

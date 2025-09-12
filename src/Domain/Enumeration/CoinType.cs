@@ -14,7 +14,7 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly CoinType Gold = new(nameof(Gold), 2, 6);
 
-        public int Points { get; }
+        public long Points { get; }
 
         public CoinType()
         {

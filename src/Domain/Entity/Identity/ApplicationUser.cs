@@ -129,6 +129,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         [StringLength(10)]
         public string? ReferralId { get; set; }
 
+        [Column(nameof(CurrentBalance), DataType.Long)]
+        [Required]
+        public long CurrentBalance { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

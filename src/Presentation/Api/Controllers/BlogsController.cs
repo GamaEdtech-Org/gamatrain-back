@@ -98,6 +98,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         LikeCount = result.Data.LikeCount,
                         DislikeCount = result.Data.DislikeCount,
                         CreationUser = result.Data.CreationUser,
+                        CreationUserAvatar = result.Data.CreationUserAvatar,
                         VisibilityType = result.Data.VisibilityType,
                         PublishDate = result.Data.PublishDate,
                         Keywords = result.Data.Keywords,

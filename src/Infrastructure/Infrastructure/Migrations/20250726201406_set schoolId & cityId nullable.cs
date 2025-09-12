@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -25,13 +25,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                 nullable: true,
                 oldClrType: typeof(int),
                 oldType: "int");
-
-            migrationBuilder.UpdateData(
-                table: "ApplicationUsers",
-                keyColumn: "Id",
-                keyValue: 1,
-                columns: new[] { "CityId", "SchoolId" },
-                values: new object[] { null, null });
         }
 
         /// <inheritdoc />
@@ -56,13 +49,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldNullable: true);
-
-            migrationBuilder.UpdateData(
-                table: "ApplicationUsers",
-                keyColumn: "Id",
-                keyValue: 1,
-                columns: new[] { "CityId", "SchoolId" },
-                values: new object[] { 0, 0 });
         }
     }
 }
