@@ -15,7 +15,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public GenderType? Gender { get; set; }
-        public int? Section { get; set; }
+        public int? Board { get; set; }
         public int? Grade { get; set; }
 
         [Display]
