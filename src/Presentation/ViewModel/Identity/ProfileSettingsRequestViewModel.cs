@@ -27,8 +27,10 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         [JsonConverter(typeof(EnumerationConverter<GenderType, byte>))]
         public GenderType? Gender { get; set; }
 
+        [Display]
         public int? Board { get; set; }
 
+        [Display]
         public int? Grade { get; set; }
 
         [Display]
