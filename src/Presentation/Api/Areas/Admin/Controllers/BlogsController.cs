@@ -43,7 +43,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     PagingDto = request.PagingDto,
                     Specification = specification,
-                });
+                }, true);
                 return Ok(new ApiResponse<ListDataSource<PostContributionListResponseViewModel>>(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
@@ -54,6 +54,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             CreationUser = t.CreationUser,
                             CreationDate = t.CreationDate,
                             Status = t.Status,
+                            Title = t.Data?.Title,
+                            PostId = t.IdentifierId,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }

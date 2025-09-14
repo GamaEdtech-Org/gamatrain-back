@@ -8,6 +8,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
@@ -15,6 +16,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Presentation.ViewModel.Identity;
 
     using Microsoft.AspNetCore.Mvc;
@@ -36,18 +38,22 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                var result = await identityService.Value.GetUsersAsync(
-                    new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto, HasReferral = request.HasReferral }
-                );
-
-                var users = result.Data.List;
-
+                ISpecification<ApplicationUser>? specification = null;
+                if (request.HasReferral.HasValue)
+                {
+                    specification = new HasReferralSpecification(request.HasReferral.Value);
+                }
+                var result = await identityService.Value.GetUsersAsync(new()
+                {
+                    PagingDto = request.PagingDto,
+                    Specification = specification
+                });
 
                 return Ok<ListDataSource<UserListResponseViewModel>>(new(result.Errors)
                 {
-                    Data = new()
+                    Data = result.Data.List is null ? new() : new()
                     {
-                        List = users?.Select(t => new UserListResponseViewModel
+                        List = result.Data.List.Select(t => new UserListResponseViewModel
                         {
                             Id = t.Id,
                             Username = t.UserName,
@@ -56,7 +62,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             Enabled = t.Enabled,
                             ReferralId = t.ReferralId,
                         }),
-                        TotalRecordsCount = request.HasReferral.HasValue ? (users?.Count() ?? 0) : result.Data.TotalRecordsCount,
+                        TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
                 });
             }
@@ -64,10 +70,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<ListDataSource<UserListResponseViewModel>>(new()
-                {
-                    Errors = new[] { new Error { Message = exc.Message } }
-                });
+                return Ok<ListDataSource<UserListResponseViewModel>>(new() { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
 
