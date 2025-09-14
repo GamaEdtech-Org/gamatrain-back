@@ -2,9 +2,9 @@ namespace GamaEdtech.Presentation.ViewModel.Game
 {
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class ConsumePointsRequestViewModel
+    public sealed class EasterEggPointsRequestViewModel
     {
         [Required]
-        public int? Points { get; set; }
+        public Guid? Id { get; set; }
     }
 }

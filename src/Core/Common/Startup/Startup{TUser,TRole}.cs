@@ -256,7 +256,6 @@ namespace GamaEdtech.Common.Startup
                 ClientCertificateOptions = ClientCertificateOption.Manual,
                 ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => true,
                 AllowAutoRedirect = false,
-                UseProxy = false,
             });
 #pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections
             if (startupOption.HttpClientMessageHandler is not null)
@@ -271,7 +270,6 @@ namespace GamaEdtech.Common.Startup
                 ClientCertificateOptions = ClientCertificateOption.Manual,
                 ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => true,
                 AllowAutoRedirect = false,
-                UseProxy = false,
                 SslProtocols = System.Security.Authentication.SslProtocols.Tls13,
             });
 #pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections

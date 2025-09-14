@@ -31,17 +31,17 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(IdentifierId), DataType.Long)]
         public long? IdentifierId { get; set; }
 
-        [Column(nameof(Points), DataType.Int)]
+        [Column(nameof(Points), DataType.Long)]
         [Required]
-        public int Points { get; set; }
+        public long Points { get; set; }
 
         [Column(nameof(Description), DataType.UnicodeString)]
         [StringLength(300)]
         public string? Description { get; set; }
 
-        [Column(nameof(CurrentBalance), DataType.Int)]
+        [Column(nameof(CurrentBalance), DataType.Long)]
         [Required]
-        public int CurrentBalance { get; set; }
+        public long CurrentBalance { get; set; }
 
         [Column(nameof(CreationDate), DataType.DateTimeOffset)]
         public DateTimeOffset CreationDate { get; set; }

@@ -17,6 +17,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Transaction;
     using GamaEdtech.Domain.Entity;
+    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Http;
@@ -83,7 +84,7 @@ namespace GamaEdtech.Application.Service
 
         public async Task<ResultData<long>> DecreaseBalanceAsync([NotNull] CreateTransactionRequestDto requestDto) => await CreateTransactionInternalAsync(requestDto, true);
 
-        public async Task<ResultData<int>> GetCurrentBalanceAsync([NotNull] GetCurrentBalanceRequestDto requestDto)
+        public async Task<ResultData<long>> GetCurrentBalanceAsync([NotNull] GetCurrentBalanceRequestDto requestDto)
         {
             try
             {
@@ -127,8 +128,8 @@ namespace GamaEdtech.Application.Service
                     var end = requestDto.EndDate;
                     while (current <= end)
                     {
-                        int? debitValue = null;
-                        int? creditValue = null;
+                        long? debitValue = null;
+                        long? creditValue = null;
 
                         foreach (DataRow row in data.Tables[0].Rows)
                         {
@@ -203,7 +204,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        private async Task<ResultData<(int Balance, long? TransactionId)>> GetCurrentBalanceInternalAsync([NotNull] GetCurrentBalanceRequestDto requestDto, IRepository<Transaction, long> repository)
+        private async Task<ResultData<(long Balance, long? TransactionId)>> GetCurrentBalanceInternalAsync([NotNull] GetCurrentBalanceRequestDto requestDto, IRepository<Transaction, long> repository)
         {
             try
             {
@@ -223,6 +224,7 @@ namespace GamaEdtech.Application.Service
         {
             IUnitOfWork? uow = null;
             IRepository<Transaction, long>? repository = null;
+            IRepository<ApplicationUser, int>? userRepository = null;
 
             var result = await SaveInternalAsync();
             return result.OperationResult switch
@@ -238,15 +240,19 @@ namespace GamaEdtech.Application.Service
                 {
                     uow ??= UnitOfWorkProvider.Value.CreateUnitOfWork();
                     repository ??= uow.GetRepository<Transaction>();
+                    userRepository ??= uow.GetRepository<ApplicationUser, int>();
+
+                    using var trn = uow.CreateTransactionScope();
 
                     var previousTransaction = await GetCurrentBalanceInternalAsync(new() { UserId = requestDto.UserId }, repository);
                     var factor = isDebit ? (requestDto.Points * -1) : requestDto.Points;
+                    var currentBalance = factor + previousTransaction.Data.Balance;
                     var transaction = new Transaction
                     {
                         PreviousTransactionId = previousTransaction.Data.TransactionId,
                         IdentifierId = requestDto.IdentifierId,
                         CreationDate = DateTimeOffset.UtcNow,
-                        CurrentBalance = factor + previousTransaction.Data.Balance,
+                        CurrentBalance = currentBalance,
                         Description = $"{(isDebit ? "Decrease" : "Increase")} Balance by {requestDto.Description}",
                         IsDebit = isDebit,
                         Points = requestDto.Points,
@@ -254,6 +260,10 @@ namespace GamaEdtech.Application.Service
                     };
                     repository.Add(transaction);
                     _ = await uow.SaveChangesAsync();
+
+                    _ = await userRepository.GetManyQueryable(t => t.Id == requestDto.UserId).ExecuteUpdateAsync(t => t.SetProperty(p => p.CurrentBalance, currentBalance));
+
+                    trn.Complete();
 
                     return new(OperationResult.Succeeded) { Data = transaction.Id };
                 }

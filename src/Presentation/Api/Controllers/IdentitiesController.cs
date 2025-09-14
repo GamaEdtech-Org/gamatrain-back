@@ -32,7 +32,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class IdentitiesController(Lazy<ILogger<IdentitiesController>> logger, Lazy<IIdentityService> identityService
-        , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IHttpClientFactory> httpClientFactory) : ApiControllerBase<IdentitiesController>(logger)
+        , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IHttpClientFactory> httpClientFactory)
+        : ApiControllerBase<IdentitiesController>(logger)
     {
         [HttpPost("login"), Produces(typeof(ApiResponse<AuthenticationResponseViewModel>))]
         [AllowAnonymous]
@@ -344,6 +345,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 {
                     Data = new()
                     {
+                        UserName = result.Data?.UserName,
                         FirstName = result.Data?.FirstName,
                         LastName = result.Data?.LastName,
                         CountryId = result.Data?.CountryId,
@@ -351,6 +353,10 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         CityId = result.Data?.CityId,
                         SchoolId = result.Data?.SchoolId,
                         ReferralId = result.Data?.ReferralId,
+                        Gender = result.Data?.Gender?.Name,
+                        Grade = result.Data?.Grade,
+                        Board = result.Data?.Board,
+                        Avatar = result.Data?.Avatar
                     },
                 });
             }
@@ -370,9 +376,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var result = await identityService.Value.ManageProfileSettingsAsync(new()
                 {
+                    UserName = request.UserName,
                     CityId = request.CityId,
                     SchoolId = request.SchoolId,
                     UserId = User.UserId(),
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Board = request.Board,
+                    Grade = request.Grade,
+                    Gender = request.Gender,
+                    Avatar = await request.Avatar.ConvertImageToBase64Async(),
                 });
 
                 return Ok<bool>(new(result.Errors)
@@ -385,6 +398,31 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 Logger.Value.LogException(exc);
 
                 return Ok<bool>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpGet("leader-board"), Produces(typeof(ApiResponse<IEnumerable<UserPointsViewModel>>))]
+        public async Task<IActionResult> GetTop100Users()
+        {
+            try
+            {
+                var result = await identityService.Value.GetTop100UsersAsync();
+
+                return Ok<IEnumerable<UserPointsViewModel>>(new(result.Errors)
+                {
+                    Data = result.Data?.Select(t => new UserPointsViewModel
+                    {
+                        Name = t.Name,
+                        UserId = t.UserId,
+                        Points = t.Points,
+                    }),
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<IEnumerable<UserPointsViewModel>>(new(new Error { Message = exc.Message }));
             }
         }
 

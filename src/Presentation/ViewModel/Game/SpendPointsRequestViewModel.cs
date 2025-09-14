@@ -2,9 +2,9 @@ namespace GamaEdtech.Presentation.ViewModel.Game
 {
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class TakePointsRequestViewModel
+    public sealed class SpendPointsRequestViewModel
     {
         [Required]
-        public Guid? Id { get; set; }
+        public long? Points { get; set; }
     }
 }
