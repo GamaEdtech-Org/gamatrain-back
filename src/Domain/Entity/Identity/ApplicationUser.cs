@@ -134,8 +134,8 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Gender), DataType.Byte)]
         public GenderType Gender { get; set; }
 
-        [Column(nameof(Section), DataType.Int)]
-        public int? Section { get; set; }
+        [Column(nameof(Board), DataType.Int)]
+        public int? Board { get; set; }
 
         [Column(nameof(Grade), DataType.Int)]
         public int? Grade { get; set; }

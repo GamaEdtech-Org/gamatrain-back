@@ -13,7 +13,7 @@ namespace GamaEdtech.Data.Dto.Identity
         public long? SchoolId { get; set; }
         public string? ReferralId { get; set; }
         public GenderType? Gender { get; set; }
-        public int? Section { get; set; }
+        public int? Board { get; set; }
         public int? Grade { get; set; }
         public string? Avatar { get; set; }
         public string? UserName { get; set; }
