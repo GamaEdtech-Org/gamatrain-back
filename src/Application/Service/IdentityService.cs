@@ -57,24 +57,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-
-                var query = uow.GetRepository<ApplicationUser, int>()
-                               .GetManyQueryable(requestDto?.Specification);
-
-                // Filter based on HasReferral
-                if (requestDto != null && requestDto.HasReferral.HasValue)
-                {
-                    if (requestDto.HasReferral.Value)
-                    {
-                        // Only users with referral
-                        query = query.Where(u => u.ReferralId != null);
-                    }
-                    else
-                    {
-                        // Only users without referral
-                        query = query.Where(u => u.ReferralId == null);
-                    }
-                }
+                var query = uow.GetRepository<ApplicationUser, int>().GetManyQueryable(requestDto?.Specification);
 
                 var result = await query.FilterListAsync(requestDto?.PagingDto);
 

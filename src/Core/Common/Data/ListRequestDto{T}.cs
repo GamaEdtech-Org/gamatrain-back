@@ -7,7 +7,5 @@ namespace GamaEdtech.Common.Data
         public ISpecification<T>? Specification { get; set; }
 
         public PagingDto? PagingDto { get; set; }
-
-        public bool? HasReferral { get; set; }
     }
 }
