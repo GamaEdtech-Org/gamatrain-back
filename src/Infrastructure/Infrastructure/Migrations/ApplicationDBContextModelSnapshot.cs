@@ -631,7 +631,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                             Email = "admin@gamaedtech.com",
                             EmailConfirmed = true,
                             Enabled = true,
-                            Gender = (byte)1,
+                            Gender = (byte)0,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GAMAEDTECH.COM",
                             NormalizedUserName = "ADMIN",

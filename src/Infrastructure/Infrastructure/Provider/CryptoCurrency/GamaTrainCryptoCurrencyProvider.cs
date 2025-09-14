@@ -84,7 +84,7 @@ namespace GamaEdtech.Infrastructure.Provider.CryptoCurrency
                     Request = new(),
                     Body = new()
                     {
-                        Amount = requestDto.Amount,
+                        Amount = (long)requestDto.Amount,
                         SourceMint = requestDto.SourceMint,
                         DestinationMint = requestDto.DestinationMint,
                     },
