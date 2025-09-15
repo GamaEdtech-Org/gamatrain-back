@@ -132,7 +132,7 @@ namespace GamaEdtech.Domain.Entity.Identity
         public string? ReferralId { get; set; }
 
         [Column(nameof(Gender), DataType.Byte)]
-        public GenderType Gender { get; set; }
+        public GenderType? Gender { get; set; }
 
         [Column(nameof(Board), DataType.Int)]
         public int? Board { get; set; }
