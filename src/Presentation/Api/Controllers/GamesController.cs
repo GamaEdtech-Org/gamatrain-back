@@ -76,31 +76,34 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPost("test-time"), Produces(typeof(ApiResponse<EasterEggPointsResponseViewModel>))]
+        [HttpPost("test-time"), Produces(typeof(ApiResponse<TestTimeQuizResponseViewModel>))]
         [Permission(policy: null)]
-        public async Task<IActionResult<EasterEggPointsResponseViewModel>> TestTimeQuiz([NotNull][FromBody] TestTimeQuizRequestViewModel request)
+        public async Task<IActionResult<TestTimeQuizResponseViewModel>> TestTimeQuiz([NotNull][FromBody] TestTimeQuizRequestViewModel request)
         {
             try
             {
-                _ = request;
-                var result = await gameService.Value.EasterEggPointsAsync(new EasterEggPointsRequestDto
+                var result = await gameService.Value.TestTimeAsync(new()
                 {
-                    Id = Guid.NewGuid(),
+                    TestId = request.TestId.GetValueOrDefault(),
+                    SubmissionId = request.SubmissionId.GetValueOrDefault(),
                     UserId = User.UserId(),
                 });
 
-                return Ok<EasterEggPointsResponseViewModel>(new(result.Errors)
+                return Ok<TestTimeQuizResponseViewModel>(new(result.Errors)
                 {
-                    Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
+                    Data = result.Data is null
+                    ? null
+                    : new()
                     {
-                        Points = result.Data,
-                    }
+                        Points = result.Data.Points,
+                        IsCorrect = result.Data.IsCorrect,
+                    },
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return Ok<EasterEggPointsResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<TestTimeQuizResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
 

@@ -6,10 +6,10 @@ namespace GamaEdtech.Presentation.ViewModel.Game
     {
         [Display]
         [Required]
-        public long? Id { get; set; }
+        public long? TestId { get; set; }
 
         [Display]
         [Required]
-        public int? Answer { get; set; }
+        public int? SubmissionId { get; set; }
     }
 }

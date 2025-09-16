@@ -12,5 +12,6 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<IEnumerable<CoinDto>>> EasterEggFortuneWheelAsync();
         Task<ResultData<long>> EasterEggPointsAsync([NotNull] EasterEggPointsRequestDto requestDto);
         Task<ResultData<bool>> SpendPointsAsync([NotNull] SpendPointsRequestDto requestDto);
+        Task<ResultData<TestTimeResponseDto>> TestTimeAsync([NotNull] TestTimeRequestDto requestDto);
     }
 }

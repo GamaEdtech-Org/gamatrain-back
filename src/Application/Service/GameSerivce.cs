@@ -13,7 +13,9 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Data.Dto.Transaction;
+    using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Localization;
@@ -23,7 +25,7 @@ namespace GamaEdtech.Application.Service
 
     public class GameService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor,
         Lazy<IStringLocalizer<GameService>> localizer, Lazy<ILogger<GameService>> logger, Lazy<ITransactionService> transactionService
-        , Lazy<ICacheProvider> cacheProvider)
+        , Lazy<ICacheProvider> cacheProvider, Lazy<ICoreProvider> coreProvider)
         : LocalizableServiceBase<GameService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IGameService
     {
         private const string Prefix = "COIN_";
@@ -132,6 +134,71 @@ namespace GamaEdtech.Application.Service
                 {
                     Errors = result.Errors,
                     Data = result.Data > 0,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<TestTimeResponseDto>> TestTimeAsync([NotNull] TestTimeRequestDto requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<TestSubmission>();
+                var exists = await repository.AnyAsync(t => t.UserId == requestDto.UserId && t.TestId == requestDto.TestId);
+                if (exists)
+                {
+                    return new(OperationResult.Duplicate) { Errors = [new Error { Message = Localizer.Value["DuplicateTestSubmission"] }] };
+                }
+
+                var valid = await coreProvider.Value.ValidateTestAsync(requestDto);
+                if (valid.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(valid.OperationResult) { Errors = valid.Errors };
+                }
+
+                using var trn = uow.CreateTransactionScope();
+
+                TestSubmission testSubmission = new()
+                {
+                    CreationDate = DateTimeOffset.UtcNow,
+                    IsCorrect = valid.Data,
+                    SubmissionId = requestDto.SubmissionId,
+                    TestId = requestDto.TestId,
+                    UserId = requestDto.UserId,
+                };
+                repository.Add(testSubmission);
+                _ = await uow.SaveChangesAsync();
+
+                const int points = 10;
+                _ = valid.Data
+                    ? await transactionService.Value.IncreaseBalanceAsync(new()
+                    {
+                        UserId = requestDto.UserId,
+                        Points = points,
+                        Description = "TestTime Correct Submission",
+                        IdentifierId = testSubmission.Id,
+                    })
+                    : await transactionService.Value.DecreaseBalanceAsync(new()
+                    {
+                        UserId = requestDto.UserId,
+                        Points = points,
+                        Description = "TestTime Incorrect Submission",
+                        IdentifierId = testSubmission.Id,
+                    });
+
+                trn.Complete();
+                return new(OperationResult.Succeeded)
+                {
+                    Data = new()
+                    {
+                        IsCorrect = valid.Data,
+                        Points = valid.Data ? points : points * -1,
+                    },
                 };
             }
             catch (Exception exc)
