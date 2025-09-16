@@ -1057,46 +1057,92 @@ namespace GamaEdtech.Application.Service
             }
 
             return new string(id);
+
+            static string Base62Encode(byte[] bytes)
+            {
+                const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                var sb = new StringBuilder();
+
+                // Convert to a big integer
+                var value = new BigInteger(bytes.Concat(new byte[] { 0 }).ToArray());
+
+                while (value > 0)
+                {
+                    var remainder = (int)(value % 62);
+                    _ = sb.Insert(0, chars[remainder]);
+                    value /= 62;
+                }
+
+                return sb.ToString();
+            }
         }
 
-        public async Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync()
+        public async Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync(Top100UsersRequestDto? requestDto)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var lst = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable().Select(t => new UserPointsDto
+                var adminRole = nameof(Role.Admin).ToUpperInvariant();
+                var lst = uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => !t.UserRoles!.Any(r => r.Role!.NormalizedName == adminRole));
+
+                if (requestDto is not null)
+                {
+                    if (requestDto.Board.HasValue)
+                    {
+                        lst = lst.Where(t => t.Board == requestDto.Board.Value);
+                    }
+
+                    if (requestDto.Grade.HasValue)
+                    {
+                        lst = lst.Where(t => t.Grade == requestDto.Grade.Value);
+                    }
+
+                    if (requestDto.CityId.HasValue)
+                    {
+                        lst = lst.Where(t => t.CityId == requestDto.CityId.Value);
+                    }
+
+                    if (requestDto.SchoolId.HasValue)
+                    {
+                        lst = lst.Where(t => t.SchoolId == requestDto.SchoolId.Value);
+                    }
+
+                    if (requestDto.RegistrationDateStart.HasValue)
+                    {
+                        lst = lst.Where(t => t.RegistrationDate >= requestDto.RegistrationDateStart.Value);
+                    }
+
+                    if (requestDto.RegistrationDateEnd.HasValue)
+                    {
+                        lst = lst.Where(t => t.RegistrationDate <= requestDto.RegistrationDateEnd.Value);
+                    }
+
+                    if (requestDto.StateId.HasValue)
+                    {
+                        lst = lst.Where(t => t.City != null && t.City.ParentId == requestDto.StateId.Value);
+                    }
+
+                    if (requestDto.CountryId.HasValue)
+                    {
+                        lst = lst.Where(t => t.City != null && t.City.Parent != null && t.City.Parent.ParentId == requestDto.CountryId.Value);
+                    }
+                }
+
+                var result = await lst.Select(t => new UserPointsDto
                 {
                     Name = t.FirstName + " " + t.LastName,
                     Points = t.CurrentBalance,
                     UserId = t.Id,
+                    Avatar = t.Avatar,
                 }).OrderByDescending(t => t.Points).Take(100).ToListAsync();
 
-                return new(OperationResult.Succeeded) { Data = lst };
+                return new(OperationResult.Succeeded) { Data = result };
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
             }
-        }
-
-        // Helper: base62 encode a long
-        private static string Base62Encode(byte[] bytes)
-        {
-            const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            var sb = new StringBuilder();
-
-            // Convert to a big integer
-            var value = new BigInteger(bytes.Concat(new byte[] { 0 }).ToArray());
-
-            while (value > 0)
-            {
-                var remainder = (int)(value % 62);
-                _ = sb.Insert(0, chars[remainder]);
-                value /= 62;
-            }
-
-            return sb.ToString();
         }
     }
 }
