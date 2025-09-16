@@ -957,6 +957,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Title");
 
+                    b.Property<long>("ViewCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ViewCount");
+
                     b.Property<byte>("VisibilityType")
                         .HasColumnType("tinyint")
                         .HasColumnName("VisibilityType");
@@ -1196,6 +1200,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<decimal?>("Tuition")
                         .HasColumnType("numeric")
                         .HasColumnName("Tuition");
+
+                    b.Property<long>("ViewCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ViewCount");
 
                     b.Property<string>("WebSite")
                         .HasMaxLength(300)

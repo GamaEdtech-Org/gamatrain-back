@@ -100,6 +100,9 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(Description), DataType.UnicodeMaxString)]
         public string? Description { get; set; }
 
+        [Column(nameof(ViewCount), DataType.Long)]
+        public long ViewCount { get; set; }
+
         public virtual ICollection<SchoolComment> SchoolComments { get; set; } = [];
         public virtual ICollection<SchoolTag> SchoolTags { get; set; } = [];
         public virtual ICollection<SchoolImage> SchoolImages { get; set; } = [];

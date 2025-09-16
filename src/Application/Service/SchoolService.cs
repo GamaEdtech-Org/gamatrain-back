@@ -212,6 +212,7 @@ namespace GamaEdtech.Application.Service
                     t.Tuition,
                     t.Description,
                     DefaultImageId = t.DefaultImage != null ? t.DefaultImage.FileId : null,
+                    t.ViewCount,
                     Tags = t.SchoolTags.Select(s => new TagDto
                     {
                         Icon = s.Tag.Icon,
@@ -254,6 +255,7 @@ namespace GamaEdtech.Application.Service
                     DefaultImageUri = fileService.Value.GetFileUri(school.DefaultImageId, ContainerType.School).Data,
                     Tags = school.Tags,
                     Description = school.Description,
+                    ViewCount = school.ViewCount,
                 };
                 return new(OperationResult.Succeeded) { Data = result };
             }
@@ -457,6 +459,19 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task IncreaseSchoolViewAsync([NotNull] ISpecification<School> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                _ = await uow.GetRepository<School>().GetManyQueryable(specification).ExecuteUpdateAsync(t => t.SetProperty(p => p.ViewCount, p => p.ViewCount + 1));
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
             }
         }
 

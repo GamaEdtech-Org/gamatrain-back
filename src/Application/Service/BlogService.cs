@@ -96,6 +96,7 @@ namespace GamaEdtech.Application.Service
                     t.CreationUser.Avatar,
                     t.PublishDate,
                     t.Keywords,
+                    t.ViewCount,
                     Tags = t.PostTags == null ? null : t.PostTags.Select(s => new TagDto
                     {
                         Icon = s.Tag.Icon,
@@ -127,6 +128,7 @@ namespace GamaEdtech.Application.Service
                     VisibilityType = post.VisibilityType,
                     PublishDate = post.PublishDate,
                     Keywords = post.Keywords,
+                    ViewCount = post.ViewCount,
                 };
 
                 return new(OperationResult.Succeeded) { Data = result };
@@ -584,6 +586,19 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task IncreasePostViewAsync([NotNull] ISpecification<Post> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                _ = await uow.GetRepository<Post>().GetManyQueryable(specification).ExecuteUpdateAsync(t => t.SetProperty(p => p.ViewCount, p => p.ViewCount + 1));
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
             }
         }
 

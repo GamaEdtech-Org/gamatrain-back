@@ -76,6 +76,34 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpPost("test-time"), Produces(typeof(ApiResponse<EasterEggPointsResponseViewModel>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<EasterEggPointsResponseViewModel>> TestTimeQuiz([NotNull][FromBody] TestTimeQuizRequestViewModel request)
+        {
+            try
+            {
+                _ = request;
+                var result = await gameService.Value.EasterEggPointsAsync(new EasterEggPointsRequestDto
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = User.UserId(),
+                });
+
+                return Ok<EasterEggPointsResponseViewModel>(new(result.Errors)
+                {
+                    Data = result.OperationResult is not OperationResult.Succeeded ? new() : new()
+                    {
+                        Points = result.Data,
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<EasterEggPointsResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
         [HttpPost("spends"), Produces(typeof(ApiResponse<bool>))]
         [Permission(policy: null)]
         public async Task<IActionResult<bool>> SpendPoints([NotNull][FromBody] SpendPointsRequestViewModel request)

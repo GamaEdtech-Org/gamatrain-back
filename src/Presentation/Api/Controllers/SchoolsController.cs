@@ -21,6 +21,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
 
+    using Hangfire;
+
     using Microsoft.AspNetCore.Mvc;
 
     using NetTopologySuite.Geometries;
@@ -137,7 +139,9 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await schoolService.Value.GetSchoolAsync(new IdEqualsSpecification<School, long>(id));
+                var specification = new IdEqualsSpecification<School, long>(id);
+                var result = await schoolService.Value.GetSchoolAsync(specification);
+                _ = BackgroundJob.Enqueue(() => schoolService.Value.IncreaseSchoolViewAsync(specification));
 
                 return Ok<SchoolResponseViewModel>(new(result.Errors)
                 {
@@ -168,6 +172,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Tuition = result.Data.Tuition,
                         Slug = result.Data.Name.Slugify(),
                         Description = result.Data.Description,
+                        ViewCount = result.Data.ViewCount + 1,  //plus 1 for current view
                         Tags = result.Data.Tags?.Select(t => new TagResponseViewModel
                         {
                             Id = t.Id,
