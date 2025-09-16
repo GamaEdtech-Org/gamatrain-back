@@ -402,11 +402,21 @@ namespace GamaEdtech.Presentation.Api.Controllers
         }
 
         [HttpGet("leader-board"), Produces(typeof(ApiResponse<IEnumerable<UserPointsViewModel>>))]
-        public async Task<IActionResult> GetTop100Users()
+        public async Task<IActionResult> GetTop100Users([FromQuery] Top100UsersRequestViewModel? request)
         {
             try
             {
-                var result = await identityService.Value.GetTop100UsersAsync();
+                var result = await identityService.Value.GetTop100UsersAsync(new()
+                {
+                    Board = request?.Board,
+                    Grade = request?.Grade,
+                    CountryId = request?.CountryId,
+                    StateId = request?.StateId,
+                    CityId = request?.CityId,
+                    SchoolId = request?.SchoolId,
+                    RegistrationDateStart = request?.RegistrationDateStart,
+                    RegistrationDateEnd = request?.RegistrationDateEnd,
+                });
 
                 return Ok<IEnumerable<UserPointsViewModel>>(new(result.Errors)
                 {
@@ -426,7 +436,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-#pragma warning disable CA1034 // Nested types should not be visible
         //this is temporary, must delete
         public class ReponseDto
         {
@@ -451,6 +460,5 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 public string Phone { get; set; }
             }
         }
-#pragma warning restore CA1034 // Nested types should not be visible
     }
 }
