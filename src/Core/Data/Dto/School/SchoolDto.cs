@@ -33,5 +33,6 @@ namespace GamaEdtech.Data.Dto.School
         public Uri? DefaultImageUri { get; set; }
         public IEnumerable<TagDto>? Tags { get; set; }
         public string? Description { get; set; }
+        public long ViewCount { get; set; }
     }
 }

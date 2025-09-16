@@ -64,6 +64,9 @@ namespace GamaEdtech.Domain.Entity
         [StringLength(500)]
         public string? Keywords { get; set; }
 
+        [Column(nameof(ViewCount), DataType.Long)]
+        public long ViewCount { get; set; }
+
         public virtual ICollection<PostTag>? PostTags { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<Post> builder)

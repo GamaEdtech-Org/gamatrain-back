@@ -22,6 +22,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<long>> ManageSchoolAsync([NotNull] ManageSchoolRequestDto requestDto);
         Task<ResultData<bool>> RemoveSchoolAsync([NotNull] ISpecification<School> specification);
         Task<ResultData<bool>> ExistsSchoolAsync([NotNull] ISpecification<School> specification);
+        Task IncreaseSchoolViewAsync([NotNull] ISpecification<School> specification);
 
         #endregion
 

@@ -981,6 +981,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             DefaultImageUri = dto.DefaultImageUri,
             Tuition = dto.Tuition,
             Description = dto.Description,
+            ViewCount = dto.ViewCount,
             Tags = dto.Tags?.Select(t => new TagResponseViewModel
             {
                 TagType = t.TagType,

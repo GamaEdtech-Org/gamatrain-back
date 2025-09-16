@@ -76,6 +76,37 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpPost("test-time"), Produces(typeof(ApiResponse<TestTimeQuizResponseViewModel>))]
+        [Permission(policy: null)]
+        public async Task<IActionResult<TestTimeQuizResponseViewModel>> TestTimeQuiz([NotNull][FromBody] TestTimeQuizRequestViewModel request)
+        {
+            try
+            {
+                var result = await gameService.Value.TestTimeAsync(new()
+                {
+                    TestId = request.TestId.GetValueOrDefault(),
+                    SubmissionId = request.SubmissionId.GetValueOrDefault(),
+                    UserId = User.UserId(),
+                });
+
+                return Ok<TestTimeQuizResponseViewModel>(new(result.Errors)
+                {
+                    Data = result.Data is null
+                    ? null
+                    : new()
+                    {
+                        Points = result.Data.Points,
+                        IsCorrect = result.Data.IsCorrect,
+                    },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<TestTimeQuizResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
         [HttpPost("spends"), Produces(typeof(ApiResponse<bool>))]
         [Permission(policy: null)]
         public async Task<IActionResult<bool>> SpendPoints([NotNull][FromBody] SpendPointsRequestViewModel request)

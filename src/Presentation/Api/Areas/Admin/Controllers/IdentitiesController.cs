@@ -34,7 +34,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     {
         [HttpGet, Produces(typeof(ApiResponse<ListDataSource<UserListResponseViewModel>>))]
         [Display(Name = "Users List")]
-        public async Task<IActionResult<ListDataSource<UserListResponseViewModel>>> GetUsers([NotNull, FromQuery] ConsumersRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<UserListResponseViewModel>>> GetUsers([NotNull, FromQuery] UserListRequestViewModel request)
         {
             try
             {

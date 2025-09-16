@@ -957,6 +957,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Title");
 
+                    b.Property<long>("ViewCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ViewCount");
+
                     b.Property<byte>("VisibilityType")
                         .HasColumnType("tinyint")
                         .HasColumnName("VisibilityType");
@@ -1196,6 +1200,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<decimal?>("Tuition")
                         .HasColumnType("numeric")
                         .HasColumnName("Tuition");
+
+                    b.Property<long>("ViewCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ViewCount");
 
                     b.Property<string>("WebSite")
                         .HasMaxLength(300)
@@ -1522,6 +1530,43 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("GamaEdtech.Domain.Entity.TestSubmission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreationDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreationDate");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsCorrect");
+
+                    b.Property<int>("SubmissionId")
+                        .HasColumnType("int")
+                        .HasColumnName("SubmissionId");
+
+                    b.Property<long>("TestId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("TestId");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TestId")
+                        .IsUnique();
+
+                    b.ToTable("TestSubmissions");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Topic", b =>
@@ -2190,6 +2235,17 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Navigation("CreationUser");
 
                     b.Navigation("LastModifyUser");
+                });
+
+            modelBuilder.Entity("GamaEdtech.Domain.Entity.TestSubmission", b =>
+                {
+                    b.HasOne("GamaEdtech.Domain.Entity.Identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Topic", b =>

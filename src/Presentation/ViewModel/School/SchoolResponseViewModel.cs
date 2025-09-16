@@ -37,5 +37,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public Uri? DefaultImageUri { get; set; }
         public decimal? Tuition { get; set; }
         public string? Description { get; set; }
+        public long ViewCount { get; set; }
     }
 }
