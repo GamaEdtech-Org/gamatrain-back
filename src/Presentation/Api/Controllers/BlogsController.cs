@@ -20,6 +20,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Presentation.ViewModel.Blog;
     using GamaEdtech.Presentation.ViewModel.Tag;
 
+    using Hangfire;
+
     using Microsoft.AspNetCore.Mvc;
 
     [Route("api/v{version:apiVersion}/[controller]")]
@@ -85,6 +87,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var specification = new IdEqualsSpecification<Post, long>(postId).And(new PublishDateSpecification());
                 var result = await blogService.Value.GetPostAsync(specification);
+                _ = BackgroundJob.Enqueue(() => blogService.Value.IncreasePostViewAsync(specification));
 
                 return Ok<PostResponseViewModel>(new(result.Errors)
                 {
@@ -102,6 +105,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         VisibilityType = result.Data.VisibilityType,
                         PublishDate = result.Data.PublishDate,
                         Keywords = result.Data.Keywords,
+                        ViewCount = result.Data.ViewCount + 1,  //plus 1 for current view
                         Tags = result.Data.Tags?.Select(t => new TagResponseViewModel
                         {
                             Id = t.Id,
