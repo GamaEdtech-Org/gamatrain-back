@@ -355,7 +355,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         ReferralId = result.Data?.ReferralId,
                         Gender = result.Data?.Gender?.Name,
                         Grade = result.Data?.Grade,
-                        Section = result.Data?.Section,
+                        Board = result.Data?.Board,
                         Avatar = result.Data?.Avatar
                     },
                 });
@@ -382,7 +382,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     UserId = User.UserId(),
                     FirstName = request.FirstName,
                     LastName = request.LastName,
-                    Section = request.Section,
+                    Board = request.Board,
                     Grade = request.Grade,
                     Gender = request.Gender,
                     Avatar = await request.Avatar.ConvertImageToBase64Async(),

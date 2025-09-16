@@ -784,7 +784,7 @@ namespace GamaEdtech.Application.Service
                         CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
                         t.ReferralId,
                         t.Gender,
-                        t.Section,
+                        t.Board,
                         t.Grade,
                         t.Avatar,
                     }).FirstOrDefaultAsync();
@@ -809,7 +809,7 @@ namespace GamaEdtech.Application.Service
                     ReferralId = userInfo.ReferralId,
                     Gender = userInfo.Gender,
                     Grade = userInfo.Grade,
-                    Section = userInfo.Section,
+                    Board = userInfo.Board,
                     Avatar = userInfo.Avatar,
                 };
 
@@ -848,7 +848,7 @@ namespace GamaEdtech.Application.Service
                 user.LastName = !string.IsNullOrEmpty(requestDto.LastName) ? requestDto.LastName : user.LastName;
                 user.Avatar = !string.IsNullOrEmpty(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
                 user.Gender = requestDto.Gender ?? user.Gender;
-                user.Section = requestDto.Section ?? user.Section;
+                user.Board = requestDto.Board ?? user.Board;
                 user.Grade = requestDto.Grade ?? user.Grade;
                 user.UserName = !string.IsNullOrEmpty(requestDto.UserName) ? requestDto.UserName : user.UserName;
 
