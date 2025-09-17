@@ -87,9 +87,14 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var specification = new IdEqualsSpecification<Post, long>(postId).And(new PublishDateSpecification());
                 var result = await blogService.Value.GetPostAsync(specification);
-                _ = BackgroundJob.Enqueue(() => blogService.Value.IncreasePostViewAsync(specification));
+                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok<PostResponseViewModel>(new(result.Errors));
+                }
 
-                return Ok<PostResponseViewModel>(new(result.Errors)
+                _ = BackgroundJob.Enqueue(() => blogService.Value.IncreasePostViewAsync(postId));
+
+                return Ok<PostResponseViewModel>(new()
                 {
                     Data = result.Data is null ? null : new()
                     {

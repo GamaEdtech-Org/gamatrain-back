@@ -425,6 +425,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Name = t.Name,
                         UserId = t.UserId,
                         Points = t.Points,
+                        Avatar = t.Avatar,
                     }),
                 });
             }

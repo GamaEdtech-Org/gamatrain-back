@@ -141,9 +141,14 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var specification = new IdEqualsSpecification<School, long>(id);
                 var result = await schoolService.Value.GetSchoolAsync(specification);
-                _ = BackgroundJob.Enqueue(() => schoolService.Value.IncreaseSchoolViewAsync(specification));
+                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok<SchoolResponseViewModel>(new(result.Errors));
+                }
 
-                return Ok<SchoolResponseViewModel>(new(result.Errors)
+                _ = BackgroundJob.Enqueue<ISchoolService>(t => t.IncreaseSchoolViewAsync(id));
+
+                return Ok<SchoolResponseViewModel>(new()
                 {
                     Data = result.Data is null ? null : new()
                     {
