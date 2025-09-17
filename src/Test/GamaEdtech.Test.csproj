@@ -15,11 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Infrastructure\" />
-    <Folder Include="Presentation\Api\Areas\Admin\Fixtures\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Core\Data\GamaEdtech.Data.csproj" />
     <ProjectReference Include="..\Application\Interface\GamaEdtech.Application.Interface.csproj" />
     <ProjectReference Include="..\Presentation\Api\GamaEdtech.Presentation.Api.csproj" />
