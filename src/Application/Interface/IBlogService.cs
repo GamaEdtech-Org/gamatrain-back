@@ -21,7 +21,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> PostExistsAsync([NotNull] ISpecification<Post> specification);
         Task<ResultData<bool>> ConfirmPostContributionAsync([NotNull] ConfirmPostContributionRequestDto requestDto);
         Task<ResultData<bool>> IsCreatorOfPostAsync(long postId, int userId);
-        Task IncreasePostViewAsync([NotNull] ISpecification<Post> specification);
+        Task IncreasePostViewAsync(long id);
 
         Task<ResultData<bool>> UpdatePostReactionsAsync(long? postId = null);
     }

@@ -462,12 +462,12 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task IncreaseSchoolViewAsync([NotNull] ISpecification<School> specification)
+        public async Task IncreaseSchoolViewAsync(long id)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                _ = await uow.GetRepository<School>().GetManyQueryable(specification).ExecuteUpdateAsync(t => t.SetProperty(p => p.ViewCount, p => p.ViewCount + 1));
+                _ = await uow.GetRepository<School>().GetManyQueryable(t => t.Id == id).ExecuteUpdateAsync(t => t.SetProperty(p => p.ViewCount, p => p.ViewCount + 1));
             }
             catch (Exception exc)
             {
