@@ -112,31 +112,47 @@
         }
 
         [Fact]
-        public async Task RegisterServiceReturnsErrorReturnsErrorResponse()
+        public async Task RegisterDuplicateUsernameReturnsNotValid()
         {
-            // Arrange
-            var request = new RegistrationRequestViewModel
-            {
-                Email = "test@example.com",
-                Password = "Password123!"
-            };
+            var request = new RegistrationRequestViewModel { Email = "duplicate@example.com", Password = "Password123!" };
 
-            var expectedError = new Error { Message = "User already exists" };
             _ = identityServiceMock.Setup(x => x.RegisterAsync(It.IsAny<RegistrationRequestDto>()))
-                .ReturnsAsync(new ResultData<bool>(OperationResult.Failed)
+                .ReturnsAsync(new ResultData<bool>(OperationResult.NotValid)
                 {
-                    Errors = new[] { expectedError }
+                    Errors = new[] { new Error { Message = "Duplicate username" } }
                 });
 
-            // Act
+
             var result = await controller.Register(request);
 
-            // Assert
             var okResult = Assert.IsType<OkObjectResult<Common.Data.Void>>(result);
             var response = Assert.IsType<ApiResponse<Common.Data.Void>>(okResult.Value);
+
             Assert.False(response.Succeeded);
             Assert.NotNull(response.Errors);
-            Assert.Contains(response.Errors, error => error.Message == expectedError.Message);
+            Assert.Contains(response.Errors, e => e.Message!.Contains("Duplicate", StringComparison.OrdinalIgnoreCase));
         }
+
+        [Fact]
+        public async Task RegisterWithEmptyEmailOrPasswordReturnsError()
+        {
+            var request = new RegistrationRequestViewModel { Email = "", Password = "" };
+
+            _ = identityServiceMock.Setup(x => x.RegisterAsync(It.IsAny<RegistrationRequestDto>()))
+                .ReturnsAsync(new ResultData<bool>(OperationResult.NotValid)
+                {
+                    Errors = new[] { new Error { Message = "Email and password are required" } }
+                });
+
+            var result = await controller.Register(request);
+
+            var okResult = Assert.IsType<OkObjectResult<Common.Data.Void>>(result);
+            var response = Assert.IsType<ApiResponse<Common.Data.Void>>(okResult.Value);
+
+            Assert.False(response.Succeeded);
+            Assert.NotNull(response.Errors);
+            Assert.Contains(response.Errors, e => e.Message == "Email and password are required");
+        }
+
     }
 }
