@@ -1,7 +1,6 @@
 namespace GamaEdtech.Test.Infrastructure.Core
 {
     using GamaEdtech.Infrastructure.Interface;
-    using GamaEdtech.Presentation.Api;
 
     using Microsoft.Extensions.DependencyInjection;
 
@@ -9,12 +8,12 @@ namespace GamaEdtech.Test.Infrastructure.Core
 
     using static GamaEdtech.Common.Core.Constants;
 
-    public class CoreProviderUnitTest
+    public class CoreProviderUnitTest : TestBase
     {
         [Fact]
         public async Task ValidateTestAsync()
         {
-            var service = Startup.Services.Value!.GetRequiredService<ICoreProvider>();
+            var service = Services.Value!.GetRequiredService<ICoreProvider>();
             var response = await service.ValidateTestAsync(new()
             {
                 TestId = 1,
