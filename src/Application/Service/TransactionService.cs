@@ -45,6 +45,7 @@ namespace GamaEdtech.Application.Service
                     Description = t.Description,
                     IsDebit = t.IsDebit,
                     Points = t.Points,
+                    UserId = t.UserId,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }

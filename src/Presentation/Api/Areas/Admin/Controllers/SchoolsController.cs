@@ -249,7 +249,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 
                 if (request.StartDate.HasValue || request.EndDate.HasValue)
                 {
-                    specification = specification.And(new CreationDateBetweenSpecification<Contribution, ApplicationUser, int>(request.StartDate, request.EndDate));
+                    specification = specification.And(new CreationDateBetweenSpecification<Contribution>(request.StartDate, request.EndDate));
                 }
 
                 var result = await contributionService.Value.GetContributionsAsync<SchoolCommentContributionDto>(new ListRequestDto<Contribution>
