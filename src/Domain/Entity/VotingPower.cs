@@ -10,7 +10,7 @@ namespace GamaEdtech.Domain.Entity
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     [Table(nameof(VotingPower))]
-    public class VotingPower : IEntity<VotingPower, long>
+    public class VotingPower : IEntity<VotingPower, long>, ICreationDate
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]

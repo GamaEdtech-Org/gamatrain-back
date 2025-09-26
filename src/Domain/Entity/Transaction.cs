@@ -11,7 +11,7 @@ namespace GamaEdtech.Domain.Entity
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     [Table(nameof(Transaction))]
-    public class Transaction : IEntity<Transaction, long>, IUserId<int>, IIdentifierId
+    public class Transaction : IEntity<Transaction, long>, IUserId<int>, IIdentifierId, ICreationDate
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]
