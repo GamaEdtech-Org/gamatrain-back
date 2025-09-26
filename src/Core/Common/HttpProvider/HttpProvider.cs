@@ -125,6 +125,55 @@ namespace GamaEdtech.Common.HttpProvider
             return response.StatusCode is not System.Net.HttpStatusCode.OK && failHandler is not null ? await failHandler(request.Request, result) : result;
         }
 
+        public async Task<byte[]?> GetByteArrayAsync<TRequest, TBody>([NotNull] HttpProviderRequest<TBody, TRequest> request, Func<HttpResponseMessage, Task>? postCallHandler = null, Func<HttpResponseMessage, Task<byte[]?>>? decodeHandler = null, Func<TRequest?, byte[]?, Task<byte[]?>>? failHandler = null)
+    where TRequest : IHttpRequest
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var client = httpClientFactory.Value.CreateHttpClient(request.ForceTls13);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            if (request.Timeout.HasValue)
+            {
+                client.Timeout = TimeSpan.FromMilliseconds(request.Timeout.Value);
+            }
+
+            if (!string.IsNullOrEmpty(request.BaseAddress))
+            {
+                request.Uri = $"{request.BaseAddress.TrimEnd('/')}/{request.Uri}";
+            }
+
+            if (DefaultHeaders is not null)
+            {
+                foreach (var (key, value) in DefaultHeaders)
+                {
+                    client.DefaultRequestHeaders.Add(key, value);
+                }
+            }
+
+            if (request.HeaderParameters?.Count > 0)
+            {
+                for (var i = 0; i < request.HeaderParameters.Count; i++)
+                {
+                    client.DefaultRequestHeaders.Add(request.HeaderParameters[i].Key, request.HeaderParameters[i].Value);
+                }
+            }
+
+            if (request.Body is not null)
+            {
+                request.Uri = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(request.Uri!, Globals.ObjectToDictionary(request.Body)!.Select(t => new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>(t.Key, t.Value?.ToString())));
+            }
+
+            var response = await client.GetAsync(request.Uri);
+
+            if (postCallHandler is not null)
+            {
+                await postCallHandler(response);
+            }
+
+            var result = decodeHandler is not null ? await decodeHandler(response) : await response.Content.ReadAsByteArrayAsync();
+
+            return response.StatusCode is not System.Net.HttpStatusCode.OK && failHandler is not null ? await failHandler(request.Request, result) : result;
+        }
+
         public async Task<TResponse?> PostAsync<TRequest, TResponse, TBody>([NotNull] HttpProviderRequest<TBody, TRequest> request, Func<HttpResponseMessage, Task>? postCallHandler = null, Func<HttpResponseMessage, Task<TResponse?>>? decodeHandler = null, Func<TRequest?, TResponse?, Task<TResponse?>>? failHandler = null)
             where TRequest : IHttpRequest
             where TResponse : IHttpResponse

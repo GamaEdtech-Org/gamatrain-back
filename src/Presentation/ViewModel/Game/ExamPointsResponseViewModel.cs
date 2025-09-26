@@ -1,8 +1,8 @@
 namespace GamaEdtech.Presentation.ViewModel.Game
 {
-    public sealed class TestTimeQuizResponseViewModel
+    public sealed class ExamPointsResponseViewModel
     {
+        public long Id { get; set; }
         public long Points { get; set; }
-        public bool IsCorrect { get; set; }
     }
 }

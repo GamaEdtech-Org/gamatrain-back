@@ -20,6 +20,6 @@ namespace GamaEdtech.Domain.Enumeration
         {
         }
 
-        public CoinType(string name, byte value, int points) : base(name, value) => Points = points;
+        public CoinType(string name, byte value, long points) : base(name, value) => Points = points;
     }
 }
