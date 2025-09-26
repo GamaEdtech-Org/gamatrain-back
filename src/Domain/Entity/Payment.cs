@@ -13,7 +13,7 @@ namespace GamaEdtech.Domain.Entity
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     [Table(nameof(Payment))]
-    public class Payment : IEntity<Payment, long>, IUserId<int>
+    public class Payment : IEntity<Payment, long>, IUserId<int>, ICreationDate
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]
