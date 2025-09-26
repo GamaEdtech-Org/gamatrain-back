@@ -30,26 +30,29 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                ISpecification<Transaction> specification = new UserIdEqualsSpecification<Transaction, int>(User.UserId());
+                ISpecification<Transaction>? specification = null;
 
                 if (request.IsDebit.HasValue)
                 {
-                    specification = specification.And(new IsDebitEqualsSpecification(request.IsDebit.Value));
+                    specification = new IsDebitEqualsSpecification(request.IsDebit.Value);
                 }
 
                 if (request.StartDate.HasValue || request.EndDate.HasValue)
                 {
-                    specification = specification.And(new CreationDateBetweenSpecification<Transaction>(request.StartDate, request.EndDate));
+                    var spec = new CreationDateBetweenSpecification<Transaction>(request.StartDate, request.EndDate);
+                    specification = specification is null ? spec : specification.And(spec);
                 }
 
                 if (request.UserId.HasValue)
                 {
-                    specification = specification.And(new UserIdEqualsSpecification<Transaction, int>(request.UserId.Value));
+                    var spec = new UserIdEqualsSpecification<Transaction, int>(request.UserId.Value);
+                    specification = specification is null ? spec : specification.And(spec);
                 }
 
                 if (request.IdentifierId.HasValue)
                 {
-                    specification = specification.And(new IdentifierIdEqualsSpecification<Transaction>(request.IdentifierId.Value));
+                    var spec = new IdentifierIdEqualsSpecification<Transaction>(request.IdentifierId.Value);
+                    specification = specification is null ? spec : specification.And(spec);
                 }
 
                 var result = await transactionService.Value.GetTransactionsAsync(new ListRequestDto<Transaction>
