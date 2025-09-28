@@ -72,6 +72,37 @@ namespace GamaEdtech.Test.Application
             Assert.False(apiResponse.Succeeded);
         }
 
+        [Theory]
+        [InlineData("a")]
+        [InlineData("abc")]
+        [InlineData("12345")]
+        public async Task RegisterPasswordTooShortShouldFail(string shortPassword)
+        {
+            // Arrange
+            var controller = GetController();
+            var request = new RegistrationRequestViewModel
+            {
+                Email = "user@example.com",
+                Password = shortPassword
+            };
+
+            // Act
+            var result = await controller.Register(request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult<Common.Data.Void>>(result);
+            var apiResponse = Assert.IsType<ApiResponse<Common.Data.Void>>(okResult.Value);
+
+            Assert.False(apiResponse.Succeeded);
+
+            // Check the error message
+            Assert.NotNull(apiResponse.Errors);
+            Assert.Contains(apiResponse.Errors,
+                e => !string.IsNullOrWhiteSpace(e.Message) &&
+                     e.Message.Contains("Passwords must be at least 6 characters.", StringComparison.OrdinalIgnoreCase));
+        }
+
+
         [Fact]
         public async Task RegisterDuplicateUsernameShouldFail()
         {
