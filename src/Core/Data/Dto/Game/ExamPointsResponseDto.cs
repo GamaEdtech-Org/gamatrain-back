@@ -1,8 +1,8 @@
 namespace GamaEdtech.Data.Dto.Game
 {
-    public sealed class TestTimeResponseDto
+    public sealed class ExamPointsResponseDto
     {
+        public long Id { get; set; }
         public long Points { get; set; }
-        public bool IsCorrect { get; set; }
     }
 }

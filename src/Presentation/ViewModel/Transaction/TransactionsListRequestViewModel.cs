@@ -15,6 +15,12 @@ namespace GamaEdtech.Presentation.ViewModel.Transaction
         public int? UserId { get; set; }
 
         [Display]
+        public string? Name { get; set; }
+
+        [Display]
+        public string? Email { get; set; }
+
+        [Display]
         public long? IdentifierId { get; set; }
 
         [Display]

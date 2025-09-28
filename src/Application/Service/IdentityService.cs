@@ -30,6 +30,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.Identity;
+    using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Http;
@@ -39,6 +40,8 @@ namespace GamaEdtech.Application.Service
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.JsonWebTokens;
+    using Microsoft.IdentityModel.Tokens;
 
     using static GamaEdtech.Common.Core.Constants;
 
@@ -47,7 +50,7 @@ namespace GamaEdtech.Application.Service
 
     public class IdentityService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<IdentityService>> localizer, Lazy<ILogger<IdentityService>> logger
             , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
-            , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration)
+            , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration, Lazy<ICoreProvider> coreProvider)
         : LocalizableServiceBase<IdentityService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IIdentityService, ITokenService
     {
         private const string RolesCacheKey = "Roles";
@@ -955,7 +958,7 @@ namespace GamaEdtech.Application.Service
                 {
                     return new(OperationResult.Failed)
                     {
-                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"].Value } },
+                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"] } },
                     };
                 }
 
@@ -1142,6 +1145,78 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<GenerateUserTokenResponseDto>> GenerateTokenByCoreTokenAsync([NotNull] GenerateTokenByCoreTokenRequestDto requestDto)
+        {
+            try
+            {
+                const string endpoint = "https://core.gamatrain.com/";
+                var data = await new JsonWebTokenHandler().ValidateTokenAsync(requestDto.Token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = endpoint,
+                    RequireExpirationTime = true,
+                    ValidateActor = false,
+                    ValidateIssuerSigningKey = false,
+                    ValidateSignatureLast = false,
+                    SignatureValidator = (token, parameters) => new JsonWebToken(token),
+                    ValidAudience = endpoint,
+                });
+                if (!data.IsValid)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                var response = await coreProvider.Value.GetUserInformationAsync(new()
+                {
+                    Token = requestDto.Token,
+                });
+                if (response.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(response.OperationResult) { Errors = response.Errors };
+                }
+
+                if (response.Data is null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                _ = data.Claims.TryGetValue("identity", out var email);
+
+                var user = await userManager.Value.FindByEmailAsync(email?.ToString()!);
+                if (user is null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                user.FirstName = response.Data.FirstName;
+                user.LastName = response.Data.LastName;
+                user.PhoneNumber = response.Data.PhoneNumber;
+                user.Avatar = response.Data.Avatar;
+                _ = await userManager.Value.UpdateAsync(user);
+
+                return await GenerateUserTokenAsync(new GenerateUserTokenRequestDto
+                {
+                    UserId = user.Id,
+                    TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
+                    Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
             }
         }
     }
