@@ -174,7 +174,7 @@ namespace GamaEdtech.Application.Service
                 repository.Add(testSubmission);
                 _ = await uow.SaveChangesAsync();
 
-                const int points = 10;
+                const long points = 10;
                 _ = valid.Data
                     ? await transactionService.Value.IncreaseBalanceAsync(new()
                     {
@@ -198,6 +198,79 @@ namespace GamaEdtech.Application.Service
                     {
                         IsCorrect = valid.Data,
                         Points = valid.Data ? points : points * -1,
+                    },
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<ExamPointsResponseDto>> ExamPointsAsync([NotNull] ExamPointsRequestDto requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<ExamSubmission>();
+                var exists = await repository.AnyAsync(t => t.UserId == requestDto.UserId && t.ExamId == requestDto.ExamId);
+                if (exists)
+                {
+                    return new(OperationResult.Duplicate) { Errors = [new Error { Message = Localizer.Value["DuplicateExamSubmission"] }] };
+                }
+
+                var result = await coreProvider.Value.GetExamResultAsync(new()
+                {
+                    ExamId = requestDto.ExamId,
+                    SecretKey = requestDto.SecretKey,
+                });
+                if (result.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(result.OperationResult) { Errors = result.Errors };
+                }
+
+                using var trn = uow.CreateTransactionScope();
+
+                ExamSubmission examSubmission = new()
+                {
+                    CreationDate = DateTimeOffset.UtcNow,
+                    UserId = requestDto.UserId,
+                    ExamId = requestDto.ExamId,
+                    Invalid = result.Data!.Invalid,
+                    Valid = result.Data.Valid,
+                    NoAnswer = result.Data.NoAnswer,
+                };
+                repository.Add(examSubmission);
+                _ = await uow.SaveChangesAsync();
+
+                const long points = 1000;
+
+                var total = (result.Data.Valid * points) - (result.Data.Invalid * points / 3);
+
+                _ = total > 0
+                    ? await transactionService.Value.IncreaseBalanceAsync(new()
+                    {
+                        UserId = requestDto.UserId,
+                        Points = total,
+                        Description = "Exam Submission",
+                        IdentifierId = examSubmission.Id,
+                    })
+                    : await transactionService.Value.DecreaseBalanceAsync(new()
+                    {
+                        UserId = requestDto.UserId,
+                        Points = Math.Abs(total),
+                        Description = "Exam Submission",
+                        IdentifierId = examSubmission.Id,
+                    });
+
+                trn.Complete();
+                return new(OperationResult.Succeeded)
+                {
+                    Data = new()
+                    {
+                        Id = examSubmission.Id,
+                        Points = total,
                     },
                 };
             }

@@ -41,5 +41,6 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<string>> GenerateReferralUserAsync();
         Task<ResultData<bool>> HasClaimAsync(int userId, SystemClaim claims);
         Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync(Top100UsersRequestDto? requestDto);
+        Task<ResultData<GenerateUserTokenResponseDto>> GenerateTokenByCoreTokenAsync([NotNull] GenerateTokenByCoreTokenRequestDto requestDto);
     }
 }

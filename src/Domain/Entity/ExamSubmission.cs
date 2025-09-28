@@ -10,8 +10,8 @@ namespace GamaEdtech.Domain.Entity
 
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-    [Table(nameof(TestSubmission))]
-    public class TestSubmission : IEntity<TestSubmission, long>, ICreationDate, IUserId<int>
+    [Table(nameof(ExamSubmission))]
+    public class ExamSubmission : IEntity<ExamSubmission, long>, ICreationDate, IUserId<int>
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]
@@ -24,22 +24,26 @@ namespace GamaEdtech.Domain.Entity
         public int UserId { get; set; }
         public ApplicationUser User { get; set; }
 
-        [Column(nameof(TestId), DataType.Long)]
+        [Column(nameof(ExamId), DataType.Long)]
         [Required]
-        public long TestId { get; set; }
-
-        [Column(nameof(SubmissionId), DataType.Int)]
-        [Required]
-        public int SubmissionId { get; set; }
+        public long ExamId { get; set; }
 
         [Column(nameof(CreationDate), DataType.DateTimeOffset)]
         [Required]
         public DateTimeOffset CreationDate { get; set; }
 
-        [Column(nameof(IsCorrect), DataType.Boolean)]
+        [Column(nameof(Valid), DataType.Int)]
         [Required]
-        public bool IsCorrect { get; set; }
+        public int Valid { get; set; }
 
-        public void Configure([NotNull] EntityTypeBuilder<TestSubmission> builder) => _ = builder.HasIndex(t => new { t.UserId, t.TestId }).IsUnique();
+        [Column(nameof(Invalid), DataType.Int)]
+        [Required]
+        public int Invalid { get; set; }
+
+        [Column(nameof(NoAnswer), DataType.Int)]
+        [Required]
+        public int NoAnswer { get; set; }
+
+        public void Configure([NotNull] EntityTypeBuilder<ExamSubmission> builder) => _ = builder.HasIndex(t => new { t.UserId, t.ExamId }).IsUnique();
     }
 }
