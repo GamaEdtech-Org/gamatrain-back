@@ -49,7 +49,7 @@ namespace GamaEdtech.Application.Service
     using Void = Common.Data.Void;
 
     public class IdentityService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<IdentityService>> localizer, Lazy<ILogger<IdentityService>> logger
-            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
+            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<IAuthenticationProvider, AuthenticationProvider>> genericFactory
             , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration, Lazy<ICoreProvider> coreProvider)
         : LocalizableServiceBase<IdentityService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IIdentityService, ITokenService
     {
