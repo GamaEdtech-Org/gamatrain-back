@@ -14,5 +14,6 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? Board { get; set; }
         public int? Grade { get; set; }
         public string? Avatar { get; set; }
+        public bool ProfileUpdated { get; set; }
     }
 }
