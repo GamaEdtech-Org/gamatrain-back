@@ -37,8 +37,5 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         [FileSize(300 * 1024)] // 300KB
         [FileExtensions(Constants.ValidImageExtensions)]
         public IFormFile? Avatar { get; set; }
-
-        [Display]
-        public string? UserName { get; set; }
     }
 }

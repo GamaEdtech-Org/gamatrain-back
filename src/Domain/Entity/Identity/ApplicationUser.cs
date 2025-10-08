@@ -144,6 +144,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Required]
         public long CurrentBalance { get; set; }
 
+        [Column(nameof(ProfileUpdated), DataType.Boolean)]
+        [Required]
+        public bool ProfileUpdated { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

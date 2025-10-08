@@ -775,51 +775,29 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var userInfo = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification)
-                    .Select(t => new
-                    {
-                        t.UserName,
-                        t.FirstName,
-                        t.LastName,
-                        t.SchoolId,
-                        t.CityId,
-                        StateId = t.City != null ? t.City.ParentId : null,
-                        CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
-                        t.ReferralId,
-                        t.Gender,
-                        t.Board,
-                        t.Grade,
-                        t.Avatar,
-                    }).FirstOrDefaultAsync();
-
-                if (userInfo is null)
+                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new ProfileSettingsDto
                 {
-                    return new(OperationResult.Failed)
+                    UserName = t.UserName,
+                    FirstName = t.FirstName,
+                    LastName = t.LastName,
+                    SchoolId = t.SchoolId,
+                    CityId = t.CityId,
+                    StateId = t.City != null ? t.City.ParentId : null,
+                    CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                    ReferralId = t.ReferralId,
+                    Gender = t.Gender,
+                    Board = t.Board,
+                    Grade = t.Grade,
+                    Avatar = t.Avatar,
+                    ProfileUpdated = t.ProfileUpdated,
+                }).FirstOrDefaultAsync();
+
+                return data is null
+                    ? new(OperationResult.Failed) { Errors = new[] { new Error { Message = "User not found." } } }
+                    : new(OperationResult.Succeeded)
                     {
-                        Errors = new[] { new Error { Message = "User not found." } }
+                        Data = data,
                     };
-                }
-
-                var data = new ProfileSettingsDto
-                {
-                    UserName = userInfo.UserName,
-                    FirstName = userInfo.FirstName,
-                    LastName = userInfo.LastName,
-                    SchoolId = userInfo.SchoolId,
-                    CityId = userInfo.CityId,
-                    StateId = userInfo.StateId,
-                    CountryId = userInfo.CountryId,
-                    ReferralId = userInfo.ReferralId,
-                    Gender = userInfo.Gender,
-                    Grade = userInfo.Grade,
-                    Board = userInfo.Board,
-                    Avatar = userInfo.Avatar,
-                };
-
-                return new(OperationResult.Succeeded)
-                {
-                    Data = data,
-                };
             }
             catch (Exception exc)
             {
@@ -837,7 +815,7 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var user = await userManager.Value.FindByIdAsync(requestDto.UserId.ToString());
-                if (user == null)
+                if (user is null)
                 {
                     return new(OperationResult.NotFound)
                     {
@@ -853,7 +831,7 @@ namespace GamaEdtech.Application.Service
                 user.Gender = requestDto.Gender ?? user.Gender;
                 user.Board = requestDto.Board ?? user.Board;
                 user.Grade = requestDto.Grade ?? user.Grade;
-                user.UserName = !string.IsNullOrEmpty(requestDto.UserName) ? requestDto.UserName : user.UserName;
+                user.ProfileUpdated = true;
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
 
@@ -1200,11 +1178,16 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                user.FirstName = response.Data.FirstName;
-                user.LastName = response.Data.LastName;
-                user.PhoneNumber = response.Data.PhoneNumber;
-                user.Avatar = response.Data.Avatar;
-                _ = await userManager.Value.UpdateAsync(user);
+                if (!user.ProfileUpdated)
+                {
+                    user.FirstName = response.Data.FirstName;
+                    user.LastName = response.Data.LastName;
+                    user.Gender = response.Data.Gender;
+                    user.Grade = response.Data.Grade;
+                    user.PhoneNumber = response.Data.PhoneNumber;
+                    user.Avatar = response.Data.Avatar;
+                    _ = await userManager.Value.UpdateAsync(user);
+                }
 
                 return await GenerateUserTokenAsync(new GenerateUserTokenRequestDto
                 {

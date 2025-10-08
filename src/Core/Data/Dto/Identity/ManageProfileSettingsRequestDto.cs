@@ -13,6 +13,5 @@ namespace GamaEdtech.Data.Dto.Identity
         public int? Board { get; set; }
         public int? Grade { get; set; }
         public string? Avatar { get; set; }
-        public string? UserName { get; set; }
     }
 }
