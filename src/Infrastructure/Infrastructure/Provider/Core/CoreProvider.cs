@@ -121,7 +121,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     LastName = response.Data.LastName,
                     PhoneNumber = response.Data.Phone,
                     Gender = MapGender(response.Data.Sex),
-                    Grade = response.Data.Grade,
+                    Grade = response.Data.Grade.ValueOf<int?>(),
                 };
                 if (!string.IsNullOrEmpty(response.Data.Avatar))
                 {
@@ -141,10 +141,10 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     Data = data,
                 };
 
-                static GenderType? MapGender(CoreUserInformationResponse.Sex? sex) => sex switch
+                static GenderType? MapGender(string? sex) => sex switch
                 {
-                    CoreUserInformationResponse.Sex.Male => GenderType.Male,
-                    CoreUserInformationResponse.Sex.Female => GenderType.Female,
+                    "1" => GenderType.Male,
+                    "2" => GenderType.Female,
                     _ => null,
                 };
             }
