@@ -15,5 +15,6 @@ namespace GamaEdtech.Data.Dto.Identity
         public int? Group { get; set; }
         public int? CoreId { get; set; }
         public string? Avatar { get; set; }
+        public string? WalletId { get; set; }
     }
 }

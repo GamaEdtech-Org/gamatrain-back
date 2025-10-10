@@ -154,6 +154,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Required]
         public bool ProfileUpdated { get; set; }
 
+        [Column(nameof(WalletId), DataType.String)]
+        [StringLength(50)]
+        public string? WalletId { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }

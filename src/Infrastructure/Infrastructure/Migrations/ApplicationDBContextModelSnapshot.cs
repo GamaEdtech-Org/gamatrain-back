@@ -653,6 +653,11 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("UserName");
 
+                    b.Property<string>("WalletId")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("WalletId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");

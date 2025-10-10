@@ -791,6 +791,7 @@ namespace GamaEdtech.Application.Service
                     Avatar = t.Avatar,
                     Group = t.Group,
                     CoreId = t.CoreId,
+                    WalletId = t.WalletId,
                     ProfileUpdated = t.ProfileUpdated,
                 }).FirstOrDefaultAsync();
 
@@ -835,6 +836,7 @@ namespace GamaEdtech.Application.Service
                 user.Grade = requestDto.Grade ?? user.Grade;
                 user.Group = requestDto.Group ?? user.Group;
                 user.CoreId = requestDto.CoreId ?? user.CoreId;
+                user.WalletId = requestDto.WalletId ?? user.WalletId;
                 user.ProfileUpdated = true;
 
                 var updateResult = await userManager.Value.UpdateAsync(user);

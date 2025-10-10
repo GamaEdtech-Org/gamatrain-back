@@ -16,6 +16,7 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? Group { get; set; }
         public int? CoreId { get; set; }
         public string? Avatar { get; set; }
+        public string? WalletId { get; set; }
         public bool ProfileUpdated { get; set; }
     }
 }
