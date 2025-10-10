@@ -34,8 +34,14 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public int? Grade { get; set; }
 
         [Display]
+        public int? Group { get; set; }
+
+        [Display]
         [FileSize(300 * 1024)] // 300KB
         [FileExtensions(Constants.ValidImageExtensions)]
         public IFormFile? Avatar { get; set; }
+
+        [Display]
+        public string? WalletId { get; set; }
     }
 }

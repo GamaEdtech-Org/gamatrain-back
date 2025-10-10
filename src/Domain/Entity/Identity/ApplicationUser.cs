@@ -140,6 +140,12 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Grade), DataType.Int)]
         public int? Grade { get; set; }
 
+        [Column(nameof(Group), DataType.Int)]
+        public int? Group { get; set; }
+
+        [Column(nameof(CoreId), DataType.Int)]
+        public int? CoreId { get; set; }
+
         [Column(nameof(CurrentBalance), DataType.Long)]
         [Required]
         public long CurrentBalance { get; set; }
@@ -147,6 +153,10 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(ProfileUpdated), DataType.Boolean)]
         [Required]
         public bool ProfileUpdated { get; set; }
+
+        [Column(nameof(WalletId), DataType.String)]
+        [StringLength(50)]
+        public string? WalletId { get; set; }
 
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 

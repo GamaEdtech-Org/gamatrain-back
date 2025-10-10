@@ -789,6 +789,9 @@ namespace GamaEdtech.Application.Service
                     Board = t.Board,
                     Grade = t.Grade,
                     Avatar = t.Avatar,
+                    Group = t.Group,
+                    CoreId = t.CoreId,
+                    WalletId = t.WalletId,
                     ProfileUpdated = t.ProfileUpdated,
                 }).FirstOrDefaultAsync();
 
@@ -831,6 +834,9 @@ namespace GamaEdtech.Application.Service
                 user.Gender = requestDto.Gender ?? user.Gender;
                 user.Board = requestDto.Board ?? user.Board;
                 user.Grade = requestDto.Grade ?? user.Grade;
+                user.Group = requestDto.Group ?? user.Group;
+                user.CoreId = requestDto.CoreId ?? user.CoreId;
+                user.WalletId = requestDto.WalletId ?? user.WalletId;
                 user.ProfileUpdated = true;
 
                 var updateResult = await userManager.Value.UpdateAsync(user);
@@ -1186,6 +1192,8 @@ namespace GamaEdtech.Application.Service
                     user.Grade = response.Data.Grade;
                     user.PhoneNumber = response.Data.PhoneNumber;
                     user.Avatar = response.Data.Avatar;
+                    user.Group = response.Data.Group;
+                    user.CoreId = response.Data.CoreId;
                     _ = await userManager.Value.UpdateAsync(user);
                 }
 
