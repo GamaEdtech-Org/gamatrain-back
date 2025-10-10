@@ -544,6 +544,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("ConcurrencyStamp");
 
+                    b.Property<int?>("CoreId")
+                        .HasColumnType("int")
+                        .HasColumnName("CoreId");
+
                     b.Property<long>("CurrentBalance")
                         .HasColumnType("bigint")
                         .HasColumnName("CurrentBalance");
@@ -573,6 +577,10 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<int?>("Grade")
                         .HasColumnType("int")
                         .HasColumnName("Grade");
+
+                    b.Property<int?>("Group")
+                        .HasColumnType("int")
+                        .HasColumnName("Group");
 
                     b.Property<string>("LastName")
                         .HasMaxLength(100)

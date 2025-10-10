@@ -31,6 +31,12 @@ namespace GamaEdtech.Data.Dto.Provider.Core
 
             [JsonPropertyName("base")]
             public string? Grade { get; set; }
+
+            [JsonPropertyName("group_id")]
+            public int? Group { get; set; }
+
+            [JsonPropertyName("id")]
+            public string? CoreId { get; set; }
         }
     }
 }
