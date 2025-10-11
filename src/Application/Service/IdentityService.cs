@@ -1184,6 +1184,9 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
+                user.Group = response.Data.Group;
+                user.CoreId = response.Data.CoreId;
+
                 if (!user.ProfileUpdated)
                 {
                     user.FirstName = response.Data.FirstName;
@@ -1192,10 +1195,8 @@ namespace GamaEdtech.Application.Service
                     user.Grade = response.Data.Grade;
                     user.PhoneNumber = response.Data.PhoneNumber;
                     user.Avatar = response.Data.Avatar;
-                    user.Group = response.Data.Group;
-                    user.CoreId = response.Data.CoreId;
-                    _ = await userManager.Value.UpdateAsync(user);
                 }
+                _ = await userManager.Value.UpdateAsync(user);
 
                 return await GenerateUserTokenAsync(new GenerateUserTokenRequestDto
                 {
