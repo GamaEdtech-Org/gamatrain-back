@@ -47,6 +47,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     specification = specification.And(new VisibilityTypeEqualsSpecification(request.VisibilityType));
                 }
 
+                if (request.PublishDate.HasValue)
+                {
+                    specification = specification.And(new PublishDateEqualsSpecification(request.PublishDate.Value));
+                }
+
+                if (!string.IsNullOrEmpty(request.Title))
+                {
+                    specification = specification.And(new TitleContainsSpecification(request.Title));
+                }
+
                 var result = await blogService.Value.GetPostsAsync(new ListRequestDto<Post>
                 {
                     PagingDto = request.PagingDto,

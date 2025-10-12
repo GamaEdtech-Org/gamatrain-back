@@ -10,6 +10,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Data.Dto.Provider.Core;
+    using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.Extensions.Configuration;
@@ -119,6 +120,10 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     FirstName = response.Data.FirstName,
                     LastName = response.Data.LastName,
                     PhoneNumber = response.Data.Phone,
+                    Gender = MapGender(response.Data.Sex),
+                    Grade = response.Data.Grade.ValueOf<int?>(),
+                    CoreId = response.Data.CoreId.ValueOf<int?>(),
+                    Group = response.Data.Group,
                 };
                 if (!string.IsNullOrEmpty(response.Data.Avatar))
                 {
@@ -136,6 +141,13 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                 return new(OperationResult.Succeeded)
                 {
                     Data = data,
+                };
+
+                static GenderType? MapGender(string? sex) => sex switch
+                {
+                    "1" => GenderType.Male,
+                    "2" => GenderType.Female,
+                    _ => null,
                 };
             }
             catch (Exception exc)

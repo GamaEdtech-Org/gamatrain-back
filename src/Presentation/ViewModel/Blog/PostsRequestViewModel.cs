@@ -20,6 +20,9 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public VisibilityType? VisibilityType { get; set; }
 
         [Display]
-        public DateTimeOffset? PublishDate { get; set; }
+        public DateOnly? PublishDate { get; set; }
+
+        [Display]
+        public string? Title { get; set; }
     }
 }
