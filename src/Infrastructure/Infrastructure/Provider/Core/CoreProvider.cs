@@ -17,6 +17,8 @@ namespace GamaEdtech.Infrastructure.Provider.Core
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
 
+    using SkiaSharp.QrCode.Image;
+
     using static GamaEdtech.Common.Core.Constants;
 
     public sealed class CoreProvider(Lazy<IConfiguration> configuration, Lazy<IHttpProvider> httpProvider, Lazy<IStringLocalizer<CoreProvider>> localizer
@@ -82,6 +84,69 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     NoAnswer = response.Data.AnswerStats.Total.NoAnswer,
                     Total = response.Data.AnswerStats.Total.Num,
                     Percent = response.Data.AnswerStats.Total.Percent,
+                };
+                return new(OperationResult.Succeeded)
+                {
+                    Data = result,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<ExamInformationResponseDto>> GetExamInformationAsync([NotNull] ExamInformationRequestDto requestDto)
+        {
+            try
+            {
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreExamInformationResponse, IHttpRequest>(new()
+                {
+                    Uri = string.Format(configuration.Value.GetValue<string>("Core:ExamInfo")!, requestDto.ExamId),
+                    Request = null,
+                    HeaderParameters = [("Authorization", $"Bearer {requestDto.SecretKey}")],
+                });
+
+                if (response is null)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["GeneralError"], }] };
+                }
+
+                if (response.Data?.Exam is null)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["ExamNotFound"], }] };
+                }
+
+                var qr = QRCodeImageBuilder.GetPngBytes($"https://core.gamatrain.com/azmoon/detail/{response.Data.Exam.Code}");
+
+                ExamInformationResponseDto result = new()
+                {
+                    Exam = new()
+                    {
+                        Title = response.Data.Exam.Title,
+                        TestsCount = response.Data.Exam.TestsCount.ValueOf<int>(),
+                        StartDate = response.Data.Exam.StartDate,
+                        EndDate = response.Data.Exam.EndDate,
+                        ExamTime = response.Data.Exam.ExamTime,
+                        ExamType = response.Data.Exam.ExamType,
+                        Type = response.Data.Exam.Type,
+                        ScoreType = response.Data.Exam.ScoreType,
+                        QrCode = $"data:img/png;base64, {Convert.ToBase64String(qr)}",
+                    },
+                    Tests = response.Data?.Tests?.Select(t => new ExamInformationResponseDto.TestDto
+                    {
+                        Question = t.Question,
+                        QuestionFile = t.QuestionFile,
+                        OptionA = t.OptionA,
+                        OptionAFile = t.OptionAFile,
+                        OptionB = t.OptionB,
+                        OptionBFile = t.OptionBFile,
+                        OptionC = t.OptionC,
+                        OptionCFile = t.OptionCFile,
+                        OptionD = t.OptionD,
+                        OptionDFile = t.OptionDFile,
+                    }).ToList(),
                 };
                 return new(OperationResult.Succeeded)
                 {

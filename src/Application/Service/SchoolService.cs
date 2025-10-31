@@ -869,10 +869,9 @@ namespace GamaEdtech.Application.Service
                 {
                     try
                     {
-                        var gps = ImageMetadataReader.ReadMetadata(stream)
-                             .OfType<GpsDirectory>()
-                             .FirstOrDefault()?.GetGeoLocation();
-                        if (gps is not null)
+                        GeoLocation gps = default;
+                        var exists = ImageMetadataReader.ReadMetadata(stream).OfType<GpsDirectory>().FirstOrDefault()?.TryGetGeoLocation(out gps);
+                        if (exists == true)
                         {
                             var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
                             var point = geometryFactory.CreatePoint(new Coordinate(gps.Longitude, gps.Latitude));
@@ -1358,7 +1357,7 @@ namespace GamaEdtech.Application.Service
                     var schoolImage = new SchoolImage
                     {
                         FileId = contributionResult.Data.Data.ImageFileId,
-                        FileType = FileType.SimpleImage,
+                        FileType = ImageFileType.SimpleImage,
                         SchoolId = manageSchoolResult.Data,
                         CreationUserId = contributionResult.Data.CreationUserId,
                         CreationDate = contributionResult.Data.CreationDate,
