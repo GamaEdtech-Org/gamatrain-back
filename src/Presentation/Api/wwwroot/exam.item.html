@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <style>
+    .break {
+      page-break-inside: avoid;
+    }
+
+    .pt {
+      padding-top: 10px;
+    }
+
+    body {
+      margin: 50px;
+      border: 1px solid #000;
+      border-radius: 30px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="break"><b>{{{Question}}}</b></div>
+  {{#if QuestionFile}}
+  <img src="{{{QuestionFile}}}" class="break pt" />
+  {{/if}}
+  <ol class="break pt">
+    <li>
+      <i>{{{OptionA}}}</i>
+      {{#if OptionAFile}}
+      <img src="{{{OptionAFile}}}" />
+      {{/if}}
+    </li>
+    <li>
+      <i>{{{OptionB}}}</i>
+      {{#if OptionBFile}}
+      <img src="{{{OptionBFile}}}" />
+      {{/if}}
+    </li>
+    <li>
+      <i>{{{OptionC}}}</i>
+      {{#if OptionCFile}}
+      <img src="{{{OptionCFile}}}" />
+      {{/if}}
+    </li>
+    <li>
+      <i>{{{OptionD}}}</i>
+      {{#if OptionDFile}}
+      <img src="{{{OptionDFile}}}" />
+      {{/if}}
+    </li>
+  </ol>
+</body>
+</html>

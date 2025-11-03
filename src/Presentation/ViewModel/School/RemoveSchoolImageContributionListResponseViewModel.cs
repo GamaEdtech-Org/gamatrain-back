@@ -22,7 +22,7 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         public Uri? FileUri { get; set; }
 
-        [JsonConverter(typeof(EnumerationConverter<FileType, byte>))]
-        public FileType? FileType { get; set; }
+        [JsonConverter(typeof(EnumerationConverter<ImageFileType, byte>))]
+        public ImageFileType? FileType { get; set; }
     }
 }

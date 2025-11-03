@@ -358,8 +358,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         #region Images
 
-        [HttpGet("{schoolId:long}/images/{fileType:FileType}"), Produces<ApiResponse<IEnumerable<SchoolImageInfoViewModel>>>()]
-        public async Task<IActionResult<IEnumerable<SchoolImageInfoViewModel>>> GetSchoolImagesList([FromRoute] long schoolId, [FromRoute] FileType fileType)
+        [HttpGet("{schoolId:long}/images/{fileType:ImageFileType}"), Produces<ApiResponse<IEnumerable<SchoolImageInfoViewModel>>>()]
+        public async Task<IActionResult<IEnumerable<SchoolImageInfoViewModel>>> GetSchoolImagesList([FromRoute] long schoolId, [FromRoute] ImageFileType fileType)
         {
             try
             {

@@ -6,7 +6,7 @@ namespace GamaEdtech.Data.Dto.School
     {
         public long SchoolId { get; set; }
         public string? FileId { get; set; }
-        public FileType? FileType { get; set; }
+        public ImageFileType? FileType { get; set; }
         public long? TagId { get; set; }
         public bool IsDefault { get; set; }
     }
