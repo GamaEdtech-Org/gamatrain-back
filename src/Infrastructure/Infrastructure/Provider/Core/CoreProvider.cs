@@ -115,10 +115,11 @@ namespace GamaEdtech.Infrastructure.Provider.Core
 
                 if (response.Data?.Exam is null)
                 {
-                    return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["ExamNotFound"], }] };
+                    return new(OperationResult.Failed) { Errors = [new() { Message = response.Message, }] };
                 }
 
-                var qr = QRCodeImageBuilder.GetPngBytes($"https://core.gamatrain.com/azmoon/detail/{response.Data.Exam.Code}");
+                //temporary commented
+                //var qr = QRCodeImageBuilder.GetPngBytes($"https://core.gamatrain.com/azmoon/detail/{response.Data.Exam.Code}")
 
                 ExamInformationResponseDto result = new()
                 {
@@ -132,7 +133,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                         ExamType = response.Data.Exam.ExamType,
                         Type = response.Data.Exam.Type,
                         ScoreType = response.Data.Exam.ScoreType,
-                        QrCode = $"data:img/png;base64, {Convert.ToBase64String(qr)}",
+                        //QrCode = $"data:img/png;base64, {Convert.ToBase64String(qr)}",
                     },
                     Tests = response.Data?.Tests?.Select(t => new ExamInformationResponseDto.TestDto
                     {
