@@ -19,8 +19,9 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
     <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="FreeSpire.Doc" />
+    <PackageReference Include="FreeSpire.Presentation" />
     <PackageReference Include="Freeware.Html2Pdf" />
-    <PackageReference Include="FreeSpire.Office" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
