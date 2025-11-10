@@ -7,10 +7,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageVersion Include="FreeSpire.Doc" Version="12.2.0" />
+    <PackageVersion Include="FreeSpire.Presentation" Version="9.3.0" />
     <PackageVersion Include="Freeware.Html2Pdf" Version="1.1.0" />
     <PackageVersion Include="Handlebars.Net.Helpers.Humanizer" Version="2.5.3" />
-    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
-    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.22" />
     <PackageVersion Include="MetadataExtractor" Version="2.9.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.10" />
@@ -41,7 +43,6 @@
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
-    <PackageVersion Include="FreeSpire.Office" Version="8.2.0" />
     <PackageVersion Include="Freeware.Pdf2Png" Version="1.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="Destructurama.Attributed" Version="5.1.0" />
@@ -68,7 +69,7 @@
     <PackageVersion Include="Serilog.Sinks.Http" Version="9.2.0" />
     <PackageVersion Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
-    <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.9" />
+    <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.10" />
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.10" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
