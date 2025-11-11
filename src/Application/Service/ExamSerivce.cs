@@ -76,12 +76,33 @@ namespace GamaEdtech.Application.Service
 
                 async Task<byte[]> ExportPdfAsync()
                 {
-                    var file = Path.Combine(environment.Value.WebRootPath, "exam.html");
+                    var file = Path.Combine(environment.Value.WebRootPath, "exam.docx.html");
                     var templateContent = await File.ReadAllTextAsync(file);
+
+                    if (info.Data.Tests is not null)
+                    {
+                        for (var i = 0; i < info.Data.Tests.Count; i++)
+                        {
+                            var test = info.Data.Tests[i];
+                            test.Question = $"{i + 1}- {string.Join("<br>", TextRegex().Matches(test.Question!).Select(t => t.Groups.Values.LastOrDefault()))}";
+                            test.OptionA = string.Join("<br>", TextRegex().Matches(test.OptionA!).Select(t => t.Groups.Values.LastOrDefault()));
+                            test.OptionB = string.Join("<br>", TextRegex().Matches(test.OptionB!).Select(t => t.Groups.Values.LastOrDefault()));
+                            test.OptionC = string.Join("<br>", TextRegex().Matches(test.OptionC!).Select(t => t.Groups.Values.LastOrDefault()));
+                            test.OptionD = string.Join("<br>", TextRegex().Matches(test.OptionD!).Select(t => t.Groups.Values.LastOrDefault()));
+                        }
+                    }
 
                     var template = Handlebars.Compile(templateContent);
                     var html = template(info.Data);
-                    return Freeware.Html2Pdf.Convert(html);
+
+                    using var doc = new Spire.Doc.Document();
+                    var section = doc.AddSection();
+                    var paragraph = section.AddParagraph();
+                    paragraph.AppendHTML(html);
+
+                    using MemoryStream stream = new();
+                    doc.SaveToStream(stream, Spire.Doc.FileFormat.PDF);
+                    return stream.ToArray();
                 }
 
                 async Task<byte[]> ExportDocumentAsync()
