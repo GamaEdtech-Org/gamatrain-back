@@ -19,15 +19,13 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
     <PackageReference Include="BouncyCastle.Cryptography" />
-    <PackageReference Include="FreeSpire.Doc" />
-    <PackageReference Include="FreeSpire.Presentation" />
-    <PackageReference Include="Freeware.Html2Pdf" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="NetTopologySuite" />
+    <PackageReference Include="Spire.Officefor.NETStandard" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
