@@ -1,6 +1,7 @@
 namespace GamaEdtech.Application.Service
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Drawing;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
@@ -19,6 +20,8 @@ namespace GamaEdtech.Application.Service
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
+
+    using Spire.Presentation;
 
     using static GamaEdtech.Common.Core.Constants;
 
@@ -52,6 +55,19 @@ namespace GamaEdtech.Application.Service
                     info.Data.Exam!.ExamTime = requestDto.Duration.ToString();
                 }
 
+                if (info.Data.Tests is not null)
+                {
+                    for (var i = 0; i < info.Data.Tests.Count; i++)
+                    {
+                        var test = info.Data.Tests[i];
+                        test.Question = $"<span style=\"color:#2b8cb1\">{i + 1}-</span> {string.Join("<br>", TextRegex().Matches(test.Question!).Select(t => t.Groups.Values.LastOrDefault()))}";
+                        test.OptionA = string.Join("<br>", TextRegex().Matches(test.OptionA!).Select(t => t.Groups.Values.LastOrDefault()));
+                        test.OptionB = string.Join("<br>", TextRegex().Matches(test.OptionB!).Select(t => t.Groups.Values.LastOrDefault()));
+                        test.OptionC = string.Join("<br>", TextRegex().Matches(test.OptionC!).Select(t => t.Groups.Values.LastOrDefault()));
+                        test.OptionD = string.Join("<br>", TextRegex().Matches(test.OptionD!).Select(t => t.Groups.Values.LastOrDefault()));
+                    }
+                }
+
                 byte[]? content = null;
                 if (requestDto.FileType == ExportFileType.Pdf)
                 {
@@ -79,19 +95,6 @@ namespace GamaEdtech.Application.Service
                     var file = Path.Combine(environment.Value.WebRootPath, "exam.docx.html");
                     var templateContent = await File.ReadAllTextAsync(file);
 
-                    if (info.Data.Tests is not null)
-                    {
-                        for (var i = 0; i < info.Data.Tests.Count; i++)
-                        {
-                            var test = info.Data.Tests[i];
-                            test.Question = $"{i + 1}- {string.Join("<br>", TextRegex().Matches(test.Question!).Select(t => t.Groups.Values.LastOrDefault()))}";
-                            test.OptionA = string.Join("<br>", TextRegex().Matches(test.OptionA!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionB = string.Join("<br>", TextRegex().Matches(test.OptionB!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionC = string.Join("<br>", TextRegex().Matches(test.OptionC!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionD = string.Join("<br>", TextRegex().Matches(test.OptionD!).Select(t => t.Groups.Values.LastOrDefault()));
-                        }
-                    }
-
                     var template = Handlebars.Compile(templateContent);
                     var html = template(info.Data);
 
@@ -99,6 +102,20 @@ namespace GamaEdtech.Application.Service
                     var section = doc.AddSection();
                     var paragraph = section.AddParagraph();
                     paragraph.AppendHTML(html);
+
+                    if (!string.IsNullOrEmpty(requestDto.Watermark))
+                    {
+                        foreach (Spire.Doc.Section item in doc.Sections)
+                        {
+                            item.Document.Watermark = new Spire.Doc.TextWatermark
+                            {
+                                Text = requestDto.Watermark,
+                                FontSize = 50,
+                                Color = Color.Blue,
+                                Layout = Spire.Doc.Documents.WatermarkLayout.Diagonal,
+                            };
+                        }
+                    }
 
                     using MemoryStream stream = new();
                     doc.SaveToStream(stream, Spire.Doc.FileFormat.PDF);
@@ -110,19 +127,6 @@ namespace GamaEdtech.Application.Service
                     var file = Path.Combine(environment.Value.WebRootPath, "exam.docx.html");
                     var templateContent = await File.ReadAllTextAsync(file);
 
-                    if (info.Data.Tests is not null)
-                    {
-                        for (var i = 0; i < info.Data.Tests.Count; i++)
-                        {
-                            var test = info.Data.Tests[i];
-                            test.Question = $"{i + 1}- {string.Join("<br>", TextRegex().Matches(test.Question!).Select(t => t.Groups.Values.LastOrDefault()))}";
-                            test.OptionA = string.Join("<br>", TextRegex().Matches(test.OptionA!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionB = string.Join("<br>", TextRegex().Matches(test.OptionB!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionC = string.Join("<br>", TextRegex().Matches(test.OptionC!).Select(t => t.Groups.Values.LastOrDefault()));
-                            test.OptionD = string.Join("<br>", TextRegex().Matches(test.OptionD!).Select(t => t.Groups.Values.LastOrDefault()));
-                        }
-                    }
-
                     var template = Handlebars.Compile(templateContent);
                     var html = template(info.Data);
 
@@ -131,6 +135,20 @@ namespace GamaEdtech.Application.Service
                     var paragraph = section.AddParagraph();
                     paragraph.AppendHTML(html);
 
+                    if (!string.IsNullOrEmpty(requestDto.Watermark))
+                    {
+                        foreach (Spire.Doc.Section item in doc.Sections)
+                        {
+                            item.Document.Watermark = new Spire.Doc.TextWatermark
+                            {
+                                Text = requestDto.Watermark,
+                                FontSize = 50,
+                                Color = Color.Blue,
+                                Layout = Spire.Doc.Documents.WatermarkLayout.Diagonal,
+                            };
+                        }
+                    }
+
                     using MemoryStream stream = new();
                     doc.SaveToStream(stream, Spire.Doc.FileFormat.Docx);
                     return stream.ToArray();
@@ -138,7 +156,7 @@ namespace GamaEdtech.Application.Service
 
                 async Task<byte[]> ExportPresentationAsync()
                 {
-                    using var presentation = new Spire.Presentation.Presentation();
+                    using var presentation = new Presentation();
 
                     var header = Path.Combine(environment.Value.WebRootPath, "exam.header.html");
                     var headerContent = await File.ReadAllTextAsync(header);
@@ -160,13 +178,13 @@ namespace GamaEdtech.Application.Service
                         {
                             var slide = presentation.Slides.Append();
                             var itemHtml = itemTemplate(test);
+
                             slide.Shapes.AddFromHtml(itemHtml);
                         }
                     }
 
-
                     using MemoryStream stream = new();
-                    presentation.SaveToFile(stream, Spire.Presentation.FileFormat.Pptx2013);
+                    presentation.SaveToFile(stream, FileFormat.Pptx2019);
                     return stream.ToArray();
                 }
             }
