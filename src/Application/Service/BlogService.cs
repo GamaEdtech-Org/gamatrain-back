@@ -82,8 +82,10 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var post = await uow.GetRepository<Post>().GetManyQueryable(specification).Select(t => new
+                var repository = uow.GetRepository<Post>();
+                var post = await repository.GetManyQueryable(specification).Select(t => new
                 {
+                    t.Id,
                     t.Title,
                     t.Slug,
                     t.Summary,
@@ -113,6 +115,9 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
+                var nextId = await repository.GetManyQueryable(new PublishDateSpecification()).Where(t => t.Id > post.Id).OrderBy(t => t.Id).Select(t => (long?)t.Id).FirstOrDefaultAsync();
+                var previousId = await repository.GetManyQueryable(new PublishDateSpecification()).Where(t => t.Id > post.Id).OrderByDescending(t => t.Id).Select(t => (long?)t.Id).FirstOrDefaultAsync();
+
                 PostDto result = new()
                 {
                     Title = post.Title,
@@ -129,6 +134,8 @@ namespace GamaEdtech.Application.Service
                     PublishDate = post.PublishDate,
                     Keywords = post.Keywords,
                     ViewCount = post.ViewCount,
+                    NextId = nextId,
+                    PreviousId = previousId,
                 };
 
                 return new(OperationResult.Succeeded) { Data = result };

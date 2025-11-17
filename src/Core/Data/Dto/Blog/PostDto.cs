@@ -21,5 +21,7 @@ namespace GamaEdtech.Data.Dto.Blog
         public DateTimeOffset PublishDate { get; set; }
         public string? Keywords { get; set; }
         public long ViewCount { get; set; }
+        public long? NextId { get; set; }
+        public long? PreviousId { get; set; }
     }
 }
