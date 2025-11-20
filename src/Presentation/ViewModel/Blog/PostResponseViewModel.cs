@@ -37,5 +37,9 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public VisibilityType? VisibilityType { get; set; }
 
         public long ViewCount { get; set; }
+
+        public long? NextId { get; set; }
+
+        public long? PreviousId { get; set; }
     }
 }

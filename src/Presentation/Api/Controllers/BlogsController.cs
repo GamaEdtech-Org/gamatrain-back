@@ -128,6 +128,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Name = t.Name,
                             TagType = t.TagType,
                         }),
+                        NextId = result.Data.NextId,
+                        PreviousId = result.Data.PreviousId,
                     }
                 });
             }
