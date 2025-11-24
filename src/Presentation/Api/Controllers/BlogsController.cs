@@ -90,6 +90,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpGet("posts/radom"), Produces<ApiResponse<ListDataSource<PostsResponseViewModel>>>()]
+        public async Task<IActionResult<ListDataSource<PostsResponseViewModel>>> GetRandomPosts([NotNull, FromQuery] RandomPostsRequestViewModel request) => await GetPosts(new()
+        {
+            PagingDto = new()
+            {
+                PageFilter = new() { Skip = 0, Size = request.Size },
+                SortFilter = [new() { SortType = Constants.SortType.Random }],
+            },
+        });
+
         [HttpGet("posts/{postId:long}"), Produces<ApiResponse<PostResponseViewModel>>()]
         public async Task<IActionResult<PostResponseViewModel>> GetPost([FromRoute] long postId)
         {
