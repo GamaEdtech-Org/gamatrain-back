@@ -19,8 +19,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         [Required]
-        [JsonConverter(typeof(EnumerationConverter<FileType, byte>))]
-        public FileType? FileType { get; set; }
+        [JsonConverter(typeof(EnumerationConverter<ImageFileType, byte>))]
+        public ImageFileType? FileType { get; set; }
 
         [Display]
         public bool IsDefault { get; set; }

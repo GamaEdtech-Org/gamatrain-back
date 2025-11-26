@@ -131,6 +131,7 @@ namespace GamaEdtech.Common.Core
         {
             Asc,
             Desc,
+            Random,
         }
 
         public enum FormatProvider

@@ -33,7 +33,7 @@ namespace GamaEdtech.Domain.Entity
 
         [Column(nameof(FileType), DataType.Byte)]
         [Required]
-        public FileType? FileType { get; set; }
+        public ImageFileType? FileType { get; set; }
 
         [Column(nameof(IsDefault), DataType.Boolean)]
         [Required]
@@ -47,6 +47,6 @@ namespace GamaEdtech.Domain.Entity
         public long? ContributionId { get; set; }
         public Contribution? Contribution { get; set; }
 
-        public void Configure([NotNull] EntityTypeBuilder<SchoolImage> builder) => _ = builder.OwnEnumeration<SchoolImage, FileType, byte>(t => t.FileType);
+        public void Configure([NotNull] EntityTypeBuilder<SchoolImage> builder) => _ = builder.OwnEnumeration<SchoolImage, ImageFileType, byte>(t => t.FileType);
     }
 }

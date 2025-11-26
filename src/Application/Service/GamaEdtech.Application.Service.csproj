@@ -1,4 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Content Remove="C:\Users\Farsica\.nuget\packages\select.pdf.netcore\23.1.0\contentFiles\any\any\Select.Html.dep" />
+    <Content Remove="C:\Users\Farsica\.nuget\packages\select.pdf.netcore\23.1.0\contentFiles\any\any\Select.Tools.dep" />
+  </ItemGroup>
 
   <ItemGroup>
     <AssemblyAttribute Include="GamaEdtech.Common.DataAnnotation.InjectableAttribute">
@@ -8,10 +13,11 @@
   <ItemGroup>
     <PackageReference Include="EntityFrameworkCore.Exceptions.SqlServer" />
     <PackageReference Include="Azure.Storage.Blobs" />
-    <PackageReference Include="FreeSpire.Office" />
-    <PackageReference Include="Freeware.Pdf2Png" />
+    <PackageReference Include="Handlebars.Net.Helpers.Humanizer" />
     <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" />
+    <PackageReference Include="SkiaSharp.QrCode" />
+    <PackageReference Include="Spire.Officefor.NETStandard" />
   </ItemGroup>
 
   <ItemGroup>

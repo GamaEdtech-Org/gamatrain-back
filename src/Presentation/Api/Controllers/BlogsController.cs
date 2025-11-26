@@ -90,6 +90,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpGet("posts/random"), Produces<ApiResponse<ListDataSource<PostsResponseViewModel>>>()]
+        public async Task<IActionResult<ListDataSource<PostsResponseViewModel>>> GetRandomPosts([NotNull, FromQuery] RandomPostsRequestViewModel request) => await GetPosts(new()
+        {
+            PagingDto = new()
+            {
+                PageFilter = new() { Skip = 0, Size = request.Size },
+                SortFilter = [new() { SortType = Constants.SortType.Random }],
+            },
+        });
+
         [HttpGet("posts/{postId:long}"), Produces<ApiResponse<PostResponseViewModel>>()]
         public async Task<IActionResult<PostResponseViewModel>> GetPost([FromRoute] long postId)
         {
@@ -128,6 +138,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Name = t.Name,
                             TagType = t.TagType,
                         }),
+                        NextId = result.Data.NextId,
+                        PreviousId = result.Data.PreviousId,
                     }
                 });
             }
