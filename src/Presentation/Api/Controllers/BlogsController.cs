@@ -90,7 +90,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpGet("posts/radom"), Produces<ApiResponse<ListDataSource<PostsResponseViewModel>>>()]
+        [HttpGet("posts/random"), Produces<ApiResponse<ListDataSource<PostsResponseViewModel>>>()]
         public async Task<IActionResult<ListDataSource<PostsResponseViewModel>>> GetRandomPosts([NotNull, FromQuery] RandomPostsRequestViewModel request) => await GetPosts(new()
         {
             PagingDto = new()
