@@ -61,6 +61,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             PhoneNumber = t.PhoneNumber,
                             Enabled = t.Enabled,
                             ReferralId = t.ReferralId,
+                            RegistrationDate = t.RegistrationDate,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
