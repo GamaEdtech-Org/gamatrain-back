@@ -5,6 +5,7 @@ namespace GamaEdtech.Application.Service
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
+    using GamaEdtech.Common.Core.Extensions.Linq;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
@@ -26,6 +27,36 @@ namespace GamaEdtech.Application.Service
         , Lazy<ILogger<PaymentService>> logger, Lazy<IEnumerable<ICryptoCurrencyProvider>> cryptoCurrencyProviders, Lazy<IConfiguration> configuration, Lazy<ITransactionService> transactionService)
         : LocalizableServiceBase<PaymentService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IPaymentService
     {
+        public async Task<ResultData<ListDataSource<PaymentDto>>> GetPaymentsAsync(ListRequestDto<Payment>? requestDto = null)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var result = await uow.GetRepository<Payment>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+                var users = await result.List.Select(t => new PaymentDto
+                {
+                    Id = t.Id,
+                    CreationDate = t.CreationDate,
+                    VerifyDate = t.VerifyDate,
+                    UserId = t.UserId,
+                    FirstName = t.User!.FirstName,
+                    LastName = t.User.LastName,
+                    Currency = t.Currency,
+                    Amount = t.Amount,
+                    Status = t.Status,
+                    SourceWallet = t.SourceWallet,
+                    Comment = t.Comment,
+                    TransactionId = t.TransactionId,
+                }).ToListAsync();
+                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
         public async Task<ResultData<long>> CreatePaymentAsync([NotNull] CreatePaymentRequestDto requestDto)
         {
             try
