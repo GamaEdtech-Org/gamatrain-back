@@ -11,7 +11,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
     using GamaEdtech.Common.Service.Factory;
-    using GamaEdtech.Data.Dto.EmailMarketing;
+    using GamaEdtech.Data.Dto.Email;
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Infrastructure.Interface;
@@ -24,9 +24,9 @@ namespace GamaEdtech.Application.Service
 
     using static GamaEdtech.Common.Core.Constants;
 
-    public class EmailMarketingService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<EmailMarketingService>> localizer
-        , Lazy<ILogger<EmailMarketingService>> logger, Lazy<IGenericFactory<IEmailProvider, EmailProviderType>> genericFactory, Lazy<IConfiguration> configuration)
-        : LocalizableServiceBase<EmailMarketingService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IEmailMarketingService
+    public class EmailService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<EmailService>> localizer
+        , Lazy<ILogger<EmailService>> logger, Lazy<IGenericFactory<IEmailProvider, EmailProviderType>> genericFactory, Lazy<IConfiguration> configuration)
+        : LocalizableServiceBase<EmailService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IEmailService
     {
         private IEmailProvider EmailProvider
         {
@@ -46,6 +46,7 @@ namespace GamaEdtech.Application.Service
 
                 return await EmailProvider.SendEmailAsync(new()
                 {
+                    Sender = requestDto.Sender,
                     Body = requestDto.Body,
                     Subject = requestDto.Subject,
                     Receivers = emails.Concat(requestDto.EmailAddresses ?? []),

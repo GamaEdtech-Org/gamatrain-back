@@ -1,9 +1,18 @@
-namespace GamaEdtech.Presentation.ViewModel.EmailMarketing
+namespace GamaEdtech.Presentation.ViewModel.Email
 {
+    using System.Text.Json.Serialization;
+
+    using GamaEdtech.Common.Converter;
     using GamaEdtech.Common.DataAnnotation;
+    using GamaEdtech.Domain.Enumeration;
 
     public sealed class SendEmailRequestViewModel
     {
+        [Display]
+        [Required]
+        [JsonConverter(typeof(EnumerationConverter<Sender, byte>))]
+        public Sender? Sender { get; set; }
+
         [Display]
         [Required]
         public string? Body { get; set; }

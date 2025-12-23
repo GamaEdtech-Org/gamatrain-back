@@ -6,7 +6,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Data.Dto.EmailMarketing;
+    using GamaEdtech.Data.Dto.Email;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Infrastructure.Interface;
 
@@ -26,13 +26,14 @@ namespace GamaEdtech.Infrastructure.Provider.Email
             try
             {
                 var resend = ResendClient.Create(configuration.Value.GetValue<string>("EmailProvider:Resend:ApiToken")!);
+                var from = configuration.Value.GetValue<string>($"EmailProvider:{requestDto.Sender.ApplicationSettingsName}");
                 var chunks = requestDto.Receivers.Chunk(100);
                 List<string?> errors = [];
                 foreach (var item in chunks)
                 {
                     var response = await resend.EmailBatchAsync(item.Select(t => new EmailMessage
                     {
-                        From = configuration.Value.GetValue<string>("EmailProvider:From")!,
+                        From = from!,
                         HtmlBody = requestDto.Body,
                         Subject = requestDto.Subject,
                         To = EmailAddressList.From(t),
