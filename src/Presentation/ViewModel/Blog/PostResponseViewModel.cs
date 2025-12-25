@@ -19,6 +19,8 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
 
         public Uri? ImageUri { get; set; }
 
+        public Uri? PodcastUri { get; set; }
+
         public int LikeCount { get; set; }
 
         public int DislikeCount { get; set; }

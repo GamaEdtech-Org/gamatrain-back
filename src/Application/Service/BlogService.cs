@@ -91,6 +91,7 @@ namespace GamaEdtech.Application.Service
                     t.Summary,
                     t.Body,
                     t.ImageId,
+                    t.PodcastId,
                     t.LikeCount,
                     t.DislikeCount,
                     t.VisibilityType,
@@ -125,6 +126,7 @@ namespace GamaEdtech.Application.Service
                     Summary = post.Summary,
                     Body = post.Body,
                     ImageUri = fileService.Value.GetFileUri(post.ImageId, ContainerType.Post).Data,
+                    PodcastUri = fileService.Value.GetFileUri(post.PodcastId, ContainerType.Post).Data,
                     LikeCount = post.LikeCount,
                     DislikeCount = post.DislikeCount,
                     CreationUser = post.CreationUser,
@@ -196,12 +198,21 @@ namespace GamaEdtech.Application.Service
                     }
                 }
 
-                var (imageId, errors) = await SaveImageAsync(requestDto.Image);
-                if (errors is not null)
+                var (imageId, imageErrors) = await SaveFileAsync(requestDto.Image);
+                if (imageErrors is not null)
                 {
                     return new(OperationResult.Failed)
                     {
-                        Errors = errors,
+                        Errors = imageErrors,
+                    };
+                }
+
+                var (podcastId, podcastErrors) = await SaveFileAsync(requestDto.Podcast);
+                if (podcastErrors is not null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = podcastErrors,
                     };
                 }
 
@@ -211,6 +222,7 @@ namespace GamaEdtech.Application.Service
                     CreationUserId = requestDto.UserId,
                     Body = requestDto.Body,
                     ImageId = imageId,
+                    PodcastId = podcastId,
                     Summary = requestDto.Summary,
                     Tags = requestDto.Tags,
                     Title = requestDto.Title,
@@ -265,7 +277,7 @@ namespace GamaEdtech.Application.Service
 
                 if (string.IsNullOrEmpty(requestDto.ImageId))
                 {
-                    var (imageId, errors) = await SaveImageAsync(requestDto.Image);
+                    var (imageId, errors) = await SaveFileAsync(requestDto.Image);
                     if (errors is not null)
                     {
                         return new(OperationResult.Failed)
@@ -274,6 +286,19 @@ namespace GamaEdtech.Application.Service
                         };
                     }
                     requestDto.ImageId = imageId;
+                }
+
+                if (string.IsNullOrEmpty(requestDto.PodcastId))
+                {
+                    var (podcastId, errors) = await SaveFileAsync(requestDto.Podcast);
+                    if (errors is not null)
+                    {
+                        return new(OperationResult.Failed)
+                        {
+                            Errors = errors,
+                        };
+                    }
+                    requestDto.PodcastId = podcastId;
                 }
 
                 if (requestDto.Id.HasValue)
@@ -292,6 +317,7 @@ namespace GamaEdtech.Application.Service
                     post.Summary = requestDto.Summary ?? post.Summary;
                     post.Body = requestDto.Body ?? post.Body;
                     post.ImageId = requestDto.ImageId ?? post.ImageId;
+                    post.PodcastId = requestDto.PodcastId ?? post.PodcastId;
                     post.PublishDate = requestDto.PublishDate ?? post.PublishDate;
                     post.VisibilityType = requestDto.VisibilityType ?? post.VisibilityType;
                     post.Keywords = requestDto.Keywords ?? post.Keywords;
@@ -340,6 +366,7 @@ namespace GamaEdtech.Application.Service
                         VisibilityType = requestDto.VisibilityType!,
                         Keywords = requestDto.Keywords,
                         ImageId = requestDto.ImageId,
+                        PodcastId = requestDto.PodcastId,
                         CreationUserId = requestDto.CreationUserId,
                         CreationDate = requestDto.CreationDate,
                     };
@@ -476,6 +503,16 @@ namespace GamaEdtech.Application.Service
                     });
                 }
 
+                if (!string.IsNullOrEmpty(post.PodcastId))
+                {
+                    //remove Podcast
+                    _ = await fileService.Value.RemoveFileAsync(new()
+                    {
+                        ContainerType = ContainerType.Post,
+                        FileId = post.PodcastId,
+                    });
+                }
+
                 return new(OperationResult.Succeeded) { Data = true };
             }
             catch (ReferenceConstraintException)
@@ -528,6 +565,7 @@ namespace GamaEdtech.Application.Service
                         CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
                         CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
                         ImageId = result.Data.Data!.ImageId,
+                        PodcastId = result.Data.Data!.PodcastId,
                         Title = result.Data.Data!.Title,
                         Slug = result.Data.Data!.Slug,
                         Summary = result.Data.Data!.Summary,
@@ -546,6 +584,7 @@ namespace GamaEdtech.Application.Service
                         CreationUserId = result.Data.Data!.CreationUserId.GetValueOrDefault(),
                         CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
                         ImageId = result.Data.Data!.ImageId,
+                        PodcastId = result.Data.Data!.PodcastId,
                         Title = result.Data.Data!.Title,
                         Slug = result.Data.Data!.Slug,
                         Summary = result.Data.Data!.Summary,
@@ -609,7 +648,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        private async Task<(string? ImageId, IEnumerable<Error>? Errors)> SaveImageAsync(IFormFile? file)
+        private async Task<(string? ImageId, IEnumerable<Error>? Errors)> SaveFileAsync(IFormFile? file)
         {
             if (file is null)
             {
