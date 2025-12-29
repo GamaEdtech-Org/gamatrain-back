@@ -1,9 +1,14 @@
-namespace GamaEdtech.Presentation.ViewModel.EmailMarketing
+namespace GamaEdtech.Presentation.ViewModel.Email
 {
     using GamaEdtech.Common.DataAnnotation;
 
     public sealed class SendEmailRequestViewModel
     {
+        [Display]
+        [Required]
+        [EmailAddress]
+        public string? Sender { get; set; }
+
         [Display]
         [Required]
         public string? Body { get; set; }

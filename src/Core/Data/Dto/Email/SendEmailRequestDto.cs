@@ -1,4 +1,4 @@
-namespace GamaEdtech.Data.Dto.EmailMarketing
+namespace GamaEdtech.Data.Dto.Email
 {
     using System.Collections.Generic;
 
@@ -7,6 +7,7 @@ namespace GamaEdtech.Data.Dto.EmailMarketing
         public required int CreationUserId { get; set; }
         public required DateTimeOffset CreationDate { get; set; }
         public required string Body { get; set; }
+        public required string Sender { get; set; }
         public required string Subject { get; set; }
         public required IEnumerable<int> Users { get; set; }
         public IEnumerable<string>? EmailAddresses { get; set; }

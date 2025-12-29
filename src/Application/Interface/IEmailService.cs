@@ -4,10 +4,10 @@ namespace GamaEdtech.Application.Interface
 
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAnnotation;
-    using GamaEdtech.Data.Dto.EmailMarketing;
+    using GamaEdtech.Data.Dto.Email;
 
     [Injectable]
-    public interface IEmailMarketingService
+    public interface IEmailService
     {
         Task<ResultData<Void>> SendEmailAsync([NotNull] SendEmailRequestDto requestDto);
     }

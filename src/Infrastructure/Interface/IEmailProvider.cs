@@ -5,7 +5,7 @@ namespace GamaEdtech.Infrastructure.Interface
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Service.Factory;
-    using GamaEdtech.Data.Dto.EmailMarketing;
+    using GamaEdtech.Data.Dto.Email;
     using GamaEdtech.Domain.Enumeration;
 
     [Injectable]

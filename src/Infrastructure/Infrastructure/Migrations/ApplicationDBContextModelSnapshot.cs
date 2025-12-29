@@ -18,7 +18,7 @@ namespace GamaEdtech.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -994,6 +994,11 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<int>("LikeCount")
                         .HasColumnType("int")
                         .HasColumnName("LikeCount");
+
+                    b.Property<string>("PodcastId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar")
+                        .HasColumnName("PodcastId");
 
                     b.Property<DateTimeOffset>("PublishDate")
                         .HasColumnType("datetimeoffset")

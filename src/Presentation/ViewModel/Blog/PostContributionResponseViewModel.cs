@@ -12,6 +12,7 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public string? Summary { get; set; }
         public string? Body { get; set; }
         public Uri? ImageUri { get; set; }
+        public Uri? PodcastUri { get; set; }
         public string? Keywords { get; set; }
         public long? PostId { get; set; }
 

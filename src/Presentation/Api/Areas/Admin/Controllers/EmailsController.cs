@@ -10,7 +10,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Domain.Enumeration;
-    using GamaEdtech.Presentation.ViewModel.EmailMarketing;
+    using GamaEdtech.Presentation.ViewModel.Email;
 
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Localization;
@@ -19,18 +19,19 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     [Route("api/v{version:apiVersion}/[area]/[controller]")]
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
-    [Display(Name = "Email Marketings")]
-    public class EmailMarketingsController(Lazy<ILogger<EmailMarketingsController>> logger, Lazy<IEmailMarketingService> emailMarketingsService, Lazy<IStringLocalizer<EmailMarketingsController>> localizer)
-        : LocalizableApiControllerBase<EmailMarketingsController>(logger, localizer)
+    [Display(Name = "Emails")]
+    public class EmailsController(Lazy<ILogger<EmailsController>> logger, Lazy<IEmailService> emailService, Lazy<IStringLocalizer<EmailsController>> localizer)
+        : LocalizableApiControllerBase<EmailsController>(logger, localizer)
     {
         [HttpPost, Produces(typeof(ApiResponse<Void>))]
-        [Display(Name = "Create Email Marketing")]
-        public async Task<IActionResult> Create([NotNull] SendEmailRequestViewModel request)
+        [Display(Name = "Send Email")]
+        public async Task<IActionResult> SendEmail([NotNull] SendEmailRequestViewModel request)
         {
             try
             {
-                var result = await emailMarketingsService.Value.SendEmailAsync(new()
+                var result = await emailService.Value.SendEmailAsync(new()
                 {
+                    Sender = request.Sender!,
                     Subject = request.Subject!,
                     Body = request.Body!,
                     Users = request.Users!,

@@ -6,7 +6,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Data.Dto.EmailMarketing;
+    using GamaEdtech.Data.Dto.Email;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Infrastructure.Interface;
 
@@ -32,7 +32,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                 {
                     var response = await resend.EmailBatchAsync(item.Select(t => new EmailMessage
                     {
-                        From = configuration.Value.GetValue<string>("EmailProvider:From")!,
+                        From = requestDto.Sender,
                         HtmlBody = requestDto.Body,
                         Subject = requestDto.Subject,
                         To = EmailAddressList.From(t),
