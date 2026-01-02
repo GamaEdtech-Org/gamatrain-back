@@ -18,6 +18,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.School;
+    using GamaEdtech.Presentation.ViewModel.Board;
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
 
@@ -71,6 +72,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 if (request.HasImage.HasValue)
                 {
                     var specification = new HasImageSpecification(request.HasImage.Value);
+                    baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
+                }
+
+                if (request.Boards is not null)
+                {
+                    var specification = new BoardIdContainsSpecification(request.Boards);
                     baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
                 }
 
@@ -184,6 +191,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Icon = t.Icon,
                             Name = t.Name,
                             TagType = t.TagType,
+                        }),
+                        Boards = result.Data.Boards?.Select(t => new BoardResponseViewModel
+                        {
+                            Id = t.Id,
+                            Icon = t.Icon,
+                            Title = t.Title,
                         }),
                     }
                 });
@@ -582,6 +595,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        Boards = request.Boards,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
                         Description = request.Description,
@@ -631,6 +645,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        Boards = request.Boards,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
                         Description = request.Description,
@@ -680,6 +695,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        Boards = request.Boards,
                         Tuition = request.Tuition,
                         Description = request.Description,
                         Comment = request.Comment is null ? null : new()
@@ -814,6 +830,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     WebSite = dto.WebSite,
                     ZipCode = dto.ZipCode,
                     Tags = dto.Tags,
+                    Boards = dto.Boards,
                     Tuition = dto.Tuition,
                     Description = dto.Description,
                 };

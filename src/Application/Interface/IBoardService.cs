@@ -16,5 +16,6 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<BoardDto>> GetBoardAsync([NotNull] ISpecification<Board> specification);
         Task<ResultData<int>> ManageBoardAsync([NotNull] ManageBoardRequestDto requestDto);
         Task<ResultData<bool>> RemoveBoardAsync([NotNull] ISpecification<Board> specification);
+        Task<ResultData<bool>> FetchCoreBoardsAsync();
     }
 }

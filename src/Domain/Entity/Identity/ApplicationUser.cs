@@ -18,6 +18,8 @@ namespace GamaEdtech.Domain.Entity.Identity
     [Audit((int)Common.Core.Constants.EntityType.ApplicationUser)]
     public class ApplicationUser : IdentityUser<int>, IEntity<ApplicationUser, int>, IEnablable
     {
+        public const int DefaultUserId = 1;
+
         public ApplicationUser()
         {
             UserRoles = [];
@@ -188,7 +190,7 @@ namespace GamaEdtech.Domain.Entity.Identity
             List<ApplicationUser> seedData =
             [
                 // Password: @Admin123
-                new ApplicationUser { Id = 1, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, Gender = GenderType.Male },
+                new ApplicationUser { Id = DefaultUserId, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, Gender = GenderType.Male },
             ];
             _ = builder.HasData(seedData);
         }

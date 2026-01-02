@@ -5,14 +5,17 @@ namespace GamaEdtech.Application.Service
 
     using EntityFramework.Exceptions.Common;
 
+    using GamaEdtech.Application.Interface;
+    using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Core.Extensions.Linq;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
-    using GamaEdtech.Common.Core;
     using GamaEdtech.Data.Dto.Board;
     using GamaEdtech.Domain.Entity;
+    using GamaEdtech.Domain.Entity.Identity;
+    using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -20,10 +23,9 @@ namespace GamaEdtech.Application.Service
     using Microsoft.Extensions.Logging;
 
     using static GamaEdtech.Common.Core.Constants;
-    using GamaEdtech.Application.Interface;
 
     public class BoardService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BoardService>> localizer
-        , Lazy<ILogger<BoardService>> logger)
+        , Lazy<ILogger<BoardService>> logger, Lazy<ICoreProvider> coreProvider)
         : LocalizableServiceBase<BoardService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBoardService
     {
         public async Task<ResultData<ListDataSource<BoardsDto>>> GetBoardsAsync(ListRequestDto<Board>? requestDto = null)
@@ -143,6 +145,41 @@ namespace GamaEdtech.Application.Service
             catch (ReferenceConstraintException)
             {
                 return new(OperationResult.NotValid) { Errors = [new() { Message = Localizer.Value["BoardCantBeRemoved"], },] };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
+            }
+        }
+
+        public async Task<ResultData<bool>> FetchCoreBoardsAsync()
+        {
+            try
+            {
+                var boards = await coreProvider.Value.GetBoardsAsync();
+                if (boards.Data is null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Data = false,
+                        Errors = boards.Errors,
+                    };
+                }
+
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<Board, int>();
+                var lst = await repository.GetManyQueryable().Select(t => t.Title).ToListAsync();
+                var now = DateTimeOffset.UtcNow;
+
+                repository.AddRange(boards.Data.Where(t => !lst.Contains(t)).Select(t => new Board
+                {
+                    Title = t,
+                    CreationDate = now,
+                    CreationUserId = ApplicationUser.DefaultUserId,
+                }));
+                _ = await uow.SaveChangesAsync();
+                return new(OperationResult.Succeeded) { Data = true };
             }
             catch (Exception exc)
             {

@@ -21,6 +21,7 @@ namespace GamaEdtech.Data.Dto.School
         public string? Email { get; set; }
         public string? Quarter { get; set; }
         public IEnumerable<long>? Tags { get; set; }
+        public IEnumerable<int>? Boards { get; set; }
         public long? DefaultImageId { get; set; }
         public decimal? Tuition { get; set; }
         public string? Description { get; set; }

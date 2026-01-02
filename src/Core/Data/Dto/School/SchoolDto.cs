@@ -2,6 +2,7 @@ namespace GamaEdtech.Data.Dto.School
 {
     using System.Collections.Generic;
 
+    using GamaEdtech.Data.Dto.Board;
     using GamaEdtech.Data.Dto.Tag;
     using GamaEdtech.Domain.Enumeration;
 
@@ -32,6 +33,7 @@ namespace GamaEdtech.Data.Dto.School
         public decimal? Tuition { get; set; }
         public Uri? DefaultImageUri { get; set; }
         public IEnumerable<TagDto>? Tags { get; set; }
+        public IEnumerable<BoardDto>? Boards { get; set; }
         public string? Description { get; set; }
         public long ViewCount { get; set; }
     }
