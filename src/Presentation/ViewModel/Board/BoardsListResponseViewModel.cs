@@ -1,10 +1,8 @@
 namespace GamaEdtech.Presentation.ViewModel.Board
 {
-    public sealed class BoardsResponseViewModel
+    public sealed class BoardsListResponseViewModel
     {
-        public int Id { get; set; }
         public int? Code { get; set; }
         public string? Title { get; set; }
-        public string? Icon { get; set; }
     }
 }

@@ -19,6 +19,9 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public int Id { get; set; }
 
+        [Column(nameof(Code), DataType.Int)]
+        public int? Code { get; set; }
+
         [Column(nameof(Title), DataType.UnicodeString)]
         [StringLength(50)]
         [Required]
@@ -31,8 +34,6 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(Icon), DataType.UnicodeMaxString)]
         public string? Icon { get; set; }
 
-        public void Configure([NotNull] EntityTypeBuilder<Board> builder)
-        {
-        }
+        public void Configure([NotNull] EntityTypeBuilder<Board> builder) => _ = builder.HasIndex(t => t.Code).IsUnique(true);
     }
 }

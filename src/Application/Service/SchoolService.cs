@@ -41,7 +41,7 @@ namespace GamaEdtech.Application.Service
 
     public class SchoolService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer
         , Lazy<ILogger<FileService>> logger, Lazy<IFileService> fileService, Lazy<IContributionService> contributionService, Lazy<IIdentityService> identityService
-        , Lazy<IConfiguration> configuration, Lazy<ITagService> tagService, Lazy<IReactionService> reactionService, Lazy<ILocationService> locationService)
+        , Lazy<IConfiguration> configuration, Lazy<ITagService> tagService, Lazy<IReactionService> reactionService, Lazy<ILocationService> locationService, Lazy<IBoardService> boardService)
         : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ISchoolService
     {
         #region Schools
@@ -224,6 +224,7 @@ namespace GamaEdtech.Application.Service
                     Boards = t.SchoolBoards.Select(s => new BoardDto
                     {
                         Id = s.BoardId,
+                        Code = s.Board.Code,
                         Icon = s.Board.Icon,
                         Title = s.Board.Title,
                     }),
@@ -300,7 +301,7 @@ namespace GamaEdtech.Application.Service
 
                 if (requestDto.Id.HasValue)
                 {
-                    school = await repository.GetAsync(requestDto.Id.Value, includes: (t) => t.Include(s => s.SchoolTags));
+                    school = await repository.GetAsync(requestDto.Id.Value, includes: (t) => t.Include(s => s.SchoolTags).Include(s => s.SchoolBoards));
                     if (school is null)
                     {
                         return new(OperationResult.NotFound)
@@ -362,12 +363,12 @@ namespace GamaEdtech.Application.Service
                         }
                     }
 
-                    if (requestDto.Boards?.Any() == true)
+                    if (requestDto.BoardCodes?.Any() == true)
                     {
                         var schoolBoardRepository = uow.GetRepository<SchoolBoard>();
 
-                        var removedBoards = school.SchoolBoards?.Where(t => requestDto.Boards is null || !requestDto.Boards.Contains(t.BoardId));
-                        var newBoards = requestDto.Boards?.Where(t => school.SchoolBoards is null || school.SchoolBoards.All(s => s.BoardId != t));
+                        var removedBoards = school.SchoolBoards?.Where(t => requestDto.BoardCodes is null || !requestDto.BoardCodes.Contains(t.Board.Code));
+                        var newBoards = requestDto.BoardCodes?.Where(t => school.SchoolBoards is null || school.SchoolBoards.All(s => s.Board.Code != t));
 
                         if (removedBoards is not null)
                         {
@@ -379,12 +380,27 @@ namespace GamaEdtech.Application.Service
 
                         if (newBoards is not null)
                         {
+                            var boards = await boardService.Value.GetBoardsAsync(null);
+                            if (boards.Data.List is null)
+                            {
+                                return new(OperationResult.NotFound)
+                                {
+                                    Errors = [new() { Message = Localizer.Value["BoardsNotFound"] },],
+                                };
+                            }
+
                             foreach (var item in newBoards)
                             {
+                                var boardId = boards.Data.List.FirstOrDefault(t => t.Code == item)?.Id;
+                                if (!boardId.HasValue)
+                                {
+                                    continue;
+                                }
+
                                 schoolBoardRepository.Add(new SchoolBoard
                                 {
                                     SchoolId = requestDto.Id.Value,
-                                    BoardId = item,
+                                    BoardId = boardId.Value,
                                     CreationDate = requestDto.Date,
                                     CreationUserId = requestDto.UserId,
                                 });
@@ -423,10 +439,19 @@ namespace GamaEdtech.Application.Service
                             CreationDate=requestDto.Date,
                         })];
                     }
-                    if (requestDto.Boards is not null)
+                    if (requestDto.BoardCodes is not null)
                     {
-                        school.SchoolBoards = [.. requestDto.Boards.Select(t => new SchoolBoard {
-                            BoardId = t,
+                        var boards = await boardService.Value.GetBoardsAsync(null);
+                        if (boards.Data.List is null)
+                        {
+                            return new(OperationResult.NotFound)
+                            {
+                                Errors = [new() { Message = Localizer.Value["BoardsNotFound"] },],
+                            };
+                        }
+
+                        school.SchoolBoards = [.. requestDto.BoardCodes.Select(t => new SchoolBoard {
+                            BoardId = boards.Data.List.FirstOrDefault(b => b.Code == t)!.Id,
                             CreationUserId=requestDto.UserId,
                             CreationDate=requestDto.Date,
                         })];
@@ -1371,7 +1396,7 @@ namespace GamaEdtech.Application.Service
                     ZipCode = contributionResult.Data.Data.ZipCode,
                     Id = requestDto.SchoolId,
                     Tags = contributionResult.Data.Data!.Tags,
-                    Boards = contributionResult.Data.Data!.Boards,
+                    BoardCodes = contributionResult.Data.Data!.BoardCodes,
                     UserId = contributionResult.Data.CreationUserId,
                     Date = contributionResult.Data.CreationDate,
                     Tuition = contributionResult.Data.Data.Tuition,

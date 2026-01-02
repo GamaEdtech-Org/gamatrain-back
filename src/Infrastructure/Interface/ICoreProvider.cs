@@ -14,6 +14,6 @@ namespace GamaEdtech.Infrastructure.Interface
         Task<ResultData<ExamResultResponseDto>> GetExamResultAsync([NotNull] ExamResultRequestDto requestDto);
         Task<ResultData<ExamInformationResponseDto>> GetExamInformationAsync([NotNull] ExamInformationRequestDto requestDto);
         Task<ResultData<UserInformationResponseDto>> GetUserInformationAsync([NotNull] UserInformationRequestDto requestDto);
-        Task<ResultData<IEnumerable<string?>>> GetBoardsAsync();
+        Task<ResultData<IEnumerable<KeyValuePair<int, string?>>>> GetBoardsAsync();
     }
 }

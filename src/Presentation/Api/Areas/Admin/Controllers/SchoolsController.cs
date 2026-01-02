@@ -121,7 +121,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Quarter = request.Quarter,
                     OsmId = request.OsmId,
                     Tags = request.Tags,
-                    Boards = request.Boards,
+                    BoardCodes = request.BoardCodes,
                     Tuition = request.Tuition,
                     Description = request.Description,
                     UserId = User.UserId(),
@@ -175,7 +175,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Quarter = request.Quarter,
                     OsmId = request.OsmId,
                     Tags = request.Tags,
-                    Boards = request.Boards,
+                    BoardCodes = request.BoardCodes,
                     Tuition = request.Tuition,
                     Description = request.Description,
                     UserId = User.UserId(),
@@ -992,11 +992,10 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 Icon = t.Icon,
                 Id = t.Id,
             }),
-            Boards = dto.Boards?.Select(t => new BoardResponseViewModel
+            Boards = dto.Boards?.Select(t => new BoardsListResponseViewModel
             {
                 Title = t.Title,
-                Icon = t.Icon,
-                Id = t.Id,
+                Code = t.Code,
             }),
         };
     }

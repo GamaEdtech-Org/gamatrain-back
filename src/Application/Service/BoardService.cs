@@ -2,6 +2,7 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
 
     using EntityFramework.Exceptions.Common;
 
@@ -34,13 +35,33 @@ namespace GamaEdtech.Application.Service
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var result = await uow.GetRepository<Board, int>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
-                var users = await result.List.Select(t => new BoardsDto
+                var lst = await result.List.Select(t => new BoardsDto
                 {
                     Id = t.Id,
+                    Code = t.Code,
                     Title = t.Title,
                     Icon = t.Icon,
                 }).ToListAsync();
-                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+                return new(OperationResult.Succeeded) { Data = new() { List = lst, TotalRecordsCount = result.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<List<BoardsDto>>> GetBoardsListAsync()
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var lst = await uow.GetRepository<Board, int>().GetManyQueryable().Select(t => new BoardsDto
+                {
+                    Code = t.Code,
+                    Title = t.Title,
+                }).ToListAsync();
+                return new(OperationResult.Succeeded) { Data = lst };
             }
             catch (Exception exc)
             {
@@ -57,6 +78,7 @@ namespace GamaEdtech.Application.Service
                 var board = await uow.GetRepository<Board, int>().GetManyQueryable(specification).Select(t => new BoardDto
                 {
                     Id = t.Id,
+                    Code = t.Code,
                     Title = t.Title,
                     Description = t.Description,
                     Icon = t.Icon,
@@ -96,6 +118,7 @@ namespace GamaEdtech.Application.Service
                     }
 
                     board.Title = requestDto.Title ?? board.Title;
+                    board.Code = requestDto.Code ?? board.Code;
                     board.Description = requestDto.Description ?? board.Description;
                     board.Icon = requestDto.Icon ?? board.Icon;
 
@@ -105,6 +128,7 @@ namespace GamaEdtech.Application.Service
                 {
                     board = new Board
                     {
+                        Code = requestDto.Code,
                         Title = requestDto.Title,
                         Description = requestDto.Description,
                         Icon = requestDto.Icon,
@@ -153,7 +177,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<bool>> FetchCoreBoardsAsync()
+        public async Task<ResultData<bool>> SyncCoreBoardsAsync()
         {
             try
             {
@@ -169,12 +193,13 @@ namespace GamaEdtech.Application.Service
 
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<Board, int>();
-                var lst = await repository.GetManyQueryable().Select(t => t.Title).ToListAsync();
+                var lst = await repository.GetManyQueryable().Select(t => t.Code).ToListAsync();
                 var now = DateTimeOffset.UtcNow;
 
-                repository.AddRange(boards.Data.Where(t => !lst.Contains(t)).Select(t => new Board
+                repository.AddRange(boards.Data.Where(t => !lst.Contains(t.Key)).Select(t => new Board
                 {
-                    Title = t,
+                    Title = t.Value,
+                    Code = t.Key,
                     CreationDate = now,
                     CreationUserId = ApplicationUser.DefaultUserId,
                 }));

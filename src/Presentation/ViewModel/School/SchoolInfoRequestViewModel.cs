@@ -33,6 +33,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
         public RangeViewModel<decimal>? Tuition { get; set; }
 
         [Display]
-        public IEnumerable<int>? Boards { get; set; }
+        public IEnumerable<int?>? BoardCodes { get; set; }
     }
 }
