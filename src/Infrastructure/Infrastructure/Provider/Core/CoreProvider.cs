@@ -29,7 +29,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
         {
             try
             {
-                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreTestInformationResponse, IHttpRequest>(new()
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreResponse<CoreTestInformationResponse>, IHttpRequest>(new()
                 {
                     Uri = string.Format(configuration.Value.GetValue<string>("Core:Test")!, requestDto.TestId),
                     Request = null,
@@ -61,7 +61,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
         {
             try
             {
-                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreExamResultResponse, IHttpRequest>(new()
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreResponse<CoreExamResultResponse>, IHttpRequest>(new()
                 {
                     Uri = string.Format(configuration.Value.GetValue<string>("Core:ExamResult")!, requestDto.ExamId),
                     Request = null,
@@ -101,7 +101,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
         {
             try
             {
-                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreExamInformationResponse, IHttpRequest>(new()
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreResponse<CoreExamInformationResponse>, IHttpRequest>(new()
                 {
                     Uri = string.Format(configuration.Value.GetValue<string>("Core:ExamInfo")!, requestDto.ExamId),
                     Request = null,
@@ -164,7 +164,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
         {
             try
             {
-                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreUserInformationResponse, IHttpRequest>(new()
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreResponse<CoreUserInformationResponse>, IHttpRequest>(new()
                 {
                     Uri = configuration.Value.GetValue<string>("Core:UserInfo"),
                     Request = null,
@@ -213,6 +213,34 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     "1" => GenderType.Male,
                     "2" => GenderType.Female,
                     _ => null,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<IEnumerable<string?>>> GetBoardsAsync()
+        {
+            try
+            {
+                var response = await HttpProvider.Value.GetAsync<IHttpRequest, CoreResponse<List<CoreBoardResponse>>, IHttpRequest>(new()
+                {
+                    Uri = configuration.Value.GetValue<string>("Core:Boards"),
+                    Request = null,
+                });
+
+                if (response?.Data is null)
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["GeneralError"], }] };
+                }
+
+                var data = response.Data.Select(t => t.Title);
+                return new(OperationResult.Succeeded)
+                {
+                    Data = data,
                 };
             }
             catch (Exception exc)

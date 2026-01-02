@@ -106,6 +106,7 @@ namespace GamaEdtech.Domain.Entity
         public virtual ICollection<SchoolComment> SchoolComments { get; set; } = [];
         public virtual ICollection<SchoolTag> SchoolTags { get; set; } = [];
         public virtual ICollection<SchoolImage> SchoolImages { get; set; } = [];
+        public virtual ICollection<SchoolBoard> SchoolBoards { get; set; } = [];
 
         public void Configure([NotNull] EntityTypeBuilder<School> builder)
         {

@@ -28,6 +28,7 @@ namespace GamaEdtech.Data.Dto.School
         public long? OsmId { get; set; }
         public decimal? Tuition { get; set; }
         public IEnumerable<long>? Tags { get; set; }
+        public IEnumerable<int>? Boards { get; set; }
         public int UserId { get; set; }
         public DateTimeOffset Date { get; set; }
         public long? DefaultImageId { get; set; }

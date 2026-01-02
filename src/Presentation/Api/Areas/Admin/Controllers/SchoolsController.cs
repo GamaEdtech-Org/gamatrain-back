@@ -19,6 +19,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Domain.Specification.School;
+    using GamaEdtech.Presentation.ViewModel.Board;
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
 
@@ -120,6 +121,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Quarter = request.Quarter,
                     OsmId = request.OsmId,
                     Tags = request.Tags,
+                    Boards = request.Boards,
                     Tuition = request.Tuition,
                     Description = request.Description,
                     UserId = User.UserId(),
@@ -173,6 +175,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Quarter = request.Quarter,
                     OsmId = request.OsmId,
                     Tags = request.Tags,
+                    Boards = request.Boards,
                     Tuition = request.Tuition,
                     Description = request.Description,
                     UserId = User.UserId(),
@@ -986,6 +989,12 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 TagType = t.TagType,
                 Name = t.Name,
+                Icon = t.Icon,
+                Id = t.Id,
+            }),
+            Boards = dto.Boards?.Select(t => new BoardResponseViewModel
+            {
+                Title = t.Title,
                 Icon = t.Icon,
                 Id = t.Id,
             }),

@@ -14,6 +14,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.Board;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.School;
     using GamaEdtech.Data.Dto.Tag;
@@ -220,6 +221,12 @@ namespace GamaEdtech.Application.Service
                         Name = s.Tag.Name,
                         TagType = s.Tag.TagType,
                     }),
+                    Boards = t.SchoolBoards.Select(s => new BoardDto
+                    {
+                        Id = s.BoardId,
+                        Icon = s.Board.Icon,
+                        Title = s.Board.Title,
+                    }),
                 }).FirstOrDefaultAsync();
                 if (school is null)
                 {
@@ -254,6 +261,7 @@ namespace GamaEdtech.Application.Service
                     Tuition = school.Tuition,
                     DefaultImageUri = fileService.Value.GetFileUri(school.DefaultImageId, ContainerType.School).Data,
                     Tags = school.Tags,
+                    Boards = school.Boards,
                     Description = school.Description,
                     ViewCount = school.ViewCount,
                 };
@@ -353,6 +361,36 @@ namespace GamaEdtech.Application.Service
                             }
                         }
                     }
+
+                    if (requestDto.Boards?.Any() == true)
+                    {
+                        var schoolBoardRepository = uow.GetRepository<SchoolBoard>();
+
+                        var removedBoards = school.SchoolBoards?.Where(t => requestDto.Boards is null || !requestDto.Boards.Contains(t.BoardId));
+                        var newBoards = requestDto.Boards?.Where(t => school.SchoolBoards is null || school.SchoolBoards.All(s => s.BoardId != t));
+
+                        if (removedBoards is not null)
+                        {
+                            foreach (var item in removedBoards)
+                            {
+                                schoolBoardRepository.Remove(item);
+                            }
+                        }
+
+                        if (newBoards is not null)
+                        {
+                            foreach (var item in newBoards)
+                            {
+                                schoolBoardRepository.Add(new SchoolBoard
+                                {
+                                    SchoolId = requestDto.Id.Value,
+                                    BoardId = item,
+                                    CreationDate = requestDto.Date,
+                                    CreationUserId = requestDto.UserId,
+                                });
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -381,6 +419,14 @@ namespace GamaEdtech.Application.Service
                     {
                         school.SchoolTags = [.. requestDto.Tags.Select(t => new SchoolTag {
                             TagId = t,
+                            CreationUserId=requestDto.UserId,
+                            CreationDate=requestDto.Date,
+                        })];
+                    }
+                    if (requestDto.Boards is not null)
+                    {
+                        school.SchoolBoards = [.. requestDto.Boards.Select(t => new SchoolBoard {
+                            BoardId = t,
                             CreationUserId=requestDto.UserId,
                             CreationDate=requestDto.Date,
                         })];
@@ -1325,6 +1371,7 @@ namespace GamaEdtech.Application.Service
                     ZipCode = contributionResult.Data.Data.ZipCode,
                     Id = requestDto.SchoolId,
                     Tags = contributionResult.Data.Data!.Tags,
+                    Boards = contributionResult.Data.Data!.Boards,
                     UserId = contributionResult.Data.CreationUserId,
                     Date = contributionResult.Data.CreationDate,
                     Tuition = contributionResult.Data.Data.Tuition,
