@@ -41,6 +41,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         PostContributionPoints = result.Data.PostContributionPoints,
                         SchoolIssuesContributionPoints = result.Data.SchoolIssuesContributionPoints,
                         RemoveSchoolImageContributionPoints = result.Data.RemoveSchoolImageContributionPoints,
+                        EasterEggBronzePoints = result.Data.EasterEggBronzePoints,
+                        EasterEggSilverPoints = result.Data.EasterEggSilverPoints,
+                        EasterEggGoldPoints = result.Data.EasterEggGoldPoints,
+                        TestTimeCorrectSubmissionPoints = result.Data.TestTimeCorrectSubmissionPoints,
+                        TestTimeIncorrectSubmissionPoints = result.Data.TestTimeIncorrectSubmissionPoints,
+                        ExamCorrectTestSubmissionPoints = result.Data.ExamCorrectTestSubmissionPoints,
+                        ExamIncorrectTestSubmissionPoints = result.Data.ExamIncorrectTestSubmissionPoints,
                     }
                 });
             }
@@ -68,6 +75,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     PostContributionPoints = request.PostContributionPoints,
                     SchoolIssuesContributionPoints = request.SchoolIssuesContributionPoints,
                     RemoveSchoolImageContributionPoints = request.RemoveSchoolImageContributionPoints,
+                    EasterEggBronzePoints = request.EasterEggBronzePoints,
+                    EasterEggSilverPoints = request.EasterEggSilverPoints,
+                    EasterEggGoldPoints = request.EasterEggGoldPoints,
+                    TestTimeCorrectSubmissionPoints = request.TestTimeCorrectSubmissionPoints,
+                    TestTimeIncorrectSubmissionPoints = request.TestTimeIncorrectSubmissionPoints,
+                    ExamCorrectTestSubmissionPoints = request.ExamCorrectTestSubmissionPoints,
+                    ExamIncorrectTestSubmissionPoints = request.ExamIncorrectTestSubmissionPoints,
                 });
                 return Ok<bool>(new(result.Errors) { Data = result.Data });
             }
