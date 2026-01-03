@@ -1,13 +1,10 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
-    using System.Diagnostics.CodeAnalysis;
-
     using Asp.Versioning;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Domain.Entity;
     using GamaEdtech.Presentation.ViewModel.Board;
 
     using Microsoft.AspNetCore.Mvc;
@@ -17,34 +14,28 @@ namespace GamaEdtech.Presentation.Api.Controllers
     public class BoardsController(Lazy<ILogger<BoardsController>> logger, Lazy<IBoardService> boardService)
         : ApiControllerBase<BoardsController>(logger)
     {
-        [HttpGet, Produces<ApiResponse<ListDataSource<BoardsResponseViewModel>>>()]
-        public async Task<IActionResult<ListDataSource<BoardsResponseViewModel>>> GetBoards([NotNull, FromQuery] BoardsRequestViewModel request)
+        [HttpGet, Produces<ApiResponse<IEnumerable<BoardsListResponseViewModel>>>()]
+        public async Task<IActionResult<IEnumerable<BoardsListResponseViewModel>>> GetBoards()
         {
             try
             {
-                var result = await boardService.Value.GetBoardsAsync(new ListRequestDto<Board>
+                var result = await boardService.Value.GetBoardsListAsync();
+                return Ok<IEnumerable<BoardsListResponseViewModel>>(new(result.Errors)
                 {
-                    PagingDto = request.PagingDto,
-                });
-                return Ok<ListDataSource<BoardsResponseViewModel>>(new(result.Errors)
-                {
-                    Data = result.Data.List is null ? new() : new()
+                    Data = result.Data is null
+                    ? []
+                    : result.Data.Select(t => new BoardsListResponseViewModel
                     {
-                        List = result.Data.List.Select(t => new BoardsResponseViewModel
-                        {
-                            Id = t.Id,
-                            Title = t.Title,
-                            Icon = t.Icon,
-                        }),
-                        TotalRecordsCount = result.Data.TotalRecordsCount,
-                    }
+                        Code = t.Code,
+                        Title = t.Title,
+                    }),
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<ListDataSource<BoardsResponseViewModel>>(new(new Error { Message = exc.Message }));
+                return Ok<IEnumerable<BoardsListResponseViewModel>>(new(new Error { Message = exc.Message }));
             }
         }
     }

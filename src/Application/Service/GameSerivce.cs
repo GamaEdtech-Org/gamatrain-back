@@ -11,6 +11,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Game;
     using GamaEdtech.Data.Dto.Transaction;
     using GamaEdtech.Domain.Entity;
@@ -25,7 +26,7 @@ namespace GamaEdtech.Application.Service
 
     public class GameService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor,
         Lazy<IStringLocalizer<GameService>> localizer, Lazy<ILogger<GameService>> logger, Lazy<ITransactionService> transactionService
-        , Lazy<ICacheProvider> cacheProvider, Lazy<ICoreProvider> coreProvider)
+        , Lazy<ICacheProvider> cacheProvider, Lazy<ICoreProvider> coreProvider, Lazy<IApplicationSettingsService> applicationSettingsService)
         : LocalizableServiceBase<GameService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IGameService
     {
         private const string Prefix = "COIN_";
@@ -86,18 +87,28 @@ namespace GamaEdtech.Application.Service
                 }
 
                 await cacheProvider.Value.RemoveAsync(key);
-                var transactionRequest = new CreateTransactionRequestDto
-                {
-                    UserId = requestDto.UserId,
-                    Points = EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).Points,
-                    Description = "the Easter Egg game.",
-                };
-                var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
 
-                return new(result.OperationResult)
+                var points = await applicationSettingsService.Value.GetSettingAsync<long>(EnumerationExtensions.ToEnumeration<CoinType, byte>(coin.Name).ApplicationSettingsName);
+                if (points.Data > 0)
                 {
-                    Errors = result.Errors,
-                    Data = result.Data > 0 ? transactionRequest.Points : 0,
+                    var transactionRequest = new CreateTransactionRequestDto
+                    {
+                        UserId = requestDto.UserId,
+                        Points = points.Data,
+                        Description = "the Easter Egg game.",
+                    };
+                    var result = await transactionService.Value.IncreaseBalanceAsync(transactionRequest);
+
+                    return new(result.OperationResult)
+                    {
+                        Errors = result.Errors,
+                        Data = result.Data > 0 ? transactionRequest.Points : 0,
+                    };
+                }
+
+                return new(OperationResult.Succeeded)
+                {
+                    Data = 0,
                 };
             }
             catch (Exception exc)
@@ -174,22 +185,37 @@ namespace GamaEdtech.Application.Service
                 repository.Add(testSubmission);
                 _ = await uow.SaveChangesAsync();
 
-                const long points = 10;
-                _ = valid.Data
-                    ? await transactionService.Value.IncreaseBalanceAsync(new()
+                var points = 0L;
+                if (valid.Data)
+                {
+                    var pointsValue = await applicationSettingsService.Value.GetSettingAsync<long>(nameof(ApplicationSettingsDto.TestTimeCorrectSubmissionPoints));
+                    if (pointsValue.Data > 0)
                     {
-                        UserId = requestDto.UserId,
-                        Points = points,
-                        Description = "TestTime Correct Submission",
-                        IdentifierId = testSubmission.Id,
-                    })
-                    : await transactionService.Value.DecreaseBalanceAsync(new()
+                        points = pointsValue.Data;
+                        _ = await transactionService.Value.IncreaseBalanceAsync(new()
+                        {
+                            UserId = requestDto.UserId,
+                            Points = points,
+                            Description = "TestTime Correct Submission",
+                            IdentifierId = testSubmission.Id,
+                        });
+                    }
+                }
+                else
+                {
+                    var pointsValue = await applicationSettingsService.Value.GetSettingAsync<long>(nameof(ApplicationSettingsDto.TestTimeIncorrectSubmissionPoints));
+                    points = Math.Abs(pointsValue.Data);
+                    if (points > 0)
                     {
-                        UserId = requestDto.UserId,
-                        Points = points,
-                        Description = "TestTime Incorrect Submission",
-                        IdentifierId = testSubmission.Id,
-                    });
+                        _ = await transactionService.Value.DecreaseBalanceAsync(new()
+                        {
+                            UserId = requestDto.UserId,
+                            Points = points,
+                            Description = "TestTime Incorrect Submission",
+                            IdentifierId = testSubmission.Id,
+                        });
+                    }
+                }
 
                 trn.Complete();
                 return new(OperationResult.Succeeded)
@@ -244,9 +270,10 @@ namespace GamaEdtech.Application.Service
                 repository.Add(examSubmission);
                 _ = await uow.SaveChangesAsync();
 
-                const long points = 1000;
+                var correctPointsValue = await applicationSettingsService.Value.GetSettingAsync<long>(nameof(ApplicationSettingsDto.ExamCorrectTestSubmissionPoints));
+                var incorrectPointsValue = await applicationSettingsService.Value.GetSettingAsync<long>(nameof(ApplicationSettingsDto.ExamIncorrectTestSubmissionPoints));
 
-                var total = (result.Data.Valid * points) - (result.Data.Invalid * points / 3);
+                var total = (result.Data.Valid * correctPointsValue.Data) - (result.Data.Invalid * Math.Abs(incorrectPointsValue.Data) / 3);
 
                 _ = total > 0
                     ? await transactionService.Value.IncreaseBalanceAsync(new()

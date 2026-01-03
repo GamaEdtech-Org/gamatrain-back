@@ -222,7 +222,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
             }
         }
 
-        public async Task<ResultData<IEnumerable<string?>>> GetBoardsAsync()
+        public async Task<ResultData<IEnumerable<KeyValuePair<int, string?>>>> GetBoardsAsync()
         {
             try
             {
@@ -237,7 +237,7 @@ namespace GamaEdtech.Infrastructure.Provider.Core
                     return new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["GeneralError"], }] };
                 }
 
-                var data = response.Data.Select(t => t.Title);
+                var data = response.Data.Select(t => new KeyValuePair<int, string?>(t.Id.ValueOf<int>(), t.Title));
                 return new(OperationResult.Succeeded)
                 {
                     Data = data,
