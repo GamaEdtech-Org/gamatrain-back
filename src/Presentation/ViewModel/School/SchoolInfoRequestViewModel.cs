@@ -31,5 +31,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         public RangeViewModel<decimal>? Tuition { get; set; }
+
+        [Display]
+        public IEnumerable<int?>? BoardCodes { get; set; }
     }
 }

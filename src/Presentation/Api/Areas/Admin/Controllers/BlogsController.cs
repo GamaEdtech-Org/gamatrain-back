@@ -88,6 +88,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Summary = contributionResult.Data.Data!.Summary,
                     Body = contributionResult.Data.Data!.Body,
                     ImageUri = fileService.Value.GetFileUri(contributionResult.Data.Data!.ImageId, ContainerType.Post).Data,
+                    PodcastUri = fileService.Value.GetFileUri(contributionResult.Data.Data!.PodcastId, ContainerType.Post).Data,
                     Tags = contributionResult.Data.Data!.Tags,
                     PublishDate = contributionResult.Data.Data!.PublishDate.GetValueOrDefault(),
                     VisibilityType = contributionResult.Data.Data!.VisibilityType!,
@@ -155,7 +156,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPut("posts/{postId:long}"), Produces<ApiResponse<ManagePostResponseViewModel>>()]
-        public async Task<IActionResult<ManagePostResponseViewModel>> UpdatePost([FromRoute] long postId, [NotNull, FromBody] UpdatePostRequestViewModel request)
+        public async Task<IActionResult<ManagePostResponseViewModel>> UpdatePost([FromRoute] long postId, [NotNull, FromForm] UpdatePostRequestViewModel request)
         {
             try
             {
@@ -164,6 +165,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Id = postId,
                     Body = request.Body,
                     Image = request.Image,
+                    Podcast = request.Podcast,
                     Keywords = request.Keywords,
                     PublishDate = request.PublishDate,
                     Slug = request.Slug,

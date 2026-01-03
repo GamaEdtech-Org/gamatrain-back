@@ -34,6 +34,11 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public IFormFile? Image { get; set; }
 
         [Display]
+        [FileSize(1024 * 1024 * 10)]//10MB
+        [FileExtensions("mp3")]
+        public IFormFile? Podcast { get; set; }
+
+        [Display]
         [Required]
         [JsonConverter(typeof(EnumerationConverter<VisibilityType, byte>))]
         public VisibilityType? VisibilityType { get; set; }

@@ -7,9 +7,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Common.Data.Enumeration;
-    using GamaEdtech.Domain.Enumeration;
-    using GamaEdtech.Infrastructure.Interface;
     using GamaEdtech.Presentation.ViewModel.Contact;
 
     using Microsoft.AspNetCore.Mvc;
@@ -17,7 +14,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class ContactsController(Lazy<ILogger<ContactsController>> logger, Lazy<IContactService> contactService
-        , Lazy<IEnumerable<ICaptchaProvider>> captchaProviders, Lazy<IConfiguration> configuration)
+        , Lazy<IGlobalService> globalService)
         : ApiControllerBase<ContactsController>(logger)
     {
         [HttpPost, Produces<ApiResponse<ManageContactResponseViewModel>>()]
@@ -25,8 +22,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                _ = configuration.Value.GetValue<string?>("Captcha:Type").TryGetFromNameOrValue<CaptchaProviderType, byte>(out var captchaProviderType);
-                var validateCaptcha = await captchaProviders.Value.FirstOrDefault(t => t.ProviderType == captchaProviderType)!.VerifyCaptchaAsync(request.Captcha);
+                var validateCaptcha = await globalService.Value.VerifyCaptchaAsync(request.Captcha);
                 if (!validateCaptcha.Data)
                 {
                     return Ok<ManageContactResponseViewModel>(new(new Error { Message = "Invalid Captcha" }));

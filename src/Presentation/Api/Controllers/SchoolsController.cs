@@ -18,6 +18,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.School;
+    using GamaEdtech.Presentation.ViewModel.Board;
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
 
@@ -30,7 +31,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class SchoolsController(Lazy<ILogger<SchoolsController>> logger, Lazy<ISchoolService> schoolService
-        , Lazy<IContributionService> contributionService)
+        , Lazy<IContributionService> contributionService, Lazy<IGlobalService> globalService)
         : ApiControllerBase<SchoolsController>(logger)
     {
         [HttpGet, Produces<ApiResponse<ListDataSource<SchoolInfoResponseViewModel>>>()]
@@ -71,6 +72,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 if (request.HasImage.HasValue)
                 {
                     var specification = new HasImageSpecification(request.HasImage.Value);
+                    baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
+                }
+
+                if (request.BoardCodes is not null)
+                {
+                    var specification = new BoardCodeContainsSpecification(request.BoardCodes);
                     baseSpecification = baseSpecification is null ? specification : baseSpecification.And(specification);
                 }
 
@@ -185,6 +192,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Name = t.Name,
                             TagType = t.TagType,
                         }),
+                        Boards = result.Data.Boards?.Select(t => new BoardsListResponseViewModel
+                        {
+                            Code = t.Code,
+                            Title = t.Title,
+                        }),
                     }
                 });
             }
@@ -273,6 +285,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
+                var validateCaptcha = await globalService.Value.VerifyCaptchaAsync(request.Captcha);
+                if (!validateCaptcha.Data)
+                {
+                    return Ok<ManageSchoolCommentResponseViewModel>(new(new Error { Message = "Invalid Captcha" }));
+                }
+
                 var result = await schoolService.Value.CreateSchoolCommentContributionAsync(new()
                 {
                     UserId = User.UserId(),
@@ -582,6 +600,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        BoardCodes = request.BoardCodes,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
                         Description = request.Description,
@@ -631,6 +650,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        BoardCodes = request.BoardCodes,
                         DefaultImageId = request.DefaultImageId,
                         Tuition = request.Tuition,
                         Description = request.Description,
@@ -680,6 +700,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         WebSite = request.WebSite,
                         ZipCode = request.ZipCode,
                         Tags = request.Tags,
+                        BoardCodes = request.BoardCodes,
                         Tuition = request.Tuition,
                         Description = request.Description,
                         Comment = request.Comment is null ? null : new()
@@ -814,6 +835,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     WebSite = dto.WebSite,
                     ZipCode = dto.ZipCode,
                     Tags = dto.Tags,
+                    BoardCodes = dto.BoardCodes,
                     Tuition = dto.Tuition,
                     Description = dto.Description,
                 };

@@ -39,6 +39,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         List = result.Data.List.Select(t => new BoardsResponseViewModel
                         {
                             Id = t.Id,
+                            Code = t.Code,
                             Title = t.Title,
                             Icon = t.Icon,
                         }),
@@ -65,6 +66,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     Data = result.Data is null ? null : new()
                     {
                         Id = result.Data.Id,
+                        Code = result.Data.Code,
                         Title = result.Data.Title,
                         Description = result.Data.Description,
                         Icon = result.Data.Icon,
@@ -86,6 +88,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var result = await boardService.Value.ManageBoardAsync(new ManageBoardRequestDto
                 {
+                    Code = request.Code,
                     Title = request.Title,
                     Description = request.Description,
                     Icon = request.Icon,
@@ -111,6 +114,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await boardService.Value.ManageBoardAsync(new ManageBoardRequestDto
                 {
                     Id = id,
+                    Code = request.Code,
                     Title = request.Title,
                     Description = request.Description,
                     Icon = request.Icon,

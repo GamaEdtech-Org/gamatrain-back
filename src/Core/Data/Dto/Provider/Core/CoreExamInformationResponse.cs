@@ -3,149 +3,132 @@ namespace GamaEdtech.Data.Dto.Provider.Core
     using System.Collections.ObjectModel;
     using System.Text.Json.Serialization;
 
-    using GamaEdtech.Common.HttpProvider;
-
-    public sealed class CoreExamInformationResponse : IHttpResponse
+    public sealed class CoreExamInformationResponse
     {
-        [JsonPropertyName("status")]
-        public int Status { get; set; }
+        [JsonPropertyName("startID")]
+        public int? StartId { get; set; }
 
-        [JsonPropertyName("error")]
-        public string? Error { get; set; }
+        [JsonPropertyName("admin")]
+        public bool Admin { get; set; }
 
-        [JsonPropertyName("message")]
-        public string? Message { get; set; }
+        [JsonPropertyName("referee")]
+        public bool Referee { get; set; }
 
-        [JsonPropertyName("data")]
-        public DataDto? Data { get; set; }
+        [JsonPropertyName("remainedSeconds")]
+        public bool RemainedSeconds { get; set; }
 
-        public sealed class DataDto
+        [JsonPropertyName("exam")]
+        public ExamDto? Exam { get; set; }
+
+        [JsonPropertyName("tests")]
+        public Collection<TestDto>? Tests { get; set; }
+
+        public sealed class ExamDto
         {
-            [JsonPropertyName("startID")]
-            public int? StartId { get; set; }
+            [JsonPropertyName("id")]
+            public string? Id { get; set; }
 
-            [JsonPropertyName("admin")]
-            public bool Admin { get; set; }
+            [JsonPropertyName("user_")]
+            public string? User { get; set; }
 
-            [JsonPropertyName("referee")]
-            public bool Referee { get; set; }
+            [JsonPropertyName("type")]
+            public string? Type { get; set; }
 
-            [JsonPropertyName("remainedSeconds")]
-            public bool RemainedSeconds { get; set; }
+            [JsonPropertyName("azmoon_type")]
+            public string? ExamType { get; set; }
 
-            [JsonPropertyName("exam")]
-            public ExamDto? Exam { get; set; }
+            [JsonPropertyName("title")]
+            public string? Title { get; set; }
 
             [JsonPropertyName("tests")]
-            public Collection<TestDto>? Tests { get; set; }
+            public string? Tests { get; set; }
 
-            public sealed class ExamDto
-            {
-                [JsonPropertyName("id")]
-                public string? Id { get; set; }
+            [JsonPropertyName("tests_num")]
+            public string? TestsCount { get; set; }
 
-                [JsonPropertyName("user_")]
-                public string? User { get; set; }
+            [JsonPropertyName("start_date")]
+            public string? StartDate { get; set; }
 
-                [JsonPropertyName("type")]
-                public string? Type { get; set; }
+            [JsonPropertyName("end_date")]
+            public string? EndDate { get; set; }
 
-                [JsonPropertyName("azmoon_type")]
-                public string? ExamType { get; set; }
+            [JsonPropertyName("azmoon_time")]
+            public string? ExamTime { get; set; }
 
-                [JsonPropertyName("title")]
-                public string? Title { get; set; }
+            [JsonPropertyName("score_type")]
+            public string? ScoreType { get; set; }
 
-                [JsonPropertyName("tests")]
-                public string? Tests { get; set; }
+            [JsonPropertyName("code")]
+            public string? Code { get; set; }
 
-                [JsonPropertyName("tests_num")]
-                public string? TestsCount { get; set; }
+            [JsonPropertyName("status")]
+            public string? Status { get; set; }
+        }
 
-                [JsonPropertyName("start_date")]
-                public string? StartDate { get; set; }
+        public sealed class TestDto
+        {
+            [JsonPropertyName("id")]
+            public string? Id { get; set; }
 
-                [JsonPropertyName("end_date")]
-                public string? EndDate { get; set; }
+            [JsonPropertyName("code")]
+            public string? Code { get; set; }
 
-                [JsonPropertyName("azmoon_time")]
-                public string? ExamTime { get; set; }
+            [JsonPropertyName("user_")]
+            public string? User { get; set; }
 
-                [JsonPropertyName("score_type")]
-                public string? ScoreType { get; set; }
+            [JsonPropertyName("question")]
+            public string? Question { get; set; }
 
-                [JsonPropertyName("code")]
-                public string? Code { get; set; }
+            [JsonPropertyName("lesson")]
+            public string? Lesson { get; set; }
 
-                [JsonPropertyName("status")]
-                public string? Status { get; set; }
-            }
+            [JsonPropertyName("type")]
+            public string? Type { get; set; }
 
-            public sealed class TestDto
-            {
-                [JsonPropertyName("id")]
-                public string? Id { get; set; }
+            [JsonPropertyName("answer_a")]
+            public string? OptionA { get; set; }
 
-                [JsonPropertyName("code")]
-                public string? Code { get; set; }
+            [JsonPropertyName("answer_b")]
+            public string? OptionB { get; set; }
 
-                [JsonPropertyName("user_")]
-                public string? User { get; set; }
+            [JsonPropertyName("answer_c")]
+            public string? OptionC { get; set; }
 
-                [JsonPropertyName("question")]
-                public string? Question { get; set; }
+            [JsonPropertyName("answer_d")]
+            public string? OptionD { get; set; }
 
-                [JsonPropertyName("lesson")]
-                public string? Lesson { get; set; }
+            [JsonPropertyName("q_file")]
+            public string? QuestionFile { get; set; }
 
-                [JsonPropertyName("type")]
-                public string? Type { get; set; }
+            [JsonPropertyName("a_file")]
+            public string? OptionAFile { get; set; }
 
-                [JsonPropertyName("answer_a")]
-                public string? OptionA { get; set; }
+            [JsonPropertyName("b_file")]
+            public string? OptionBFile { get; set; }
 
-                [JsonPropertyName("answer_b")]
-                public string? OptionB { get; set; }
+            [JsonPropertyName("c_file")]
+            public string? OptionCFile { get; set; }
 
-                [JsonPropertyName("answer_c")]
-                public string? OptionC { get; set; }
+            [JsonPropertyName("d_file")]
+            public string? OptionDFile { get; set; }
 
-                [JsonPropertyName("answer_d")]
-                public string? OptionD { get; set; }
+            [JsonPropertyName("answer_view_type")]
+            public string? AnswerViewType { get; set; }
 
-                [JsonPropertyName("q_file")]
-                public string? QuestionFile { get; set; }
+            [JsonPropertyName("direction")]
+            public string? Direction { get; set; }
 
-                [JsonPropertyName("a_file")]
-                public string? OptionAFile { get; set; }
+            [JsonPropertyName("owner")]
+            public bool Owner { get; set; }
 
-                [JsonPropertyName("b_file")]
-                public string? OptionBFile { get; set; }
+            [JsonPropertyName("title")]
+            public string? Title { get; set; }
 
-                [JsonPropertyName("c_file")]
-                public string? OptionCFile { get; set; }
+            [JsonPropertyName("lesson_title")]
+            public string? LessonTitle { get; set; }
 
-                [JsonPropertyName("d_file")]
-                public string? OptionDFile { get; set; }
-
-                [JsonPropertyName("answer_view_type")]
-                public string? AnswerViewType { get; set; }
-
-                [JsonPropertyName("direction")]
-                public string? Direction { get; set; }
-
-                [JsonPropertyName("owner")]
-                public bool Owner { get; set; }
-
-                [JsonPropertyName("title")]
-                public string? Title { get; set; }
-
-                [JsonPropertyName("lesson_title")]
-                public string? LessonTitle { get; set; }
-
-                [JsonPropertyName("testImgAnswers")]
-                public bool TestImageAnswers { get; set; }
-            }
+            [JsonPropertyName("testImgAnswers")]
+            public bool TestImageAnswers { get; set; }
         }
     }
 }

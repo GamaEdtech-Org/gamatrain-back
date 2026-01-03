@@ -6,6 +6,6 @@ namespace GamaEdtech.Presentation.ViewModel.Board
     public sealed class BoardsRequestViewModel
     {
         [Display]
-        public PagingDto? PagingDto { get; set; } = new() { PageFilter = new(), };
+        public PagingDto? PagingDto { get; set; }
     }
 }

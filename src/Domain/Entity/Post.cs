@@ -44,6 +44,10 @@ namespace GamaEdtech.Domain.Entity
         [StringLength(100)]
         public string? ImageId { get; set; }
 
+        [Column(nameof(PodcastId), DataType.String)]
+        [StringLength(100)]
+        public string? PodcastId { get; set; }
+
         [Column(nameof(LikeCount), DataType.Int)]
         [Required]
         public int LikeCount { get; set; }
