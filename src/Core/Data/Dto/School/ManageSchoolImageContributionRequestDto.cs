@@ -7,7 +7,7 @@ namespace GamaEdtech.Data.Dto.School
     public sealed class ManageSchoolImageContributionRequestDto
     {
         public required IFormFile File { get; set; }
-        public required FileType FileType { get; set; }
+        public required ImageFileType FileType { get; set; }
         public long SchoolId { get; set; }
         public DateTimeOffset CreationDate { get; set; }
         public int CreationUserId { get; set; }

@@ -1,7 +1,6 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Text.Json;
 
     using Asp.Versioning;
 
@@ -20,6 +19,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Domain.Specification.Post;
     using GamaEdtech.Presentation.ViewModel.Blog;
     using GamaEdtech.Presentation.ViewModel.Tag;
+
+    using Hangfire;
 
     using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 if (request.VisibilityType is not null)
                 {
                     specification = specification.And(new VisibilityTypeEqualsSpecification(request.VisibilityType));
+                }
+
+                if (request.PublishDate.HasValue)
+                {
+                    specification = specification.And(new PublishDateEqualsSpecification(request.PublishDate.Value));
+                }
+
+                if (!string.IsNullOrEmpty(request.Title))
+                {
+                    specification = specification.And(new TitleContainsSpecification(request.Title));
                 }
 
                 var result = await blogService.Value.GetPostsAsync(new ListRequestDto<Post>
@@ -79,6 +90,16 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
+        [HttpGet("posts/random"), Produces<ApiResponse<ListDataSource<PostsResponseViewModel>>>()]
+        public async Task<IActionResult<ListDataSource<PostsResponseViewModel>>> GetRandomPosts([NotNull, FromQuery] RandomPostsRequestViewModel request) => await GetPosts(new()
+        {
+            PagingDto = new()
+            {
+                PageFilter = new() { Skip = 0, Size = request.Size },
+                SortFilter = [new() { SortType = Constants.SortType.Random }],
+            },
+        });
+
         [HttpGet("posts/{postId:long}"), Produces<ApiResponse<PostResponseViewModel>>()]
         public async Task<IActionResult<PostResponseViewModel>> GetPost([FromRoute] long postId)
         {
@@ -86,8 +107,14 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 var specification = new IdEqualsSpecification<Post, long>(postId).And(new PublishDateSpecification());
                 var result = await blogService.Value.GetPostAsync(specification);
+                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok<PostResponseViewModel>(new(result.Errors));
+                }
 
-                return Ok<PostResponseViewModel>(new(result.Errors)
+                _ = BackgroundJob.Enqueue(() => blogService.Value.IncreasePostViewAsync(postId));
+
+                return Ok<PostResponseViewModel>(new()
                 {
                     Data = result.Data is null ? null : new()
                     {
@@ -96,11 +123,15 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         Summary = result.Data.Summary,
                         Body = result.Data.Body,
                         ImageUri = result.Data.ImageUri,
+                        PodcastUri = result.Data.PodcastUri,
                         LikeCount = result.Data.LikeCount,
                         DislikeCount = result.Data.DislikeCount,
                         CreationUser = result.Data.CreationUser,
+                        CreationUserAvatar = result.Data.CreationUserAvatar,
                         VisibilityType = result.Data.VisibilityType,
                         PublishDate = result.Data.PublishDate,
+                        Keywords = result.Data.Keywords,
+                        ViewCount = result.Data.ViewCount + 1,  //plus 1 for current view
                         Tags = result.Data.Tags?.Select(t => new TagResponseViewModel
                         {
                             Id = t.Id,
@@ -108,6 +139,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Name = t.Name,
                             TagType = t.TagType,
                         }),
+                        NextId = result.Data.NextId,
+                        PreviousId = result.Data.PreviousId,
                     }
                 });
             }
@@ -121,7 +154,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpDelete("posts/{postId:long}"), Produces<ApiResponse<bool>>()]
         [Permission(policy: null)]
-        public async Task<IActionResult> RemovePost([FromRoute] long postId)
+        public async Task<IActionResult<bool>> RemovePost([FromRoute] long postId)
         {
             try
             {
@@ -132,13 +165,13 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 }
 
                 var result = await blogService.Value.RemovePostAsync(new IdEqualsSpecification<Post, long>(postId));
-                return Ok(new ApiResponse<bool>(result.Errors) { Data = result.Data });
+                return Ok<bool>(new(result.Errors) { Data = result.Data });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+                return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
 
@@ -250,12 +283,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await contributionService.Value.GetContributionsAsync(new ListRequestDto<Contribution>
+                var result = await contributionService.Value.GetContributionsAsync<PostContributionDto>(new ListRequestDto<Contribution>
                 {
                     PagingDto = request.PagingDto,
                     Specification = new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(User.UserId())
                         .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post)),
-                });
+                }, true);
                 return Ok<ListDataSource<PostContributionListResponseViewModel>>(new(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
@@ -267,6 +300,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                             Status = t.Status,
                             CreationUser = t.CreationUser,
                             CreationDate = t.CreationDate,
+                            Title = t.Data?.Title,
+                            PostId = t.IdentifierId,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -289,13 +324,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 var specification = new IdEqualsSpecification<Contribution, long>(contributionId)
                     .And(new CreationUserIdEqualsSpecification<Contribution, ApplicationUser, int>(User.UserId()))
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post));
-                var result = await contributionService.Value.GetContributionAsync(specification);
+                var result = await contributionService.Value.GetContributionAsync<PostContributionDto>(specification);
 
                 PostContributionResponseViewModel? viewModel = null;
                 if (result.Data?.Data is not null)
                 {
-                    var dto = JsonSerializer.Deserialize<PostContributionDto>(result.Data.Data);
-                    viewModel = dto is null ? null : MapFrom(dto);
+                    viewModel = result.Data.Data is null ? null : MapFrom(result.Data.Data);
                 }
 
                 return Ok<PostContributionResponseViewModel>(new(result.Errors)
@@ -310,8 +344,12 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     Body = dto.Body,
                     Tags = dto.Tags,
                     ImageUri = fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
-                    PublishDate = dto.PublishDate,
-                    VisibilityType = dto.VisibilityType,
+                    PodcastUri = fileService.Value.GetFileUri(dto.PodcastId, ContainerType.Post).Data,
+                    PublishDate = dto.PublishDate.GetValueOrDefault(),
+                    VisibilityType = dto.VisibilityType!,
+                    Keywords = dto.Keywords,
+                    Slug = dto.Slug,
+                    PostId = result.Data.IdentifierId,
                 };
             }
             catch (Exception exc)
@@ -328,7 +366,21 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var dto = MapTo(request, null);
+                ManagePostContributionRequestDto dto = new()
+                {
+                    UserId = User.UserId(),
+                    Title = request.Title,
+                    Slug = request.Slug,
+                    Summary = request.Summary,
+                    Body = request.Body,
+                    Image = request.Image,
+                    Podcast = request.Podcast,
+                    Tags = request.Tags,
+                    PublishDate = request.PublishDate.GetValueOrDefault(),
+                    VisibilityType = request.VisibilityType!,
+                    Keywords = request.Keywords,
+                    Draft = request.Draft,
+                };
                 var result = await blogService.Value.ManagePostContributionAsync(dto);
 
                 return Ok<ManagePostContributionResponseViewModel>(new(result.Errors)
@@ -346,7 +398,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
 
         [HttpPut("contributions/{contributionId:long}"), Produces<ApiResponse<ManagePostContributionResponseViewModel>>()]
         [Permission(policy: null)]
-        public async Task<IActionResult<ManagePostContributionResponseViewModel>> UpdatePostContribution([FromRoute] long contributionId, [NotNull, FromForm] PostContributionViewModel request)
+        public async Task<IActionResult<ManagePostContributionResponseViewModel>> UpdatePostContribution([FromRoute] long contributionId, [NotNull, FromForm] UpdatePostContributionViewModel request)
         {
             try
             {
@@ -356,7 +408,22 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     return Ok<ManagePostContributionResponseViewModel>(new(new Error { Message = "InvalidRequest" }));
                 }
 
-                var dto = MapTo(request, contributionId);
+                ManagePostContributionRequestDto dto = new()
+                {
+                    ContributionId = contributionId,
+                    UserId = User.UserId(),
+                    Title = request.Title,
+                    Slug = request.Slug,
+                    Summary = request.Summary,
+                    Body = request.Body,
+                    Image = request.Image,
+                    Podcast = request.Podcast,
+                    Tags = request.Tags,
+                    PublishDate = request.PublishDate,
+                    VisibilityType = request.VisibilityType,
+                    Keywords = request.Keywords,
+                    Draft = request.Draft,
+                };
                 var result = await blogService.Value.ManagePostContributionAsync(dto);
 
                 return Ok<ManagePostContributionResponseViewModel>(new(result.Errors)
@@ -373,19 +440,5 @@ namespace GamaEdtech.Presentation.Api.Controllers
         }
 
         #endregion
-
-        private ManagePostContributionRequestDto MapTo(PostContributionViewModel request, long? contributionId) => new()
-        {
-            ContributionId = contributionId,
-            UserId = User.UserId(),
-            Title = request.Title,
-            Slug = request.Slug,
-            Summary = request.Summary,
-            Body = request.Body,
-            Image = request.Image,
-            Tags = request.Tags,
-            PublishDate = request.PublishDate.GetValueOrDefault(),
-            VisibilityType = request.VisibilityType!,
-        };
     }
 }

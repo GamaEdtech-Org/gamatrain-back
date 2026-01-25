@@ -4,9 +4,18 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
     {
         public int GridPageSize { get; set; }
         public string? DefaultTimeZoneId { get; set; }
-        public int SchoolContributionPoints { get; set; }
-        public int SchoolImageContributionPoints { get; set; }
-        public int SchoolCommentContributionPoints { get; set; }
-        public int PostContributionPoints { get; set; }
+        public long SchoolContributionPoints { get; set; }
+        public long SchoolImageContributionPoints { get; set; }
+        public long SchoolCommentContributionPoints { get; set; }
+        public long PostContributionPoints { get; set; }
+        public long SchoolIssuesContributionPoints { get; set; }
+        public long RemoveSchoolImageContributionPoints { get; set; }
+        public long EasterEggBronzePoints { get; set; }
+        public long EasterEggSilverPoints { get; set; }
+        public long EasterEggGoldPoints { get; set; }
+        public long TestTimeCorrectSubmissionPoints { get; set; }
+        public long TestTimeIncorrectSubmissionPoints { get; set; }
+        public long ExamCorrectTestSubmissionPoints { get; set; }
+        public long ExamIncorrectTestSubmissionPoints { get; set; }
     }
 }

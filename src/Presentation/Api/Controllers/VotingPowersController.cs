@@ -8,19 +8,18 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
-    using GamaEdtech.Common.DataAccess.Specification.Impl;
-    using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.VotingPower;
     using GamaEdtech.Domain.Entity;
-    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Specification.VotingPower;
     using GamaEdtech.Presentation.ViewModel.VotingPower;
 
     using Microsoft.AspNetCore.Mvc;
 
+    using Org.BouncyCastle.Crypto.Parameters;
+    using Org.BouncyCastle.Security;
+
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    [Permission(policy: null)]
     public class VotingPowersController(Lazy<ILogger<VotingPowersController>> logger, Lazy<IVotingPowerService> votingPowerService)
         : ApiControllerBase<VotingPowersController>(logger)
     {
@@ -29,16 +28,17 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                ISpecification<VotingPower> specification = new CreationUserIdEqualsSpecification<VotingPower, ApplicationUser, int>(User.UserId());
+                ISpecification<VotingPower>? specification = null;
 
                 if (!string.IsNullOrEmpty(request.WalletAddress))
                 {
-                    specification = specification.And(new WalletAddressContainsSpecification(request.WalletAddress));
+                    specification = new WalletAddressContainsSpecification(request.WalletAddress);
                 }
 
                 if (!string.IsNullOrEmpty(request.ProposalId))
                 {
-                    specification = specification.And(new ProposalIdContainsSpecification(request.ProposalId));
+                    var proposalSpecification = new ProposalIdContainsSpecification(request.ProposalId);
+                    specification = specification is null ? proposalSpecification : specification.And(proposalSpecification);
                 }
 
                 var result = await votingPowerService.Value.GetVotingPowersAsync(new ListRequestDto<VotingPower>
@@ -70,53 +70,53 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPost, Produces<ApiResponse<ManageVotingPowerResponseViewModel>>()]
-        public async Task<IActionResult<ManageVotingPowerResponseViewModel>> CreateVotingPower([NotNull, FromBody] ManageVotingPowerRequestViewModel request)
+        [HttpPost, Produces<ApiResponse<Void>>()]
+        public async Task<IActionResult<Void>> CreateVotingPower([NotNull, FromBody] CreateVotingPowerRequestViewModel request)
         {
             try
             {
-                var result = await votingPowerService.Value.ManageVotingPowerAsync(MapTo(request, null));
+                var signer = SignerUtilities.GetSigner("Ed25519");
 
-                return Ok<ManageVotingPowerResponseViewModel>(new(result.Errors)
+                Ed25519PublicKeyParameters? publicKey = null;
+                try
                 {
-                    Data = new() { Id = result.Data, },
+                    publicKey = new Ed25519PublicKeyParameters(Convert.FromHexString(request.PublicKey!));
+                }
+                catch (Exception)
+                {
+                    return Ok<Void>(new() { Errors = [new() { Message = "Invalid PublicKey" }] });
+                }
+
+                signer.Init(false, publicKey);
+                signer.BlockUpdate(System.Text.Encoding.ASCII.GetBytes(request.Message!), 0, request.Message!.Length);
+
+                var valid = signer.VerifySignature(Convert.FromHexString(request.SignedMessage!));
+                if (!valid)
+                {
+                    return Ok<Void>(new() { Errors = [new() { Message = "Invalid Signature" }] });
+                }
+
+                var lst = request.Data.Select(t => new ManageVotingPowerRequestDto
+                {
+                    Amount = t.Amount.GetValueOrDefault(),
+                    WalletAddress = t.WalletAddress,
+                    TokenAccount = t.TokenAccount,
+                    ProposalId = t.ProposalId,
+                    CreationDate = DateTimeOffset.UtcNow,
+                });
+                var result = await votingPowerService.Value.BulkImportVotingPowersAsync(lst);
+
+                return Ok<Void>(new(result.Errors)
+                {
+                    Data = new(),
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<ManageVotingPowerResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
+                return Ok<Void>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
-
-        [HttpPut("{id:long}"), Produces<ApiResponse<ManageVotingPowerResponseViewModel>>()]
-        public async Task<IActionResult<ManageVotingPowerResponseViewModel>> UpdateVotingPower([FromRoute] long id, [NotNull, FromBody] ManageVotingPowerRequestViewModel request)
-        {
-            try
-            {
-                var result = await votingPowerService.Value.ManageVotingPowerAsync(MapTo(request, id));
-
-                return Ok<ManageVotingPowerResponseViewModel>(new(result.Errors)
-                {
-                    Data = new() { Id = result.Data, },
-                });
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-
-                return Ok<ManageVotingPowerResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
-            }
-        }
-
-        private static ManageVotingPowerRequestDto MapTo(ManageVotingPowerRequestViewModel request, long? id) => new()
-        {
-            Id = id,
-            Amount = request.Amount.GetValueOrDefault(),
-            WalletAddress = request.WalletAddress,
-            TokenAccount = request.TokenAccount,
-            ProposalId = request.ProposalId,
-        };
     }
 }

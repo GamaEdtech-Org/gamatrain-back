@@ -10,6 +10,6 @@ namespace GamaEdtech.Presentation.ViewModel.Question
 
         [Display]
         [Required]
-        public IEnumerable<OptionViewModel> Options { get; set; }
+        public IEnumerable<OptionViewModel>? Options { get; set; }
     }
 }

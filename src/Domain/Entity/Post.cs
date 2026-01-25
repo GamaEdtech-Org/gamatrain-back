@@ -44,9 +44,9 @@ namespace GamaEdtech.Domain.Entity
         [StringLength(100)]
         public string? ImageId { get; set; }
 
-        [Column(nameof(Status), DataType.Byte)]
-        [Required]
-        public Status Status { get; set; }
+        [Column(nameof(PodcastId), DataType.String)]
+        [StringLength(100)]
+        public string? PodcastId { get; set; }
 
         [Column(nameof(LikeCount), DataType.Int)]
         [Required]
@@ -64,11 +64,17 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public VisibilityType VisibilityType { get; set; }
 
+        [Column(nameof(Keywords), DataType.UnicodeString)]
+        [StringLength(500)]
+        public string? Keywords { get; set; }
+
+        [Column(nameof(ViewCount), DataType.Long)]
+        public long ViewCount { get; set; }
+
         public virtual ICollection<PostTag>? PostTags { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<Post> builder)
         {
-            _ = builder.OwnEnumeration<Post, Status, byte>(t => t.Status);
             _ = builder.OwnEnumeration<Post, VisibilityType, byte>(t => t.VisibilityType);
             _ = builder.HasIndex(t => t.Slug).IsUnique(true);
         }

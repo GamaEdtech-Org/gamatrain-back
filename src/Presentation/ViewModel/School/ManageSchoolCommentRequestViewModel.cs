@@ -6,6 +6,10 @@ namespace GamaEdtech.Presentation.ViewModel.School
     {
         [Display]
         [Required]
+        public string? Captcha { get; set; }
+
+        [Display]
+        [Required]
         public string? Comment { get; set; }
 
         [Display]

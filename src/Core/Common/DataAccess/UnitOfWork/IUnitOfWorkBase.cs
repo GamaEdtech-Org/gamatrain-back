@@ -5,6 +5,7 @@ namespace GamaEdtech.Common.DataAccess.UnitOfWork
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Transactions;
 
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAccess.Repositories;
@@ -27,5 +28,9 @@ namespace GamaEdtech.Common.DataAccess.UnitOfWork
         Task<int> ExecuteSqlCommandAsync(string sql, IEnumerable<(string ParameterName, object? Value)>? param = null);
 
         Task<DataSet> SqlQueryAsync(string sql, IList<(string ParameterName, object? Value)>? param = null);
+
+        TransactionScope CreateTransactionScope();
+
+        TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions, TransactionScopeAsyncFlowOption asyncFlowOption);
     }
 }

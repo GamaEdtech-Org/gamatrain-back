@@ -1,21 +1,25 @@
 namespace GamaEdtech.Domain.Entity.Identity
 {
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.Data.Enumeration;
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.DataAnnotation.Schema;
+    using GamaEdtech.Domain.Enumeration;
 
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-
     [Table(nameof(ApplicationUser))]
     [Audit((int)Common.Core.Constants.EntityType.ApplicationUser)]
     public class ApplicationUser : IdentityUser<int>, IEntity<ApplicationUser, int>, IEnablable
     {
+        public const int DefaultUserId = 1;
+
         public ApplicationUser()
         {
             UserRoles = [];
@@ -117,6 +121,45 @@ namespace GamaEdtech.Domain.Entity.Identity
         [Column(nameof(Avatar), DataType.UnicodeMaxString)]
         public string? Avatar { get; set; }
 
+        [Column(nameof(CityId), DataType.Int)]
+        public int? CityId { get; set; }
+        public Location? City { get; set; }
+
+        [Column(nameof(SchoolId), DataType.Long)]
+        public long? SchoolId { get; set; }
+        public School? School { get; set; }
+
+        [Column(nameof(ReferralId), DataType.String)]
+        [StringLength(10)]
+        public string? ReferralId { get; set; }
+
+        [Column(nameof(Gender), DataType.Byte)]
+        public GenderType? Gender { get; set; }
+
+        [Column(nameof(Board), DataType.Int)]
+        public int? Board { get; set; }
+
+        [Column(nameof(Grade), DataType.Int)]
+        public int? Grade { get; set; }
+
+        [Column(nameof(Group), DataType.Int)]
+        public int? Group { get; set; }
+
+        [Column(nameof(CoreId), DataType.Int)]
+        public int? CoreId { get; set; }
+
+        [Column(nameof(CurrentBalance), DataType.Long)]
+        [Required]
+        public long CurrentBalance { get; set; }
+
+        [Column(nameof(ProfileUpdated), DataType.Boolean)]
+        [Required]
+        public bool ProfileUpdated { get; set; }
+
+        [Column(nameof(WalletId), DataType.String)]
+        [StringLength(50)]
+        public string? WalletId { get; set; }
+
         public ICollection<ApplicationUserClaim>? UserClaims { get; set; }
 
         public ICollection<ApplicationUserLogin>? UserLogins { get; set; }
@@ -127,6 +170,8 @@ namespace GamaEdtech.Domain.Entity.Identity
 
         public void Configure([NotNull] EntityTypeBuilder<ApplicationUser> builder)
         {
+            _ = builder.OwnEnumeration<ApplicationUser, GenderType, byte>(t => t.Gender);
+
             _ = builder.HasIndex(e => e.NormalizedEmail)
                 .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName($"IX_{nameof(ApplicationUser)}_{nameof(NormalizedEmail)}"));
 
@@ -135,11 +180,17 @@ namespace GamaEdtech.Domain.Entity.Identity
                 .IsUnique()
                 .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(NormalizedUserName), pluralize: false)}] IS NOT NULL)");
 
+            _ = builder.HasIndex(e => e.ReferralId)
+                .HasDatabaseName(DbProviderFactories.GetFactory.GetObjectName(
+                    $"IX_{nameof(ApplicationUser)}_{nameof(ReferralId)}"))
+                .IsUnique()
+                .HasFilter($"([{DbProviderFactories.GetFactory.GetObjectName(nameof(ReferralId), pluralize: false)}] IS NOT NULL)");
+
             var now = new DateTimeOffset(2023, 3, 21, 0, 0, 0, TimeSpan.Zero);
             List<ApplicationUser> seedData =
             [
                 // Password: @Admin123
-                new ApplicationUser { Id = 1, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, },
+                new ApplicationUser { Id = DefaultUserId, UserName = "admin", PasswordHash = "AQAAAAIAAYagAAAAEMLN3xqYWUja6ShSK0teeCYzziU6b+KghL4AiSXrb03Y3VbBfxKP7LUF3PZAJhQJ+Q==", NormalizedUserName = "ADMIN", Email = "admin@gamaedtech.com", NormalizedEmail = "ADMIN@GAMAEDTECH.COM", EmailConfirmed = true, ConcurrencyStamp = "5BABA139-4AE5-4C47-BC65-DE4849346A17", PhoneNumber = "09355028981", PhoneNumberConfirmed = true, SecurityStamp = "EAF1FA85-3DA1-4A40-90C6-65B97BF903F1", RegistrationDate = now, Enabled = true, Gender = GenderType.Male },
             ];
             _ = builder.HasData(seedData);
         }

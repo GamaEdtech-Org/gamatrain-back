@@ -1,5 +1,8 @@
 namespace GamaEdtech.Presentation.ViewModel.School
 {
+    using System.Text.Json.Serialization;
+
+    using GamaEdtech.Common.Converter;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Domain.Enumeration;
 
@@ -16,7 +19,8 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         [Required]
-        public FileType? FileType { get; set; }
+        [JsonConverter(typeof(EnumerationConverter<ImageFileType, byte>))]
+        public ImageFileType? FileType { get; set; }
 
         [Display]
         public bool IsDefault { get; set; }

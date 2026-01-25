@@ -13,8 +13,10 @@ namespace GamaEdtech.Application.Interface
     public interface IBoardService
     {
         Task<ResultData<ListDataSource<BoardsDto>>> GetBoardsAsync(ListRequestDto<Board>? requestDto = null);
+        Task<ResultData<List<BoardsDto>>> GetBoardsListAsync();
         Task<ResultData<BoardDto>> GetBoardAsync([NotNull] ISpecification<Board> specification);
         Task<ResultData<int>> ManageBoardAsync([NotNull] ManageBoardRequestDto requestDto);
         Task<ResultData<bool>> RemoveBoardAsync([NotNull] ISpecification<Board> specification);
+        Task<ResultData<bool>> SyncCoreBoardsAsync();
     }
 }

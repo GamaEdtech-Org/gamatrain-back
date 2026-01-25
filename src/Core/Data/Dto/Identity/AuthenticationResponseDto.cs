@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class AuthenticationResponseDto
+    public sealed class AuthenticationResponseDto
     {
         public ApplicationUserDto? User { get; set; }
     }

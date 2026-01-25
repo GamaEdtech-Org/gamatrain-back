@@ -7,6 +7,6 @@ namespace GamaEdtech.Domain.Specification.School
 
     public sealed class HasImageSpecification(bool hasImage) : SpecificationBase<School>
     {
-        public override Expression<Func<School, bool>> Expression() => (t) => hasImage && t.SchoolImages.Any();
+        public override Expression<Func<School, bool>> Expression() => (t) => hasImage && t.DefaultImageId != null;
     }
 }

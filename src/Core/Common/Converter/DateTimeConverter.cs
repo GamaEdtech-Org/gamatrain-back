@@ -16,10 +16,20 @@ namespace GamaEdtech.Common.Converter
 
     using static GamaEdtech.Common.Core.Constants;
 
-    public class DateTimeConverter<T>(string? format, FormatProvider? formatProvider) : JsonConverter<T>
+    public class DateTimeConverter<T> : JsonConverter<T>
     {
-        private readonly string? format = format;
-        private readonly FormatProvider formatProvider = formatProvider ?? FormatProvider.CurrentCulture;
+        private readonly string? format;
+        private readonly FormatProvider formatProvider;
+
+        public DateTimeConverter(string? format, FormatProvider? formatProvider)
+        {
+            this.format = format;
+            this.formatProvider = formatProvider ?? FormatProvider.CurrentCulture;
+        }
+
+        public DateTimeConverter()
+        {
+        }
 
         public override bool HandleNull => true;
 

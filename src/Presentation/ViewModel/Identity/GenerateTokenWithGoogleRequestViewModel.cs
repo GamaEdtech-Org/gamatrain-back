@@ -1,8 +1,8 @@
 namespace GamaEdtech.Presentation.ViewModel.Identity
 {
-    using System.ComponentModel.DataAnnotations;
+    using GamaEdtech.Common.DataAnnotation;
 
-    public class GenerateTokenWithGoogleRequestViewModel
+    public sealed class GenerateTokenWithGoogleRequestViewModel
     {
         [Display]
         [Required]

@@ -12,11 +12,17 @@ namespace GamaEdtech.Data.Dto.Blog
         public string? Summary { get; set; }
         public string? Body { get; set; }
         public Uri? ImageUri { get; set; }
+        public Uri? PodcastUri { get; set; }
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
         public string? CreationUser { get; set; }
+        public string? CreationUserAvatar { get; set; }
         public VisibilityType VisibilityType { get; set; }
         public IEnumerable<TagDto>? Tags { get; set; }
         public DateTimeOffset PublishDate { get; set; }
+        public string? Keywords { get; set; }
+        public long ViewCount { get; set; }
+        public long? NextId { get; set; }
+        public long? PreviousId { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
@@ -15,6 +16,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Data.Dto.Identity;
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Presentation.ViewModel.Identity;
 
     using Microsoft.AspNetCore.Mvc;
@@ -32,11 +34,21 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     {
         [HttpGet, Produces(typeof(ApiResponse<ListDataSource<UserListResponseViewModel>>))]
         [Display(Name = "Users List")]
-        public async Task<IActionResult<ListDataSource<UserListResponseViewModel>>> GetUsers([NotNull, FromQuery] ConsumersRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<UserListResponseViewModel>>> GetUsers([NotNull, FromQuery] UserListRequestViewModel request)
         {
             try
             {
-                var result = await identityService.Value.GetUsersAsync(new ListRequestDto<ApplicationUser> { PagingDto = request.PagingDto });
+                ISpecification<ApplicationUser>? specification = null;
+                if (request.HasReferral.HasValue)
+                {
+                    specification = new HasReferralSpecification(request.HasReferral.Value);
+                }
+                var result = await identityService.Value.GetUsersAsync(new()
+                {
+                    PagingDto = request.PagingDto,
+                    Specification = specification
+                });
+
                 return Ok<ListDataSource<UserListResponseViewModel>>(new(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
@@ -48,6 +60,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             Email = t.Email,
                             PhoneNumber = t.PhoneNumber,
                             Enabled = t.Enabled,
+                            ReferralId = t.ReferralId,
+                            RegistrationDate = t.RegistrationDate,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }

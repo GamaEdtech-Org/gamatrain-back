@@ -47,6 +47,22 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<List<KeyValuePair<int, string?>>>> GetTitlesAsync([NotNull] ISpecification<Location> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var result = await uow.GetRepository<Location, int>().GetManyQueryable(specification)
+                    .Select(t => new KeyValuePair<int, string?>(t.Id, t.Title)).ToListAsync();
+                return new(OperationResult.Succeeded) { Data = result };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
         public async Task<ResultData<LocationDto>> GetLocationAsync([NotNull] ISpecification<Location> specification)
         {
             try
@@ -96,12 +112,12 @@ namespace GamaEdtech.Application.Service
                         };
                     }
 
-                    location.ParentId = requestDto.ParentId;
-                    location.Title = requestDto.Title;
-                    location.Code = requestDto.Code;
-                    location.LocationType = requestDto.LocationType;
-                    location.Coordinates = requestDto.Coordinates;
-                    location.LocalTitle = requestDto.LocalTitle;
+                    location.ParentId = requestDto.ParentId ?? location.ParentId;
+                    location.Title = requestDto.Title ?? location.Title;
+                    location.Code = requestDto.Code ?? location.Code;
+                    location.LocationType = requestDto.LocationType ?? location.LocationType;
+                    location.Coordinates = requestDto.Coordinates ?? location.Coordinates;
+                    location.LocalTitle = requestDto.LocalTitle ?? location.LocalTitle;
 
                     _ = repository.Update(location);
                 }

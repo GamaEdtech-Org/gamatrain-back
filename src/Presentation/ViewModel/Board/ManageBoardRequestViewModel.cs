@@ -9,6 +9,9 @@ namespace GamaEdtech.Presentation.ViewModel.Board
         public string? Title { get; set; }
 
         [Display]
+        public int? Code { get; set; }
+
+        [Display]
         public string? Description { get; set; }
 
         [Display]

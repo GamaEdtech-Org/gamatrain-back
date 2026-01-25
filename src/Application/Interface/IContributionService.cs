@@ -11,13 +11,16 @@ namespace GamaEdtech.Application.Interface
     [Injectable]
     public interface IContributionService
     {
-        Task<ResultData<ListDataSource<ContributionsDto>>> GetContributionsAsync(ListRequestDto<Contribution>? requestDto = null, bool includeData = false);
-        Task<ResultData<ContributionDto>> GetContributionAsync([NotNull] ISpecification<Contribution> specification);
-        Task<ResultData<long>> ManageContributionAsync([NotNull] ManageContributionRequestDto requestDto);
+        Task<ResultData<ListDataSource<ContributionsDto<T>>>> GetContributionsAsync<T>(ListRequestDto<Contribution>? requestDto = null, bool includeData = false);
+        Task<ResultData<ContributionDto<T>>> GetContributionAsync<T>([NotNull] ISpecification<Contribution> specification);
+        Task<ResultData<T?>> GetContributionDataAsync<T>([NotNull] ISpecification<Contribution> specification);
+        Task<ResultData<long>> ManageContributionAsync<T>([NotNull] ManageContributionRequestDto<T> requestDto);
         Task<ResultData<bool>> ExistsContributionAsync([NotNull] ISpecification<Contribution> specification);
-        Task<ResultData<ContributionDto>> ConfirmContributionAsync([NotNull] ISpecification<Contribution> specification);
+        Task<ResultData<ContributionDto<T>>> ConfirmContributionAsync<T>([NotNull] ISpecification<Contribution> specification);
         Task<ResultData<bool>> RejectContributionAsync([NotNull] RejectContributionRequestDto requestDto);
         Task<ResultData<bool>> DeleteContributionAsync([NotNull] ISpecification<Contribution> specification);
         Task<ResultData<bool>> IsCreatorOfContributionAsync(long contributionId, int userId);
+        Task<ResultData<bool>> UpdateIdentifierIdAsync(long contributionId, long identifierId);
+        Task<ResultData<long?>> GetIdentifierIdAsync([NotNull] ISpecification<Contribution> specification);
     }
 }

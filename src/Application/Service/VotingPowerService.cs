@@ -48,47 +48,25 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<long>> ManageVotingPowerAsync([NotNull] ManageVotingPowerRequestDto requestDto)
+        public async Task<ResultData<bool>> BulkImportVotingPowersAsync([NotNull] IEnumerable<ManageVotingPowerRequestDto> requestDto)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<VotingPower>();
-                VotingPower? votingPower = null;
 
-                if (requestDto.Id.HasValue)
+                var entities = requestDto.Select(t => new VotingPower
                 {
-                    votingPower = await repository.GetAsync(requestDto.Id.Value);
-                    if (votingPower is null)
-                    {
-                        return new(OperationResult.NotFound)
-                        {
-                            Errors = [new() { Message = Localizer.Value["VotingPowerNotFound"] },],
-                        };
-                    }
+                    ProposalId = t.ProposalId,
+                    WalletAddress = t.WalletAddress,
+                    Amount = t.Amount.GetValueOrDefault(),
+                    TokenAccount = t.TokenAccount,
+                    CreationDate = t.CreationDate,
+                });
+                repository.AddRange(entities);
+                var affectedRows = await uow.SaveChangesAsync();
 
-                    votingPower.ProposalId = requestDto.ProposalId;
-                    votingPower.WalletAddress = requestDto.WalletAddress;
-                    votingPower.Amount = requestDto.Amount;
-                    votingPower.TokenAccount = requestDto.TokenAccount;
-
-                    _ = repository.Update(votingPower);
-                }
-                else
-                {
-                    votingPower = new VotingPower
-                    {
-                        ProposalId = requestDto.ProposalId,
-                        WalletAddress = requestDto.WalletAddress,
-                        Amount = requestDto.Amount,
-                        TokenAccount = requestDto.TokenAccount,
-                    };
-                    repository.Add(votingPower);
-                }
-
-                _ = await uow.SaveChangesAsync();
-
-                return new(OperationResult.Succeeded) { Data = votingPower.Id };
+                return new(OperationResult.Succeeded) { Data = affectedRows > 0 };
             }
             catch (Exception exc)
             {

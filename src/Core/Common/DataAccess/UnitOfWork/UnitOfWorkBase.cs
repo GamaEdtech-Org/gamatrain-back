@@ -7,6 +7,7 @@ namespace GamaEdtech.Common.DataAccess.UnitOfWork
     using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Transactions;
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.DataAccess.Entities;
@@ -16,6 +17,8 @@ namespace GamaEdtech.Common.DataAccess.UnitOfWork
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+
+    using IsolationLevel = System.Transactions.IsolationLevel;
 
     public abstract class UnitOfWorkBase<TContext>(TContext context, IServiceProvider serviceProvider, ILogger<IDataAccess> logger) : IUnitOfWorkBase
         where TContext : DbContext
@@ -157,6 +160,14 @@ namespace GamaEdtech.Common.DataAccess.UnitOfWork
                 throw;
             }
         }
+
+        public TransactionScope CreateTransactionScope()
+        {
+            var options = new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted };
+            return CreateTransactionScope(TransactionScopeOption.Required, options, TransactionScopeAsyncFlowOption.Enabled);
+        }
+
+        public TransactionScope CreateTransactionScope(TransactionScopeOption scopeOption, TransactionOptions transactionOptions, TransactionScopeAsyncFlowOption asyncFlowOption) => new(scopeOption, transactionOptions, asyncFlowOption);
 
         #region IDisposable Implementation
 

@@ -9,10 +9,10 @@ namespace GamaEdtech.Domain.Enumeration
         public static readonly CategoryType School = new(nameof(School), 1, "SchoolContributionPoints");
 
         [Display]
-        public static readonly CategoryType SchoolComment = new(nameof(SchoolComment), 2, "SchoolImageContributionPoints");
+        public static readonly CategoryType SchoolComment = new(nameof(SchoolComment), 2, "SchoolCommentContributionPoints");
 
         [Display]
-        public static readonly CategoryType SchoolImage = new(nameof(SchoolImage), 3, "SchoolCommentContributionPoints");
+        public static readonly CategoryType SchoolImage = new(nameof(SchoolImage), 3, "SchoolImageContributionPoints");
 
         [Display]
         public static readonly CategoryType Post = new(nameof(Post), 4, "PostContributionPoints");
@@ -20,7 +20,10 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly CategoryType SchoolIssues = new(nameof(SchoolIssues), 5, "SchoolIssuesContributionPoints");
 
-        public string ApplicationSettingsName { get; set; }
+        [Display]
+        public static readonly CategoryType RemoveSchoolImage = new(nameof(RemoveSchoolImage), 6, "RemoveSchoolImageContributionPoints");
+
+        public string ApplicationSettingsName { get; }
 
         public CategoryType()
         {

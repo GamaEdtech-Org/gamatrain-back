@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class GenerateUserTokenRequestDto
+    public sealed class GenerateUserTokenRequestDto
     {
         public required int UserId { get; set; }
 

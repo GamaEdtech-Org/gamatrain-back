@@ -1,6 +1,6 @@
 namespace GamaEdtech.Data.Dto.Identity
 {
-    public class SignInResponseDto
+    public sealed class SignInResponseDto
     {
         public ICollection<string>? Roles { get; set; }
     }

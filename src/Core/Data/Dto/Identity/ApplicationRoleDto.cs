@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class ApplicationRoleDto
+    public sealed class ApplicationRoleDto
     {
         public required int Id { get; set; }
 

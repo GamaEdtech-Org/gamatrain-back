@@ -2,6 +2,7 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Json;
 
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
@@ -26,25 +27,39 @@ namespace GamaEdtech.Application.Service
         , Lazy<ILogger<ContributionService>> logger, Lazy<IApplicationSettingsService> applicationSettingsService, Lazy<ITransactionService> transactionService)
         : LocalizableServiceBase<ContributionService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IContributionService
     {
-        public async Task<ResultData<ListDataSource<ContributionsDto>>> GetContributionsAsync(ListRequestDto<Contribution>? requestDto = null, bool includeData = false)
+        public async Task<ResultData<ListDataSource<ContributionsDto<T>>>> GetContributionsAsync<T>(ListRequestDto<Contribution>? requestDto = null, bool includeData = false)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var result = await uow.GetRepository<Contribution>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
-                var users = await result.List.Select(t => new ContributionsDto
+                var query = await uow.GetRepository<Contribution>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+                var lst = await query.List.Select(t => new
                 {
-                    Id = t.Id,
-                    Comment = t.Comment,
-                    CategoryType = t.CategoryType,
-                    IdentifierId = t.IdentifierId,
-                    Status = t.Status,
+                    t.Id,
+                    t.Comment,
+                    t.CategoryType,
+                    t.IdentifierId,
+                    t.Status,
                     CreationUser = t.CreationUser!.FirstName + " " + t.CreationUser.LastName,
-                    CreationDate = t.CreationDate,
-                    LastModifyDate = t.LastModifyDate,
+                    t.CreationDate,
+                    t.LastModifyDate,
                     Data = includeData ? t.Data : null,
                 }).ToListAsync();
-                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+
+                var result = lst.Select(t => new ContributionsDto<T>
+                {
+                    Id = t.Id,
+                    CategoryType = t.CategoryType,
+                    Comment = t.Comment,
+                    CreationDate = t.CreationDate,
+                    CreationUser = t.CreationUser,
+                    IdentifierId = t.IdentifierId,
+                    LastModifyDate = t.LastModifyDate,
+                    Status = t.Status,
+                    Data = string.IsNullOrEmpty(t.Data) ? default : JsonSerializer.Deserialize<T>(t.Data),
+                });
+
+                return new(OperationResult.Succeeded) { Data = new() { List = result, TotalRecordsCount = query.TotalRecordsCount } };
             }
             catch (Exception exc)
             {
@@ -53,26 +68,37 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ContributionDto>> GetContributionAsync([NotNull] ISpecification<Contribution> specification)
+        public async Task<ResultData<ContributionDto<T>>> GetContributionAsync<T>([NotNull] ISpecification<Contribution> specification)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var contribution = await uow.GetRepository<Contribution>().GetManyQueryable(specification).Select(t => new ContributionDto
+                var dto = await uow.GetRepository<Contribution>().GetManyQueryable(specification).Select(t => new
                 {
-                    Id = t.Id,
-                    Comment = t.Comment,
-                    Data = t.Data,
-                    IdentifierId = t.IdentifierId,
-                    CategoryType = t.CategoryType,
+                    t.Id,
+                    t.Comment,
+                    t.Data,
+                    t.IdentifierId,
+                    t.CategoryType,
                 }).FirstOrDefaultAsync();
-
-                return contribution is null
-                    ? new(OperationResult.NotFound)
+                if (dto is null)
+                {
+                    return new(OperationResult.NotFound)
                     {
                         Errors = [new() { Message = Localizer.Value["ContributionNotFound"] },],
-                    }
-                    : new(OperationResult.Succeeded) { Data = contribution };
+                    };
+                }
+
+                ContributionDto<T> contribution = new()
+                {
+                    Id = dto.Id,
+                    Comment = dto.Comment,
+                    CategoryType = dto.CategoryType,
+                    IdentifierId = dto.IdentifierId,
+                    Data = dto.Data is null ? default : JsonSerializer.Deserialize<T>(dto.Data),
+                };
+
+                return new(OperationResult.Succeeded) { Data = contribution };
             }
             catch (Exception exc)
             {
@@ -81,7 +107,24 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<long>> ManageContributionAsync([NotNull] ManageContributionRequestDto requestDto)
+        public async Task<ResultData<T?>> GetContributionDataAsync<T>([NotNull] ISpecification<Contribution> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var data = await uow.GetRepository<Contribution>().GetManyQueryable(specification)
+                    .Select(t => t.Data).FirstOrDefaultAsync();
+
+                return new(OperationResult.Succeeded) { Data = string.IsNullOrEmpty(data) ? default : JsonSerializer.Deserialize<T>(data) };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<long>> ManageContributionAsync<T>([NotNull] ManageContributionRequestDto<T> requestDto)
         {
             try
             {
@@ -102,9 +145,32 @@ namespace GamaEdtech.Application.Service
 
                     contribution.Comment = requestDto.Comment;
                     contribution.CategoryType = requestDto.CategoryType;
-                    contribution.Data = requestDto.Data;
                     contribution.IdentifierId = requestDto.IdentifierId;
                     contribution.Status = requestDto.Status;
+                    if (string.IsNullOrEmpty(contribution.Data))
+                    {
+                        contribution.Data = JsonSerializer.Serialize(requestDto.Data);
+                    }
+                    else
+                    {
+                        var dto = JsonSerializer.Deserialize<T>(contribution.Data);
+                        var properties = typeof(T).GetProperties();
+                        for (var i = 0; i < properties.Length; i++)
+                        {
+                            var property = properties[i];
+                            if (!property.CanWrite)
+                            {
+                                continue;
+                            }
+
+                            var value = property.GetValue(requestDto.Data);
+                            if (value is not null)
+                            {
+                                property.SetValue(dto, value);
+                            }
+                        }
+                        contribution.Data = JsonSerializer.Serialize(dto);
+                    }
 
                     _ = repository.Update(contribution);
                 }
@@ -114,7 +180,7 @@ namespace GamaEdtech.Application.Service
                     {
                         Comment = requestDto.Comment,
                         CategoryType = requestDto.CategoryType,
-                        Data = requestDto.Data,
+                        Data = JsonSerializer.Serialize(requestDto.Data),
                         IdentifierId = requestDto.IdentifierId,
                         Status = requestDto.Status,
                     };
@@ -148,13 +214,13 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ContributionDto>> ConfirmContributionAsync([NotNull] ISpecification<Contribution> specification)
+        public async Task<ResultData<ContributionDto<T>>> ConfirmContributionAsync<T>([NotNull] ISpecification<Contribution> specification)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<Contribution>();
-                var contribution = await repository.GetAsync(specification);
+                var contribution = await repository.GetAsync(specification.And(new StatusEqualsSpecification<Contribution>(Status.Review)));
                 if (contribution is null)
                 {
                     return new(OperationResult.NotFound)
@@ -167,12 +233,12 @@ namespace GamaEdtech.Application.Service
                 _ = repository.Update(contribution);
                 _ = await uow.SaveChangesAsync();
 
-                var points = await applicationSettingsService.Value.GetSettingAsync<int>(contribution.CategoryType.ApplicationSettingsName);
+                var points = await applicationSettingsService.Value.GetSettingAsync<long>(contribution.CategoryType.ApplicationSettingsName);
                 if (points.Data > 0)
                 {
                     _ = await transactionService.Value.IncreaseBalanceAsync(new()
                     {
-                        Description = "Successful Contribution",
+                        Description = $"Successful Contribution - {contribution.CategoryType.ApplicationSettingsName}",
                         Points = points.Data,
                         IdentifierId = contribution.Id,
                         UserId = contribution.CreationUserId,
@@ -181,10 +247,10 @@ namespace GamaEdtech.Application.Service
 
                 return new(OperationResult.Succeeded)
                 {
-                    Data = new ContributionDto
+                    Data = new ContributionDto<T>
                     {
                         Id = contribution.Id,
-                        Data = contribution.Data,
+                        Data = string.IsNullOrEmpty(contribution.Data) ? default : JsonSerializer.Deserialize<T>(contribution.Data),
                         Comment = contribution.Comment,
                         CreationUserId = contribution.CreationUserId,
                         CreationDate = contribution.CreationDate,
@@ -207,7 +273,7 @@ namespace GamaEdtech.Application.Service
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<Contribution>();
                 var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                var affectedRows = await repository.GetManyQueryable(t => t.Id == requestDto.Id).ExecuteUpdateAsync(t => t
+                var affectedRows = await repository.GetManyQueryable(t => t.Id == requestDto.Id && t.Status == Status.Review).ExecuteUpdateAsync(t => t
                     .SetProperty(p => p.Status, Status.Rejected)
                     .SetProperty(p => p.Comment, requestDto.Comment)
                     .SetProperty(p => p.LastModifyUserId, userId)
@@ -281,6 +347,45 @@ namespace GamaEdtech.Application.Service
             {
                 Logger.Value.LogException(exc);
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<bool>> UpdateIdentifierIdAsync(long contributionId, long identifierId)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var repository = uow.GetRepository<Contribution>();
+
+                var affectedRows = await repository.GetManyQueryable(t => t.Id == contributionId)
+                    .ExecuteUpdateAsync(t => t.SetProperty(p => p.IdentifierId, identifierId));
+
+                return new(OperationResult.Succeeded) { Data = affectedRows > 0 };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<long?>> GetIdentifierIdAsync([NotNull] ISpecification<Contribution> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var identifierId = await uow.GetRepository<Contribution>().GetManyQueryable(specification).Select(t => t.IdentifierId).FirstOrDefaultAsync();
+
+                return new(OperationResult.Succeeded) { Data = identifierId };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new () { Message = exc.Message
+    },]
+                };
             }
         }
     }

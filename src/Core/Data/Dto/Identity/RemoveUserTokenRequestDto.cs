@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class RemoveUserTokenRequestDto
+    public sealed class RemoveUserTokenRequestDto
     {
         public required int UserId { get; set; }
 

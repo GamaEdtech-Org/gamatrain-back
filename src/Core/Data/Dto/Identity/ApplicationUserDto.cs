@@ -4,7 +4,7 @@ namespace GamaEdtech.Data.Dto.Identity
 
     using GamaEdtech.Common.DataAccess.Entities;
 
-    public class ApplicationUserDto : Common.Mapping.IRegister, IEnablable
+    public sealed class ApplicationUserDto : Common.Mapping.IRegister, IEnablable
     {
         public int Id { get; set; }
 
@@ -19,6 +19,8 @@ namespace GamaEdtech.Data.Dto.Identity
         public string? PhoneNumber { get; set; }
 
         public bool PhoneNumberConfirmed { get; set; }
+
+        public string? ReferralId { get; set; }
 
         public DateTimeOffset? RegistrationDate { get; set; }
 

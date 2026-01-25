@@ -44,6 +44,11 @@ namespace GamaEdtech.Common.Core.Extensions.Linq
         {
             if (sortFilters?.Any() == true)
             {
+                if (sortFilters.Any(t => t.SortType is SortType.Random))
+                {
+                    return (lst.OrderBy(t => Guid.NewGuid()), true);
+                }
+
                 var properties = typeof(T).GetProperties();
                 var items = sortFilters.Where(t => properties.Exists(p => p.Name.Equals(t.Column, StringComparison.OrdinalIgnoreCase)));
                 if (items?.Any() == true)

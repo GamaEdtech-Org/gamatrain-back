@@ -90,9 +90,23 @@ namespace GamaEdtech.Domain.Entity
         [Column(nameof(IsDeleted), DataType.Boolean)]
         public bool IsDeleted { get; set; }
 
+        [Column(nameof(Tuition), DataType.Decimal)]
+        public decimal? Tuition { get; set; }
+
+        [Column(nameof(DefaultImageId), DataType.Long)]
+        public long? DefaultImageId { get; set; }
+        public SchoolImage? DefaultImage { get; set; }
+
+        [Column(nameof(Description), DataType.UnicodeMaxString)]
+        public string? Description { get; set; }
+
+        [Column(nameof(ViewCount), DataType.Long)]
+        public long ViewCount { get; set; }
+
         public virtual ICollection<SchoolComment> SchoolComments { get; set; } = [];
         public virtual ICollection<SchoolTag> SchoolTags { get; set; } = [];
         public virtual ICollection<SchoolImage> SchoolImages { get; set; } = [];
+        public virtual ICollection<SchoolBoard> SchoolBoards { get; set; } = [];
 
         public void Configure([NotNull] EntityTypeBuilder<School> builder)
         {
@@ -100,8 +114,14 @@ namespace GamaEdtech.Domain.Entity
             _ = builder.HasOne(t => t.Country).WithMany().HasForeignKey(t => t.CountryId).OnDelete(DeleteBehavior.NoAction);
             _ = builder.HasOne(t => t.State).WithMany().HasForeignKey(t => t.StateId).OnDelete(DeleteBehavior.NoAction);
             _ = builder.HasOne(t => t.City).WithMany().HasForeignKey(t => t.CityId).OnDelete(DeleteBehavior.NoAction);
+            _ = builder.HasOne(t => t.DefaultImage).WithMany().HasForeignKey(t => t.DefaultImageId).OnDelete(DeleteBehavior.NoAction);
 
             _ = builder.HasQueryFilter(t => !t.IsDeleted).HasIndex(t => t.IsDeleted);
+
+            _ = builder.HasIndex(t => t.Score).IsDescending(true);
+            _ = builder.HasIndex(t => new { t.LastModifyDate, t.CreationDate }).IsDescending(true, true);
+
+            _ = builder.HasIndex(t => new { t.IsDeleted, t.Name });
         }
     }
 }

@@ -14,9 +14,12 @@ namespace GamaEdtech.Data.Dto.Blog
         public string? Slug { get; set; }
         public string? Summary { get; set; }
         public string? Body { get; set; }
-        public VisibilityType VisibilityType { get; set; }
-        public DateTimeOffset PublishDate { get; set; }
+        public VisibilityType? VisibilityType { get; set; }
+        public DateTimeOffset? PublishDate { get; set; }
         public IFormFile? Image { get; set; }
+        public IFormFile? Podcast { get; set; }
         public IEnumerable<long>? Tags { get; set; }
+        public string? Keywords { get; set; }
+        public bool? Draft { get; set; }
     }
 }

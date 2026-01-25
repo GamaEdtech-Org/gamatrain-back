@@ -21,6 +21,12 @@ namespace GamaEdtech.Common.ModelBinding
 
             bindingContext.ModelState.SetModelValue(modelName, valueProviderResult);
 
+            if (string.IsNullOrEmpty(valueProviderResult.FirstValue))
+            {
+                bindingContext.Result = ModelBindingResult.Success(null);
+                return Task.CompletedTask;
+            }
+
             string?[] lst = [valueProviderResult.FirstValue];
             var single = true;
             var type = modelType;

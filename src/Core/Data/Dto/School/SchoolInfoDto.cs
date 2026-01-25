@@ -16,6 +16,7 @@ namespace GamaEdtech.Data.Dto.School
         public DateTimeOffset LastModifyDate { get; set; }
         public double? Score { get; set; }
         public double? Distance { get; set; }
+        public long? DefaultImageId { get; set; }
         public Uri? DefaultImageUri { get; set; }
     }
 }

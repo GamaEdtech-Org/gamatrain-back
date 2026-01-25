@@ -9,9 +9,9 @@ namespace GamaEdtech.Presentation.ViewModel.VotingPower
         public PagingDto? PagingDto { get; set; } = new() { PageFilter = new(), };
 
         [Display]
-        public string? ProposalId { get; set; }
+        public string? WalletAddress { get; set; }
 
         [Display]
-        public string? WalletAddress { get; set; }
+        public string? ProposalId { get; set; }
     }
 }

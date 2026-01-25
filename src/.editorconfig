@@ -1415,6 +1415,7 @@ dotnet_diagnostic.CA2019.severity = error
 dotnet_style_prefer_collection_expression = true:error
 dotnet_diagnostic.CA1815.severity = suggestion
 dotnet_diagnostic.CA1819.severity = suggestion
+dotnet_diagnostic.CA1034.severity = suggestion
 
 [*Controller.cs]
 dotnet_diagnostic.VSTHRD200.severity = suggestion

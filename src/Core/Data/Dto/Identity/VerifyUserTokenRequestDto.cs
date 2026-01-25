@@ -1,6 +1,6 @@
-﻿namespace GamaEdtech.Data.Dto.Identity
+namespace GamaEdtech.Data.Dto.Identity
 {
-    public class VerifyUserTokenRequestDto
+    public sealed class VerifyUserTokenRequestDto
     {
         public required string TokenProvider { get; set; }
 

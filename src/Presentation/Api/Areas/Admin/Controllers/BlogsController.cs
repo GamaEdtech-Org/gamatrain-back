@@ -1,7 +1,6 @@
 namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Text.Json;
 
     using Asp.Versioning;
 
@@ -30,7 +29,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         : ApiControllerBase<BlogsController>(logger)
     {
         [HttpGet("contributions"), Produces<ApiResponse<ListDataSource<PostContributionListResponseViewModel>>>()]
-        public async Task<IActionResult<ListDataSource<PostContributionListResponseViewModel>>> GetPendingPostContributionList([NotNull, FromQuery] PostContributionListRequestViewModel request)
+        public async Task<IActionResult<ListDataSource<PostContributionListResponseViewModel>>> GetPostContributionList([NotNull, FromQuery] PostContributionListRequestViewModel request)
         {
             try
             {
@@ -40,11 +39,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     specification = specification.And(new StatusEqualsSpecification<Contribution>(request.Status));
                 }
 
-                var result = await contributionService.Value.GetContributionsAsync(new ListRequestDto<Contribution>
+                var result = await contributionService.Value.GetContributionsAsync<PostContributionDto>(new ListRequestDto<Contribution>
                 {
                     PagingDto = request.PagingDto,
                     Specification = specification,
-                });
+                }, true);
                 return Ok(new ApiResponse<ListDataSource<PostContributionListResponseViewModel>>(result.Errors)
                 {
                     Data = result.Data.List is null ? new() : new()
@@ -55,6 +54,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             CreationUser = t.CreationUser,
                             CreationDate = t.CreationDate,
                             Status = t.Status,
+                            Title = t.Data?.Title,
+                            PostId = t.IdentifierId,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -75,22 +76,24 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var specification = new IdEqualsSpecification<Contribution, long>(contributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post));
-                var contributionResult = await contributionService.Value.GetContributionAsync(specification);
+                var contributionResult = await contributionService.Value.GetContributionAsync<PostContributionDto>(specification);
                 if (contributionResult.Data?.Data is null)
                 {
                     return Ok(new ApiResponse<PostContributionResponseViewModel>(contributionResult.Errors));
                 }
 
-                var dto = JsonSerializer.Deserialize<PostContributionDto>(contributionResult.Data.Data)!;
                 PostContributionResponseViewModel result = new()
                 {
-                    Title = dto.Title,
-                    Summary = dto.Summary,
-                    Body = dto.Body,
-                    ImageUri = fileService.Value.GetFileUri(dto.ImageId, ContainerType.Post).Data,
-                    Tags = dto.Tags,
-                    PublishDate = dto.PublishDate,
-                    VisibilityType = dto.VisibilityType,
+                    Title = contributionResult.Data.Data!.Title,
+                    Summary = contributionResult.Data.Data!.Summary,
+                    Body = contributionResult.Data.Data!.Body,
+                    ImageUri = fileService.Value.GetFileUri(contributionResult.Data.Data!.ImageId, ContainerType.Post).Data,
+                    PodcastUri = fileService.Value.GetFileUri(contributionResult.Data.Data!.PodcastId, ContainerType.Post).Data,
+                    Tags = contributionResult.Data.Data!.Tags,
+                    PublishDate = contributionResult.Data.Data!.PublishDate.GetValueOrDefault(),
+                    VisibilityType = contributionResult.Data.Data!.VisibilityType!,
+                    Keywords = contributionResult.Data.Data!.Keywords,
+                    Slug = contributionResult.Data.Data!.Slug,
                 };
 
                 return Ok(new ApiResponse<PostContributionResponseViewModel>
@@ -107,7 +110,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("contributions/{contributionId:long}/confirm"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> ConfirmSchoolImageContribution([FromRoute] long contributionId)
+        public async Task<IActionResult> ConfirmPostContribution([FromRoute] long contributionId)
         {
             try
             {
@@ -130,7 +133,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectPostContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
         {
             try
             {
@@ -149,6 +152,40 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 Logger.Value.LogException(exc);
 
                 return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
+            }
+        }
+
+        [HttpPut("posts/{postId:long}"), Produces<ApiResponse<ManagePostResponseViewModel>>()]
+        public async Task<IActionResult<ManagePostResponseViewModel>> UpdatePost([FromRoute] long postId, [NotNull, FromForm] UpdatePostRequestViewModel request)
+        {
+            try
+            {
+                ManagePostRequestDto dto = new()
+                {
+                    Id = postId,
+                    Body = request.Body,
+                    Image = request.Image,
+                    Podcast = request.Podcast,
+                    Keywords = request.Keywords,
+                    PublishDate = request.PublishDate,
+                    Slug = request.Slug,
+                    Summary = request.Summary,
+                    Tags = request.Tags,
+                    Title = request.Title,
+                    VisibilityType = request.VisibilityType,
+                };
+                var result = await blogService.Value.ManagePostAsync(dto);
+
+                return Ok<ManagePostResponseViewModel>(new(result.Errors)
+                {
+                    Data = new() { Id = result.Data, },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<ManagePostResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
 

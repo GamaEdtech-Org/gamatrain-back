@@ -1,0 +1,28 @@
+namespace GamaEdtech.Presentation.ViewModel.School
+{
+    using System.Text.Json.Serialization;
+
+    using GamaEdtech.Common.Converter;
+    using GamaEdtech.Domain.Enumeration;
+
+    public sealed class RemoveSchoolImageContributionListResponseViewModel
+    {
+        public long Id { get; set; }
+
+        public string? CreationUser { get; set; }
+
+        public DateTimeOffset CreationDate { get; set; }
+
+        public long? SchoolId { get; set; }
+
+        public string? Description { get; set; }
+
+        [JsonConverter(typeof(EnumerationConverter<Status, byte>))]
+        public Status Status { get; set; }
+
+        public Uri? FileUri { get; set; }
+
+        [JsonConverter(typeof(EnumerationConverter<ImageFileType, byte>))]
+        public ImageFileType? FileType { get; set; }
+    }
+}

@@ -6,12 +6,11 @@ namespace GamaEdtech.Domain.Entity
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.DataAnnotation.Schema;
-    using GamaEdtech.Domain.Entity.Identity;
 
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
     [Table(nameof(VotingPower))]
-    public class VotingPower : VersionableEntity<ApplicationUser, int, int?>, IEntity<VotingPower, long>
+    public class VotingPower : IEntity<VotingPower, long>, ICreationDate
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]
@@ -37,6 +36,9 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         [StringLength(512)]
         public string? TokenAccount { get; set; }
+
+        [Column(nameof(CreationDate), DataType.DateTimeOffset)]
+        public DateTimeOffset CreationDate { get; set; }
 
         public void Configure([NotNull] EntityTypeBuilder<VotingPower> builder)
         {

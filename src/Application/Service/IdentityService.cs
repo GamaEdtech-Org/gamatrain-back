@@ -3,6 +3,7 @@ namespace GamaEdtech.Application.Service
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Numerics;
     using System.Security.Claims;
     using System.Security.Cryptography;
     using System.Text;
@@ -29,6 +30,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.Identity;
+    using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Http;
@@ -38,6 +40,8 @@ namespace GamaEdtech.Application.Service
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
+    using Microsoft.IdentityModel.JsonWebTokens;
+    using Microsoft.IdentityModel.Tokens;
 
     using static GamaEdtech.Common.Core.Constants;
 
@@ -45,8 +49,8 @@ namespace GamaEdtech.Application.Service
     using Void = Common.Data.Void;
 
     public class IdentityService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<IdentityService>> localizer, Lazy<ILogger<IdentityService>> logger
-            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<Infrastructure.Interface.IAuthenticationProvider, AuthenticationProvider>> genericFactory
-            , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration)
+            , Lazy<UserManager<ApplicationUser>> userManager, Lazy<IGenericFactory<IAuthenticationProvider, AuthenticationProvider>> genericFactory
+            , Lazy<SignInManager<ApplicationUser>> signInManager, Lazy<ICacheProvider> cacheProvider, Lazy<IConfiguration> configuration, Lazy<ICoreProvider> coreProvider)
         : LocalizableServiceBase<IdentityService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IIdentityService, ITokenService
     {
         private const string RolesCacheKey = "Roles";
@@ -56,7 +60,10 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var result = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(requestDto?.Specification).FilterListAsync(requestDto?.PagingDto);
+                var query = uow.GetRepository<ApplicationUser, int>().GetManyQueryable(requestDto?.Specification);
+
+                var result = await query.FilterListAsync(requestDto?.PagingDto);
+
                 var users = await result.List.Select(t => new ApplicationUserDto
                 {
                     Id = t.Id,
@@ -65,6 +72,7 @@ namespace GamaEdtech.Application.Service
                     PhoneNumber = t.PhoneNumber,
                     UserName = t.UserName,
                     RegistrationDate = t.RegistrationDate,
+                    ReferralId = t.ReferralId,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new ListDataSource<ApplicationUserDto> { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -132,6 +140,25 @@ namespace GamaEdtech.Application.Service
                             RegistrationDate = user.RegistrationDate,
                         }
                     };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogError(exc, nameof(GetUserAsync));
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
+        public async Task<ResultData<List<int>>> GetUserIdsAsync([NotNull] ISpecification<ApplicationUser> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var ids = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => t.Id).ToListAsync();
+
+                return new(OperationResult.Succeeded)
+                {
+                    Data = ids,
+                };
             }
             catch (Exception exc)
             {
@@ -743,81 +770,92 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync()
+        public async Task<ResultData<ProfileSettingsDto>> GetProfileSettingsAsync([NotNull] ISpecification<ApplicationUser> specification)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new ProfileSettingsDto
                 {
-                    return new(OperationResult.Failed)
+                    UserName = t.UserName,
+                    FirstName = t.FirstName,
+                    LastName = t.LastName,
+                    SchoolId = t.SchoolId,
+                    CityId = t.CityId,
+                    StateId = t.City != null ? t.City.ParentId : null,
+                    CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
+                    ReferralId = t.ReferralId,
+                    Gender = t.Gender,
+                    Board = t.Board,
+                    Grade = t.Grade,
+                    Avatar = t.Avatar,
+                    Group = t.Group,
+                    CoreId = t.CoreId,
+                    WalletId = t.WalletId,
+                    ProfileUpdated = t.ProfileUpdated,
+                }).FirstOrDefaultAsync();
+
+                return data is null
+                    ? new(OperationResult.Failed) { Errors = new[] { new Error { Message = "User not found." } } }
+                    : new(OperationResult.Succeeded)
                     {
-                        Errors = new Error[] { new() { Message = Localizer.Value["AuthenticationError"].Value }, },
+                        Data = data,
                     };
-                }
-                var timeZone = await GetTimeZoneIdAsync(userId.Value);
-                return new(OperationResult.Succeeded)
-                {
-                    Data = new ProfileSettingsDto
-                    {
-                        TimeZoneId = timeZone,
-                    }
-                };
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message } } };
+
+                return new(OperationResult.Failed)
+                {
+                    Errors = new[] { new Error { Message = exc.Message } }
+                };
             }
         }
 
-        public async Task<ResultData<Void>> UpdateProfileSettingsAsync([NotNull] ProfileSettingsDto requestDto)
+        public async Task<ResultData<bool>> ManageProfileSettingsAsync([NotNull] ManageProfileSettingsRequestDto requestDto)
         {
             try
             {
-                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
-                if (!userId.HasValue)
+                var user = await userManager.Value.FindByIdAsync(requestDto.UserId.ToString());
+                if (user is null)
                 {
-                    return new(OperationResult.Failed)
+                    return new(OperationResult.NotFound)
                     {
-                        Errors = new Error[] { new() { Message = Localizer.Value["AuthenticationError"].Value }, },
+                        Errors = new[] { new Error { Message = "User not found." } }
                     };
                 }
 
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var userClaimRepository = uow.GetRepository<ApplicationUserClaim, int>();
-                var userClaim = await userClaimRepository.GetManyQueryable(t => t.UserId == userId.Value && t.ClaimType == TimeZoneIdClaim).FirstOrDefaultAsync();
+                user.CityId = requestDto.CityId ?? user.CityId;
+                user.SchoolId = requestDto.SchoolId ?? user.SchoolId;
+                user.FirstName = !string.IsNullOrEmpty(requestDto.FirstName) ? requestDto.FirstName : user.FirstName;
+                user.LastName = !string.IsNullOrEmpty(requestDto.LastName) ? requestDto.LastName : user.LastName;
+                user.Avatar = !string.IsNullOrEmpty(requestDto.Avatar) ? requestDto.Avatar : user.Avatar;
+                user.Gender = requestDto.Gender ?? user.Gender;
+                user.Board = requestDto.Board ?? user.Board;
+                user.Grade = requestDto.Grade ?? user.Grade;
+                user.Group = requestDto.Group ?? user.Group;
+                user.CoreId = requestDto.CoreId ?? user.CoreId;
+                user.WalletId = requestDto.WalletId ?? user.WalletId;
+                user.ProfileUpdated = true;
 
-                if (userClaim is null)
-                {
-                    if (string.IsNullOrEmpty(requestDto.TimeZoneId))
-                    {
-                        return new(OperationResult.Succeeded);
-                    }
+                var updateResult = await userManager.Value.UpdateAsync(user);
 
-                    userClaimRepository.Add(new ApplicationUserClaim
+                return updateResult.Succeeded
+                    ? new ResultData<bool>(OperationResult.Succeeded) { Data = true }
+                    : new ResultData<bool>(OperationResult.NotValid)
                     {
-                        UserId = userId.Value,
-                        ClaimType = TimeZoneIdClaim,
-                        ClaimValue = requestDto.TimeZoneId,
-                    });
-                }
-                else if (string.IsNullOrEmpty(requestDto.TimeZoneId))
-                {
-                    userClaimRepository.Remove(userClaim);
-                }
-                else
-                {
-                    userClaim.ClaimValue = requestDto.TimeZoneId;
-                    _ = userClaimRepository.Update(userClaim);
-                }
-                _ = await uow.SaveChangesAsync();
-                return new(OperationResult.Succeeded);
+                        Data = false,
+                        Errors = updateResult.Errors.Select(t => new Error { Message = t.Description }).ToArray()
+                    };
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message } } };
+                return new(OperationResult.Failed)
+                {
+                    Errors = new[] { new Error { Message = exc.Message } }
+                };
             }
         }
 
@@ -892,6 +930,286 @@ namespace GamaEdtech.Application.Service
             {
                 Errors = errors,
             };
+        }
+
+        public async Task<ResultData<string>> GenerateReferralUserAsync()
+        {
+            try
+            {
+                var userId = HttpContextAccessor.Value.HttpContext?.User.UserId();
+
+                if (!userId.HasValue)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AuthenticationError"] } },
+                    };
+                }
+
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var userRepo = uow.GetRepository<ApplicationUser, int>();
+
+                var user = await userRepo.GetAsync(userId.Value);
+
+                if (user == null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["UserNotFound"].Value } },
+                    };
+                }
+
+                if (user.ReferralId != null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = new[] { new Error { Message = Localizer.Value["AlreadyHaveReferralId"].Value } },
+                    };
+                }
+
+                var referralId = "";
+                bool exists;
+                var tryCount = 5;
+
+                do
+                {
+                    if (tryCount <= 0)
+                    {
+                        return new(OperationResult.Failed)
+                        {
+                            Errors = [new() { Message = Localizer.Value["ReferralIdGenerationFailed"] }]
+                        };
+                    }
+                    referralId = GenerateReferralId(userId ?? 0);
+                    exists = await userRepo.AnyAsync(u => u.ReferralId == referralId);
+                    tryCount--;
+                }
+                while (exists);
+
+
+                user.ReferralId = referralId;
+                _ = userRepo.Update(user);
+
+                _ = await uow.SaveChangesAsync();
+
+
+                return new(OperationResult.Succeeded) { Data = referralId };
+            }
+            catch (ReferenceConstraintException)
+            {
+                return new(OperationResult.NotValid)
+                {
+                    Errors = [new() { Message = Localizer.Value["ReferralUserConstraintError"] }]
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed)
+                {
+                    Errors = [new() { Message = exc.Message }]
+                };
+            }
+        }
+
+        public static string GenerateReferralId(int userId)
+        {
+            var inputBytes = Encoding.UTF8.GetBytes(
+                $"{userId}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}-{Guid.NewGuid()}"
+            );
+
+            var hashBytes = SHA256.HashData(inputBytes);
+            var base62Hash = Base62Encode(hashBytes);
+
+            // Take the first 10 characters
+            var id = base62Hash[..10].ToCharArray();
+
+            // Ensure at least 1 uppercase
+            if (!id.Any(char.IsUpper))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('A' + RandomNumberGenerator.GetInt32(26));
+            }
+
+            // Ensure at least 1 lowercase
+            if (!id.Any(char.IsLower))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('a' + RandomNumberGenerator.GetInt32(26));
+            }
+
+            // Ensure at least 1 digit
+            if (!id.Any(char.IsDigit))
+            {
+                id[RandomNumberGenerator.GetInt32(id.Length)] = (char)('0' + RandomNumberGenerator.GetInt32(10));
+
+            }
+
+            return new string(id);
+
+            static string Base62Encode(byte[] bytes)
+            {
+                const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                var sb = new StringBuilder();
+
+                // Convert to a big integer
+                var value = new BigInteger(bytes.Concat(new byte[] { 0 }).ToArray());
+
+                while (value > 0)
+                {
+                    var remainder = (int)(value % 62);
+                    _ = sb.Insert(0, chars[remainder]);
+                    value /= 62;
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        public async Task<ResultData<List<UserPointsDto>>> GetTop100UsersAsync(Top100UsersRequestDto? requestDto)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var adminRole = nameof(Role.Admin).ToUpperInvariant();
+                var lst = uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => !t.UserRoles!.Any(r => r.Role!.NormalizedName == adminRole));
+
+                if (requestDto is not null)
+                {
+                    if (requestDto.Board.HasValue)
+                    {
+                        lst = lst.Where(t => t.Board == requestDto.Board.Value);
+                    }
+
+                    if (requestDto.Grade.HasValue)
+                    {
+                        lst = lst.Where(t => t.Grade == requestDto.Grade.Value);
+                    }
+
+                    if (requestDto.CityId.HasValue)
+                    {
+                        lst = lst.Where(t => t.CityId == requestDto.CityId.Value);
+                    }
+
+                    if (requestDto.SchoolId.HasValue)
+                    {
+                        lst = lst.Where(t => t.SchoolId == requestDto.SchoolId.Value);
+                    }
+
+                    if (requestDto.RegistrationDateStart.HasValue)
+                    {
+                        lst = lst.Where(t => t.RegistrationDate >= requestDto.RegistrationDateStart.Value);
+                    }
+
+                    if (requestDto.RegistrationDateEnd.HasValue)
+                    {
+                        lst = lst.Where(t => t.RegistrationDate <= requestDto.RegistrationDateEnd.Value);
+                    }
+
+                    if (requestDto.StateId.HasValue)
+                    {
+                        lst = lst.Where(t => t.City != null && t.City.ParentId == requestDto.StateId.Value);
+                    }
+
+                    if (requestDto.CountryId.HasValue)
+                    {
+                        lst = lst.Where(t => t.City != null && t.City.Parent != null && t.City.Parent.ParentId == requestDto.CountryId.Value);
+                    }
+                }
+
+                var result = await lst.Select(t => new UserPointsDto
+                {
+                    Name = t.FirstName + " " + t.LastName,
+                    Points = t.CurrentBalance,
+                    UserId = t.Id,
+                    Avatar = t.Avatar,
+                }).OrderByDescending(t => t.Points).Take(100).ToListAsync();
+
+                return new(OperationResult.Succeeded) { Data = result };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<GenerateUserTokenResponseDto>> GenerateTokenByCoreTokenAsync([NotNull] GenerateTokenByCoreTokenRequestDto requestDto)
+        {
+            try
+            {
+                const string endpoint = "https://core.gamatrain.com/";
+                var data = await new JsonWebTokenHandler().ValidateTokenAsync(requestDto.Token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = endpoint,
+                    RequireExpirationTime = true,
+                    ValidateActor = false,
+                    ValidateIssuerSigningKey = false,
+                    ValidateSignatureLast = false,
+                    SignatureValidator = (token, parameters) => new JsonWebToken(token),
+                    ValidAudience = endpoint,
+                });
+                if (!data.IsValid)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                var response = await coreProvider.Value.GetUserInformationAsync(new()
+                {
+                    Token = requestDto.Token,
+                });
+                if (response.OperationResult is not OperationResult.Succeeded)
+                {
+                    return new(response.OperationResult) { Errors = response.Errors };
+                }
+
+                if (response.Data is null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                _ = data.Claims.TryGetValue("identity", out var email);
+
+                var user = await userManager.Value.FindByEmailAsync(email?.ToString()!);
+                if (user is null)
+                {
+                    return new(OperationResult.Failed)
+                    {
+                        Errors = [new Error { Message = Localizer.Value["InvalidToken"] }],
+                    };
+                }
+
+                user.Group = response.Data.Group;
+                user.CoreId = response.Data.CoreId;
+
+                if (!user.ProfileUpdated)
+                {
+                    user.FirstName = response.Data.FirstName;
+                    user.LastName = response.Data.LastName;
+                    user.Gender = response.Data.Gender;
+                    user.Grade = response.Data.Grade;
+                    user.PhoneNumber = response.Data.PhoneNumber;
+                    user.Avatar = response.Data.Avatar;
+                }
+                _ = await userManager.Value.UpdateAsync(user);
+
+                return await GenerateUserTokenAsync(new GenerateUserTokenRequestDto
+                {
+                    UserId = user.Id,
+                    TokenProvider = PermissionConstants.ApiDataProtectorTokenProvider,
+                    Purpose = PermissionConstants.ApiDataProtectorTokenProviderAccessToken,
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
         }
     }
 }
