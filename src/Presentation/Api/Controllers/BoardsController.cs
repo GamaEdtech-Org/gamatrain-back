@@ -26,8 +26,10 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     ? []
                     : result.Data.Select(t => new BoardsListResponseViewModel
                     {
+                        Id = t.Id,
                         Code = t.Code,
                         Title = t.Title,
+                        Icon = t.Icon
                     }),
                 });
             }
