@@ -74,5 +74,12 @@ namespace GamaEdtech.Presentation.ViewModel.School
 
         [Display]
         public string? Description { get; set; }
+
+        [Display]
+        public double? SiteMapPriority { get; set; }
+
+        [Display]
+        [JsonConverter(typeof(EnumerationConverter<ChangeFrequency, byte>))]
+        public ChangeFrequency? SiteMapChangeFrequency { get; set; }
     }
 }

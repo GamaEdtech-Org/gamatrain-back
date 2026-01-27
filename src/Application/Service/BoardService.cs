@@ -61,7 +61,7 @@ namespace GamaEdtech.Application.Service
                     Id = t.Id,
                     Code = t.Code,
                     Title = t.Title,
-                    Icon = t.Icon
+                    Icon = t.Icon,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = lst };
             }
@@ -154,7 +154,8 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var board = await uow.GetRepository<Board, int>().GetAsync(specification);
+                var repository = uow.GetRepository<Board, int>();
+                var board = await repository.GetAsync(specification);
                 if (board is null)
                 {
                     return new(OperationResult.NotFound)
@@ -164,7 +165,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                uow.GetRepository<Board, int>().Remove(board);
+                repository.Remove(board);
                 _ = await uow.SaveChangesAsync();
                 return new(OperationResult.Succeeded) { Data = true };
             }

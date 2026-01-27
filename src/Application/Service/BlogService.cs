@@ -16,6 +16,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Blog;
     using GamaEdtech.Data.Dto.Contribution;
+    using GamaEdtech.Data.Dto.SiteMap;
     using GamaEdtech.Data.Dto.Tag;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Entity.Identity;
@@ -34,7 +35,7 @@ namespace GamaEdtech.Application.Service
     public class BlogService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BlogService>> localizer
         , Lazy<ILogger<BlogService>> logger, Lazy<IReactionService> reactionService, Lazy<IFileService> fileService, Lazy<IIdentityService> identityService
         , Lazy<IContributionService> contributionService, Lazy<ITagService> tagService, Lazy<IConfiguration> configuration)
-        : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService
+        : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService, ISiteMapHandler
     {
         public async Task<ResultData<ListDataSource<PostsDto>>> GetPostsAsync(ListRequestDto<Post>? requestDto = null)
         {
@@ -69,6 +70,22 @@ namespace GamaEdtech.Application.Service
                 });
 
                 return new(OperationResult.Succeeded) { Data = new() { List = result, TotalRecordsCount = lst.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<IReadOnlyList<KeyValuePair<long, string?>>>> GetPostsNameAsync([NotNull] ISpecification<Post> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var name = await uow.GetRepository<Post>().GetManyQueryable(specification).Select(t => new KeyValuePair<long, string?>(t.Id, t.Title)).ToListAsync();
+
+                return new(OperationResult.Succeeded) { Data = name };
             }
             catch (Exception exc)
             {
@@ -141,6 +158,29 @@ namespace GamaEdtech.Application.Service
                 };
 
                 return new(OperationResult.Succeeded) { Data = result };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<List<SiteMapItemDto>>> GetSiteMapDataAsync()
+        {
+            try
+            {
+                var now = DateTimeOffset.UtcNow;
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var name = await uow.GetRepository<Post>().GetManyQueryable(t => t.PublishDate <= now && t.VisibilityType == VisibilityType.General).Select(t => new SiteMapItemDto
+                {
+                    Id = t.Id,
+                    Title = t.Slug ?? t.Title,
+                    ItemType = ItemType.Blog,
+                    LastModifyDate = t.LastModifyDate ?? t.CreationDate,
+                }).ToListAsync();
+
+                return new(OperationResult.Succeeded) { Data = name };
             }
             catch (Exception exc)
             {
