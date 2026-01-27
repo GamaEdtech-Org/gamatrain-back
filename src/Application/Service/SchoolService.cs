@@ -17,6 +17,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Data.Dto.Board;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.School;
+    using GamaEdtech.Data.Dto.SiteMap;
     using GamaEdtech.Data.Dto.Tag;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Entity.Identity;
@@ -42,7 +43,7 @@ namespace GamaEdtech.Application.Service
     public class SchoolService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer
         , Lazy<ILogger<FileService>> logger, Lazy<IFileService> fileService, Lazy<IContributionService> contributionService, Lazy<IIdentityService> identityService
         , Lazy<IConfiguration> configuration, Lazy<ITagService> tagService, Lazy<IReactionService> reactionService, Lazy<ILocationService> locationService, Lazy<IBoardService> boardService)
-        : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ISchoolService
+        : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ISchoolService, ISiteMapHandler
     {
         #region Schools
 
@@ -291,6 +292,28 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<List<SiteMapItemDto>>> GetSiteMapDataAsync()
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var name = await uow.GetRepository<School>().GetManyQueryable().Select(t => new SiteMapItemDto
+                {
+                    Id = t.Id,
+                    Title = t.Name,
+                    ItemType = ItemType.School,
+                    LastModifyDate = t.LastModifyDate ?? t.CreationDate,
+                }).ToListAsync();
+
+                return new(OperationResult.Succeeded) { Data = name };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
         public async Task<ResultData<long>> ManageSchoolAsync([NotNull] ManageSchoolRequestDto requestDto)
         {
             try
@@ -460,6 +483,7 @@ namespace GamaEdtech.Application.Service
                 }
 
                 _ = await uow.SaveChangesAsync();
+
                 if (requestDto.DefaultImageId.HasValue)
                 {
                     var result = await SetDefaultSchoolImageAsync(new()
