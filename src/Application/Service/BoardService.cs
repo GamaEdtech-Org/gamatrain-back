@@ -58,8 +58,10 @@ namespace GamaEdtech.Application.Service
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var lst = await uow.GetRepository<Board, int>().GetManyQueryable().Select(t => new BoardsDto
                 {
+                    Id = t.Id,
                     Code = t.Code,
                     Title = t.Title,
+                    Icon = t.Icon
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = lst };
             }

@@ -3,3 +3,9 @@
 ################################################################################
 
 /.vs
+
+
+# Dev setting
+**/appsettings.*.json
+!**/appsettings.json
+!**/appsettings.Example.json
