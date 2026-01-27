@@ -212,12 +212,13 @@ namespace GamaEdtech.Presentation.Api
 
             _ = app.UseHangfireDashboard();
 
-            RecurringJob.RemoveIfExists("UpdateAllSchoolScore");
             RecurringJob.AddOrUpdate<ISchoolService>("UpdateSchoolScore", t => t.UpdateSchoolScoreAsync(null), Cron.Daily(0, 0));
             RecurringJob.AddOrUpdate<ISchoolService>("UpdateSchoolCommentReactions", t => t.UpdateSchoolCommentReactionsAsync(null), Cron.Daily(0, 5));
             RecurringJob.AddOrUpdate<IBlogService>("UpdatePostReactions", t => t.UpdatePostReactionsAsync(null), Cron.Daily(0, 10));
             RecurringJob.AddOrUpdate<ISchoolService>("RemoveOldRejectedSchoolImages", t => t.RemoveOldRejectedSchoolImagesAsync(), Cron.Daily(0, 15));
-            RecurringJob.AddOrUpdate<IBoardService>("FetchCoreBoards", t => t.SyncCoreBoardsAsync(), Cron.Daily(0, 20));
+            RecurringJob.RemoveIfExists("FetchCoreBoards");
+            RecurringJob.AddOrUpdate<IBoardService>("SyncCoreBoards", t => t.SyncCoreBoardsAsync(), Cron.Daily(0, 20));
+            RecurringJob.AddOrUpdate<IGlobalService>("GenerateSiteMap", t => t.GenerateSiteMapAsync(), Cron.Daily(0, 30));
         }
     }
 }

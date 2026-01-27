@@ -11,6 +11,9 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly FileProviderType Azure = new(nameof(Azure), 1);
 
+        [Display]
+        public static readonly FileProviderType Youtube = new(nameof(Youtube), 2);
+
         public FileProviderType()
         {
         }
