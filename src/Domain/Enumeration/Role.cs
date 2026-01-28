@@ -16,6 +16,9 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly Role Student = new(3);
 
+        [Display]
+        public static readonly Role Advisor = new(4);
+
         public Role()
         {
         }

@@ -130,15 +130,7 @@ namespace GamaEdtech.Application.Service
                     ? new(OperationResult.NotFound) { Errors = new[] { new Error { Message = Localizer.Value["UserNotFound"] } }, }
                     : new(OperationResult.Succeeded)
                     {
-                        Data = new ApplicationUserDto
-                        {
-                            Id = user.Id,
-                            Email = user.Email,
-                            Enabled = user.Enabled,
-                            PhoneNumber = user.PhoneNumber,
-                            UserName = user.UserName,
-                            RegistrationDate = user.RegistrationDate,
-                        }
+                        Data = user,
                     };
             }
             catch (Exception exc)
@@ -775,31 +767,51 @@ namespace GamaEdtech.Application.Service
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new ProfileSettingsDto
+                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new
                 {
-                    UserName = t.UserName,
-                    FirstName = t.FirstName,
-                    LastName = t.LastName,
-                    SchoolId = t.SchoolId,
-                    CityId = t.CityId,
+                    t.UserName,
+                    t.FirstName,
+                    t.LastName,
+                    t.SchoolId,
+                    t.CityId,
                     StateId = t.City != null ? t.City.ParentId : null,
                     CountryId = t.City != null && t.City.Parent != null ? t.City.Parent.ParentId : null,
-                    ReferralId = t.ReferralId,
-                    Gender = t.Gender,
-                    Board = t.Board,
-                    Grade = t.Grade,
-                    Avatar = t.Avatar,
-                    Group = t.Group,
-                    CoreId = t.CoreId,
-                    WalletId = t.WalletId,
-                    ProfileUpdated = t.ProfileUpdated,
+                    t.ReferralId,
+                    t.Gender,
+                    t.Board,
+                    t.Grade,
+                    t.Avatar,
+                    t.Group,
+                    t.CoreId,
+                    t.WalletId,
+                    t.ProfileUpdated,
+                    Roles = t.UserRoles != null ? t.UserRoles.Select(u => u.Role!.Name!) : null,
                 }).FirstOrDefaultAsync();
 
                 return data is null
                     ? new(OperationResult.Failed) { Errors = new[] { new Error { Message = "User not found." } } }
                     : new(OperationResult.Succeeded)
                     {
-                        Data = data,
+                        Data = new()
+                        {
+                            UserName = data.UserName,
+                            FirstName = data.FirstName,
+                            LastName = data.LastName,
+                            SchoolId = data.SchoolId,
+                            CityId = data.CityId,
+                            StateId = data.StateId,
+                            CountryId = data.CountryId,
+                            ReferralId = data.ReferralId,
+                            Gender = data.Gender,
+                            Board = data.Board,
+                            Grade = data.Grade,
+                            Avatar = data.Avatar,
+                            Group = data.Group,
+                            CoreId = data.CoreId,
+                            WalletId = data.WalletId,
+                            ProfileUpdated = data.ProfileUpdated,
+                            Roles = data.Roles?.ListToFlagsEnum<Role>(),
+                        },
                     };
             }
             catch (Exception exc)
