@@ -136,7 +136,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectPostContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectPostContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectPostContributionRequestViewModel request)
         {
             try
             {
