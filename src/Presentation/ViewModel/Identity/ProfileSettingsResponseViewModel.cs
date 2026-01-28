@@ -1,5 +1,10 @@
 namespace GamaEdtech.Presentation.ViewModel.Identity
 {
+    using System.Text.Json.Serialization;
+
+    using GamaEdtech.Common.Converter;
+    using GamaEdtech.Domain.Enumeration;
+
     public sealed class ProfileSettingsResponseViewModel
     {
         public string? UserName { get; set; }
@@ -18,5 +23,8 @@ namespace GamaEdtech.Presentation.ViewModel.Identity
         public string? Avatar { get; set; }
         public string? WalletId { get; set; }
         public bool ProfileUpdated { get; set; }
+
+        [JsonConverter(typeof(FlagsEnumerationConverter<Role>))]
+        public Role? Roles { get; set; }
     }
 }
