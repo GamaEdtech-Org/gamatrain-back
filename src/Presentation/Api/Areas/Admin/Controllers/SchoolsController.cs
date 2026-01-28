@@ -361,7 +361,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("comments/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectSchoolCommentContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectSchoolCommentContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -513,7 +513,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("images/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -697,7 +697,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("images/issues/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectRemoveSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectRemoveSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -833,7 +833,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult<bool>> RejectSchoolContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult<bool>> RejectSchoolContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -937,7 +937,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("issues/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult<bool>> RejectSchoolIssuesContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult<bool>> RejectSchoolIssuesContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {

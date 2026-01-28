@@ -1,8 +1,8 @@
-namespace GamaEdtech.Presentation.ViewModel.Blog
+namespace GamaEdtech.Presentation.ViewModel.School
 {
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class RejectContributionRequestViewModel
+    public sealed class RejectSchoolContributionRequestViewModel
     {
         [Display]
         [Required]
