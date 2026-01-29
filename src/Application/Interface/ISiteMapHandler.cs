@@ -1,12 +1,16 @@
 namespace GamaEdtech.Application.Interface
 {
-    using GamaEdtech.Common.Data;
+    using System.Diagnostics.CodeAnalysis;
+
+    using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Data.Dto.SiteMap;
+    using GamaEdtech.Domain.Enumeration;
 
     [Injectable]
     public interface ISiteMapHandler
     {
-        Task<ResultData<List<SiteMapItemDto>>> GetSiteMapDataAsync();
+        ItemType ItemType { get; }
+        IQueryable<SiteMapItemDto> GetSiteMapData([NotNull] IUnitOfWork uow);
     }
 }

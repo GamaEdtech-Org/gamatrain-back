@@ -9,6 +9,7 @@ namespace GamaEdtech.Data.Dto.Blog
         public string? Body { get; set; }
         public string? ImageId { get; set; }
         public string? PodcastId { get; set; }
+        public bool RemovePodcast { get; set; }
         public string? Title { get; set; }
         public string? Slug { get; set; }
         public string? Summary { get; set; }

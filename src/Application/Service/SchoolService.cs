@@ -45,6 +45,19 @@ namespace GamaEdtech.Application.Service
         , Lazy<IConfiguration> configuration, Lazy<ITagService> tagService, Lazy<IReactionService> reactionService, Lazy<ILocationService> locationService, Lazy<IBoardService> boardService)
         : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ISchoolService, ISiteMapHandler
     {
+        #region SiteMap
+
+        public ItemType ItemType => ItemType.School;
+
+        public IQueryable<SiteMapItemDto> GetSiteMapData([NotNull] IUnitOfWork uow) => uow.GetRepository<School>().GetManyQueryable().Select(t => new SiteMapItemDto
+        {
+            Id = t.Id,
+            Title = t.Name,
+            LastModifyDate = t.LastModifyDate ?? t.CreationDate,
+        });
+
+        #endregion
+
         #region Schools
 
         public async Task<ResultData<ListDataSource<SchoolsDto>>> GetSchoolsAsync(ListRequestDto<School>? requestDto = null)
@@ -282,28 +295,6 @@ namespace GamaEdtech.Application.Service
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var name = await uow.GetRepository<School>().GetManyQueryable(specification).Select(t => new KeyValuePair<long, string?>(t.Id, t.Name)).ToListAsync();
-
-                return new(OperationResult.Succeeded) { Data = name };
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
-            }
-        }
-
-        public async Task<ResultData<List<SiteMapItemDto>>> GetSiteMapDataAsync()
-        {
-            try
-            {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var name = await uow.GetRepository<School>().GetManyQueryable().Select(t => new SiteMapItemDto
-                {
-                    Id = t.Id,
-                    Title = t.Name,
-                    ItemType = ItemType.School,
-                    LastModifyDate = t.LastModifyDate ?? t.CreationDate,
-                }).ToListAsync();
 
                 return new(OperationResult.Succeeded) { Data = name };
             }
@@ -1078,8 +1069,8 @@ namespace GamaEdtech.Application.Service
 
                 _ = await fileService.Value.RemoveFileAsync(new()
                 {
-                    FileId = schoolImage.FileId!,
-                    ContainerType = ContainerType.School
+                    FileId = schoolImage.FileId,
+                    ContainerType = ContainerType.School,
                 });
 
                 _ = await contributionService.Value.DeleteContributionAsync(new IdEqualsSpecification<Contribution, long>(schoolImage.ContributionId.GetValueOrDefault()));
@@ -1654,7 +1645,7 @@ namespace GamaEdtech.Application.Service
 
                     var result = await fileService.Value.RemoveFileAsync(new()
                     {
-                        FileId = item.Data.FileId!,
+                        FileId = item.Data.FileId,
                         ContainerType = ContainerType.School,
                     });
                     if (result.Data)

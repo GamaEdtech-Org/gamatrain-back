@@ -33,6 +33,10 @@ namespace GamaEdtech.Application.Service
             , Lazy<IGenericFactory<ICaptchaProvider, CaptchaProviderType>> genericFactory, Lazy<IConfiguration> configuration, Lazy<IEnumerable<ISiteMapHandler>> siteMapHandlers, Lazy<IWebHostEnvironment> environment)
         : LocalizableServiceBase<GlobalService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IGlobalService
     {
+        public static readonly double DefaultPriority = 1;
+        public static readonly ChangeFrequency DefaultChangeFrequency = ChangeFrequency.Monthly;
+        public static readonly int MaxItem = 50000;
+
         public async Task<ResultData<bool>> VerifyCaptchaAsync(string? captcha)
         {
             try
@@ -182,69 +186,64 @@ namespace GamaEdtech.Application.Service
                 }
 
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var data = await uow.GetRepository<SiteMap>().GetManyQueryable().Select(t => new
-                {
-                    t.IdentifierId,
-                    t.Priority,
-                    t.ChangeFrequency,
-                    t.ItemType,
-                }).ToListAsync();
+                var repository = uow.GetRepository<SiteMap>();
 
-                List<SiteMapItemDto> nodes = [];
-                foreach (var handler in siteMapHandlers.Value)
-                {
-                    var lst = await handler.GetSiteMapDataAsync();
-                    if (lst.Data is not null)
-                    {
-                        for (var j = 0; j < lst.Data.Count; j++)
-                        {
-                            var node = lst.Data[j];
-                            var item = data.Find(t => t.IdentifierId == node.Id && t.ItemType == node.ItemType);
-                            if (item?.ChangeFrequency is not null)
-                            {
-                                node.ChangeFrequency = item.ChangeFrequency;
-                            }
-
-                            if (item?.Priority is not null)
-                            {
-                                node.Priority = item.Priority.Value;
-                            }
-
-                            nodes.Add(node);
-                        }
-                    }
-                }
-                var chunks = nodes.Chunk(50000);
-                var i = 0;
                 StringBuilder sb = new();
                 _ = sb.Append("<sitemapindex xmlns=\"https://www.example.com/schemas/sitemap/0.84\">");
-                foreach (var item in chunks)
+                foreach (var handler in siteMapHandlers.Value)
                 {
-                    i++;
-                    _ = sb.AppendFormat(@"
-<sitemap>
-    <loc>https://gamatrain.com/sitemap/sitemap{0}.xml</loc>
-</sitemap>
-", i);
-
-                    StringBuilder nested = new();
-                    _ = nested.Append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-                    for (var j = 0; j < item.Length; j++)
+                    var lst = from t1 in handler.GetSiteMapData(uow)
+                              join t2 in repository.GetManyQueryable(t => t.ItemType == handler.ItemType) on t1.Id equals t2.IdentifierId into g
+                              from t3 in g.DefaultIfEmpty()
+                              orderby t1.Id
+                              select new
+                              {
+                                  t1.Id,
+                                  t1.LastModifyDate,
+                                  t1.Title,
+                                  t3.Priority,
+                                  t3.ChangeFrequency,
+                              };
+                    var i = 0;
+                    while (true)
                     {
-                        _ = nested.AppendFormat(@"
+                        var result = await lst.Skip(MaxItem * i).Take(MaxItem).ToListAsync();
+                        if (result is null || result.Count == 0)
+                        {
+                            break;
+                        }
+
+                        var fileName = $"sitemap-{handler.ItemType.Identifier}{i}.xml";
+                        _ = sb.AppendFormat(@"
+<sitemap>
+    <loc>https://gamatrain.com/sitemap/{0}</loc>
+</sitemap>", fileName);
+
+                        StringBuilder nested = new();
+                        _ = nested.Append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+                        for (var j = 0; j < result.Count; j++)
+                        {
+                            _ = nested.AppendFormat(@"
 <url>
     <loc>https://gamatrain.com/{0}/{1}/{2}</loc>
     <lastmod>{3}</lastmod>
     <changefreq>{4}</changefreq>
     <priority>{5}</priority>
 </url>
-", item[j].ItemType.Identifier, item[j].Id, item[j].Title.Slugify(), item[j].LastModifyDate, item[j].ChangeFrequency.Name.ToLowerInvariant(), item[j].Priority);
-                    }
-                    _ = nested.Append("</urlset>");
-                    await File.WriteAllTextAsync(Path.Combine(dir, $"sitemap{i}.xml"), nested.ToString());
-                }
-                _ = sb.Append("</sitemapindex>");
+", handler.ItemType.Identifier, result[j].Id, result[j].Title.Slugify(), result[j].LastModifyDate, (result[j].ChangeFrequency ?? DefaultChangeFrequency).Name.ToLowerInvariant(), result[j].Priority ?? DefaultPriority);
+                        }
+                        _ = nested.Append("</urlset>");
+                        await File.WriteAllTextAsync(Path.Combine(dir, fileName), nested.ToString());
 
+                        i++;
+                        if (result.Count < MaxItem)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                _ = sb.Append("</sitemapindex>");
                 await File.WriteAllTextAsync(Path.Combine(dir, "sitemap.xml"), sb.ToString());
 
                 return new(OperationResult.Succeeded) { Data = true };

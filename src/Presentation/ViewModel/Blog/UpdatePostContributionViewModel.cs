@@ -34,6 +34,9 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         public IFormFile? Podcast { get; set; }
 
         [Display]
+        public bool RemovePodcast { get; set; }
+
+        [Display]
         [JsonConverter(typeof(EnumerationConverter<VisibilityType, byte>))]
         public VisibilityType? VisibilityType { get; set; }
 

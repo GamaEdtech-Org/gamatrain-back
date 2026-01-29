@@ -18,6 +18,7 @@ namespace GamaEdtech.Data.Dto.Blog
         public DateTimeOffset? PublishDate { get; set; }
         public IFormFile? Image { get; set; }
         public IFormFile? Podcast { get; set; }
+        public bool RemovePodcast { get; set; }
         public IEnumerable<long>? Tags { get; set; }
         public string? Keywords { get; set; }
         public bool? Draft { get; set; }
