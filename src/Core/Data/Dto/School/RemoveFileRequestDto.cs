@@ -4,7 +4,7 @@ namespace GamaEdtech.Data.Dto.School
 
     public sealed class RemoveFileRequestDto
     {
-        public required string FileId { get; set; }
+        public required string? FileId { get; set; }
         public required ContainerType ContainerType { get; set; }
     }
 }

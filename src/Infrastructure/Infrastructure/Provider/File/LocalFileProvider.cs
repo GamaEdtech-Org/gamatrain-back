@@ -63,6 +63,11 @@ namespace GamaEdtech.Infrastructure.Provider.File
         {
             try
             {
+                if (string.IsNullOrEmpty(requestDto.FileId))
+                {
+                    return new(OperationResult.Succeeded) { Data = await Task.FromResult(true) };
+                }
+
                 var file = Path.Combine(GetDirectoryPath(requestDto.ContainerType, true), requestDto.FileId);
                 if (System.IO.File.Exists(file))
                 {
