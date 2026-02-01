@@ -7,35 +7,35 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
-    using GamaEdtech.Presentation.ViewModel.Ticket;
+    using GamaEdtech.Presentation.ViewModel.Contact;
 
     using Microsoft.AspNetCore.Mvc;
 
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class TicketsController(Lazy<ILogger<TicketsController>> logger, Lazy<ITicketService> ticketService
+    public class ContactsController(Lazy<ILogger<ContactsController>> logger, Lazy<IContactService> contactService
         , Lazy<IGlobalService> globalService)
-        : ApiControllerBase<TicketsController>(logger)
+        : ApiControllerBase<ContactsController>(logger)
     {
-        [HttpPost, Produces<ApiResponse<ManageTicketResponseViewModel>>()]
-        public async Task<IActionResult<ManageTicketResponseViewModel>> CreateTicket([NotNull, FromBody] CreateTicketRequestViewModel request)
+        [HttpPost, Produces<ApiResponse<ManageContactResponseViewModel>>()]
+        public async Task<IActionResult<ManageContactResponseViewModel>> CreateContact([NotNull, FromBody] CreateContactRequestViewModel request)
         {
             try
             {
                 var validateCaptcha = await globalService.Value.VerifyCaptchaAsync(request.Captcha);
                 if (!validateCaptcha.Data)
                 {
-                    return Ok<ManageTicketResponseViewModel>(new(new Error { Message = "Invalid Captcha" }));
+                    return Ok<ManageContactResponseViewModel>(new(new Error { Message = "Invalid Captcha" }));
                 }
 
-                var result = await ticketService.Value.CreateTicketAsync(new()
+                var result = await contactService.Value.CreateContactAsync(new()
                 {
                     Body = request.Body,
                     Email = request.Email,
-                    Sender = request.FullName,
+                    FullName = request.FullName,
                     Subject = request.Subject,
                 });
-                return Ok<ManageTicketResponseViewModel>(new(result.Errors)
+                return Ok<ManageContactResponseViewModel>(new(result.Errors)
                 {
                     Data = new() { Id = result.Data },
                 });
@@ -44,7 +44,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             {
                 Logger.Value.LogException(exc);
 
-                return Ok<ManageTicketResponseViewModel>(new(new Error { Message = exc.Message }));
+                return Ok<ManageContactResponseViewModel>(new(new Error { Message = exc.Message }));
             }
         }
     }

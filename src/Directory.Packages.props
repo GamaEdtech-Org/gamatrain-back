@@ -19,8 +19,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="Resend" Version="0.2.1" />
-    <PackageVersion Include="Resend.FluentEmail" Version="0.2.1" />
-    <PackageVersion Include="Resend.Webhooks" Version="0.2.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.1" />
     <PackageVersion Include="SkiaSharp.QrCode" Version="0.9.0" />
     <PackageVersion Include="Slugify.Core" Version="5.1.1" />
