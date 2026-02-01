@@ -1,6 +1,6 @@
-namespace GamaEdtech.Presentation.ViewModel.Ticket
+namespace GamaEdtech.Presentation.ViewModel.Contact
 {
-    public sealed class TicketResponseViewModel
+    public sealed class ContactResponseViewModel
     {
         public long Id { get; set; }
         public string? FullName { get; set; }

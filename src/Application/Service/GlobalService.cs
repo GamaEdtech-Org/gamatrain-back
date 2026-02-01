@@ -189,8 +189,7 @@ namespace GamaEdtech.Application.Service
                 var repository = uow.GetRepository<SiteMap>();
 
                 StringBuilder sb = new();
-                _ = sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-                _ = sb.Append("<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+                _ = sb.Append("<sitemapindex xmlns=\"https://www.example.com/schemas/sitemap/0.84\">");
                 foreach (var handler in siteMapHandlers.Value)
                 {
                     var lst = from t1 in handler.GetSiteMapData(uow)
@@ -214,7 +213,7 @@ namespace GamaEdtech.Application.Service
                             break;
                         }
 
-                        var fileName = $"sitemap-{handler.ItemType.Identifier}{i}";
+                        var fileName = $"sitemap-{handler.ItemType.Identifier}{i}.xml";
                         _ = sb.AppendFormat(@"
 <sitemap>
     <loc>https://gamatrain.com/sitemap/{0}</loc>
@@ -231,10 +230,10 @@ namespace GamaEdtech.Application.Service
     <changefreq>{4}</changefreq>
     <priority>{5}</priority>
 </url>
-", handler.ItemType.Identifier, result[j].Id, result[j].Title.Slugify(), result[j].LastModifyDate.ToString("O"), (result[j].ChangeFrequency ?? DefaultChangeFrequency).Name.ToLowerInvariant(), result[j].Priority ?? DefaultPriority);
+", handler.ItemType.Identifier, result[j].Id, result[j].Title.Slugify(), result[j].LastModifyDate, (result[j].ChangeFrequency ?? DefaultChangeFrequency).Name.ToLowerInvariant(), result[j].Priority ?? DefaultPriority);
                         }
                         _ = nested.Append("</urlset>");
-                        await File.WriteAllTextAsync(Path.Combine(dir, $"{fileName}.xml"), nested.ToString());
+                        await File.WriteAllTextAsync(Path.Combine(dir, fileName), nested.ToString());
 
                         i++;
                         if (result.Count < MaxItem)
