@@ -2,6 +2,8 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using EntityFramework.Exceptions.Common;
@@ -16,6 +18,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Data.Dto.Blog;
     using GamaEdtech.Data.Dto.Contribution;
+    using GamaEdtech.Data.Dto.SiteMap;
     using GamaEdtech.Data.Dto.Tag;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Entity.Identity;
@@ -34,7 +37,7 @@ namespace GamaEdtech.Application.Service
     public class BlogService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BlogService>> localizer
         , Lazy<ILogger<BlogService>> logger, Lazy<IReactionService> reactionService, Lazy<IFileService> fileService, Lazy<IIdentityService> identityService
         , Lazy<IContributionService> contributionService, Lazy<ITagService> tagService, Lazy<IConfiguration> configuration)
-        : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService
+        : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService, ISiteMapHandler
     {
         public async Task<ResultData<ListDataSource<PostsDto>>> GetPostsAsync(ListRequestDto<Post>? requestDto = null)
         {
@@ -69,6 +72,22 @@ namespace GamaEdtech.Application.Service
                 });
 
                 return new(OperationResult.Succeeded) { Data = new() { List = result, TotalRecordsCount = lst.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<IReadOnlyList<KeyValuePair<long, string?>>>> GetPostsNameAsync([NotNull] ISpecification<Post> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var name = await uow.GetRepository<Post>().GetManyQueryable(specification).Select(t => new KeyValuePair<long, string?>(t.Id, t.Title)).ToListAsync();
+
+                return new(OperationResult.Succeeded) { Data = name };
             }
             catch (Exception exc)
             {
@@ -223,6 +242,7 @@ namespace GamaEdtech.Application.Service
                     Body = requestDto.Body,
                     ImageId = imageId,
                     PodcastId = podcastId,
+                    RemovePodcast = requestDto.RemovePodcast,
                     Summary = requestDto.Summary,
                     Tags = requestDto.Tags,
                     Title = requestDto.Title,
@@ -308,8 +328,17 @@ namespace GamaEdtech.Application.Service
                     {
                         return new(OperationResult.NotFound)
                         {
-                            Errors = [new() { Message = Localizer.Value["SchoolNotFound"] },],
+                            Errors = [new() { Message = Localizer.Value["PostNotFound"] },],
                         };
+                    }
+
+                    if (requestDto.RemovePodcast)
+                    {
+                        _ = await fileService.Value.RemoveFileAsync(new()
+                        {
+                            FileId = requestDto.PodcastId,
+                            ContainerType = ContainerType.Post,
+                        });
                     }
 
                     post.Slug = requestDto.Slug ?? post.Slug;
@@ -317,7 +346,7 @@ namespace GamaEdtech.Application.Service
                     post.Summary = requestDto.Summary ?? post.Summary;
                     post.Body = requestDto.Body ?? post.Body;
                     post.ImageId = requestDto.ImageId ?? post.ImageId;
-                    post.PodcastId = requestDto.PodcastId ?? post.PodcastId;
+                    post.PodcastId = requestDto.RemovePodcast ? null : (requestDto.PodcastId ?? post.PodcastId);
                     post.PublishDate = requestDto.PublishDate ?? post.PublishDate;
                     post.VisibilityType = requestDto.VisibilityType ?? post.VisibilityType;
                     post.Keywords = requestDto.Keywords ?? post.Keywords;
@@ -493,25 +522,19 @@ namespace GamaEdtech.Application.Service
                     .And(new CategoryTypeEqualsSpecification<Reaction>(CategoryType.Post));
                 _ = reactionService.Value.RemoveReactionAsync(reactionSpecification);
 
-                if (!string.IsNullOrEmpty(post.ImageId))
+                //remove image
+                _ = await fileService.Value.RemoveFileAsync(new()
                 {
-                    //remove image
-                    _ = await fileService.Value.RemoveFileAsync(new()
-                    {
-                        ContainerType = ContainerType.Post,
-                        FileId = post.ImageId,
-                    });
-                }
+                    ContainerType = ContainerType.Post,
+                    FileId = post.ImageId,
+                });
 
-                if (!string.IsNullOrEmpty(post.PodcastId))
+                //remove Podcast
+                _ = await fileService.Value.RemoveFileAsync(new()
                 {
-                    //remove Podcast
-                    _ = await fileService.Value.RemoveFileAsync(new()
-                    {
-                        ContainerType = ContainerType.Post,
-                        FileId = post.PodcastId,
-                    });
-                }
+                    ContainerType = ContainerType.Post,
+                    FileId = post.PodcastId,
+                });
 
                 return new(OperationResult.Succeeded) { Data = true };
             }
@@ -566,6 +589,7 @@ namespace GamaEdtech.Application.Service
                         CreationDate = result.Data.Data!.CreationDate.GetValueOrDefault(),
                         ImageId = result.Data.Data!.ImageId,
                         PodcastId = result.Data.Data!.PodcastId,
+                        RemovePodcast = result.Data.Data!.RemovePodcast,
                         Title = result.Data.Data!.Title,
                         Slug = result.Data.Data!.Slug,
                         Summary = result.Data.Data!.Summary,
@@ -669,6 +693,23 @@ namespace GamaEdtech.Application.Service
                 ? ((string? ImageId, IEnumerable<Error>? Errors))(fileId.Data, null)
                 : new(null, fileId.Errors);
         }
+
+        #region SiteMap
+
+        public ItemType ItemType => ItemType.Blog;
+
+        public IQueryable<SiteMapItemDto> GetSiteMapData([NotNull] IUnitOfWork uow)
+        {
+            var now = DateTimeOffset.UtcNow;
+            return uow.GetRepository<Post>().GetManyQueryable(t => t.PublishDate <= now && t.VisibilityType == VisibilityType.General).Select(t => new SiteMapItemDto
+            {
+                Id = t.Id,
+                Title = t.Slug ?? t.Title,
+                LastModifyDate = t.LastModifyDate ?? t.CreationDate,
+            });
+        }
+
+        #endregion
 
         #region Job
 

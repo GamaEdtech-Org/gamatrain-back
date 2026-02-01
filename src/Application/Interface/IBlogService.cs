@@ -12,6 +12,7 @@ namespace GamaEdtech.Application.Interface
     public interface IBlogService
     {
         Task<ResultData<ListDataSource<PostsDto>>> GetPostsAsync(ListRequestDto<Post>? requestDto = null);
+        Task<ResultData<IReadOnlyList<KeyValuePair<long, string?>>>> GetPostsNameAsync([NotNull] ISpecification<Post> specification);
         Task<ResultData<PostDto>> GetPostAsync([NotNull] ISpecification<Post> specification);
         Task<ResultData<long>> ManagePostAsync([NotNull] ManagePostRequestDto requestDto);
         Task<ResultData<long>> ManagePostContributionAsync([NotNull] ManagePostContributionRequestDto requestDto);

@@ -418,6 +418,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     Body = request.Body,
                     Image = request.Image,
                     Podcast = request.Podcast,
+                    RemovePodcast = request.RemovePodcast,
                     Tags = request.Tags,
                     PublishDate = request.PublishDate,
                     VisibilityType = request.VisibilityType,

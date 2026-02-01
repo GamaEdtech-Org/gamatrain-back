@@ -308,6 +308,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
                         CoreId = result.Data.CoreId,
                         WalletId = result.Data.WalletId,
                         ProfileUpdated = result.Data.ProfileUpdated,
+                        Roles = result.Data.Roles,
                     },
                 });
             }

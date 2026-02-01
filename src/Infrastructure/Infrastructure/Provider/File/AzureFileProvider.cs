@@ -57,10 +57,14 @@ namespace GamaEdtech.Infrastructure.Provider.File
         {
             try
             {
+                if (string.IsNullOrEmpty(requestDto.FileId))
+                {
+                    return new(OperationResult.Succeeded) { Data = true };
+                }
                 _ = await GetClient(requestDto.ContainerType, requestDto.FileId)
                     .DeleteIfExistsAsync(Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
 
-                return new(OperationResult.Succeeded) { Data = await Task.FromResult(true) };
+                return new(OperationResult.Succeeded) { Data = true };
             }
             catch (Exception exc)
             {

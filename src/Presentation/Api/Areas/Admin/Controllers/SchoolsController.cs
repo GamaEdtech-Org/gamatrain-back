@@ -10,6 +10,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.Specification.Impl;
+    using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.School;
@@ -17,8 +18,10 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
+    using GamaEdtech.Domain.Specification.ApplicationSetting;
     using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Domain.Specification.School;
+    using GamaEdtech.Presentation.ViewModel.ApplicationSettings;
     using GamaEdtech.Presentation.ViewModel.Board;
     using GamaEdtech.Presentation.ViewModel.School;
     using GamaEdtech.Presentation.ViewModel.Tag;
@@ -32,7 +35,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     [Route("api/v{version:apiVersion}/[area]/[controller]")]
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
-    public class SchoolsController(Lazy<ILogger<SchoolsController>> logger, Lazy<ISchoolService> schoolService
+    public class SchoolsController(Lazy<ILogger<SchoolsController>> logger, Lazy<ISchoolService> schoolService, Lazy<IGlobalService> globalService
         , Lazy<IContributionService> contributionService, Lazy<IFileService> fileService, Lazy<ITagService> tagService, Lazy<IIdentityService> identityService)
         : ApiControllerBase<SchoolsController>(logger)
     {
@@ -358,7 +361,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("comments/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectSchoolCommentContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectSchoolCommentContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -510,7 +513,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("images/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -694,7 +697,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("images/issues/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult> RejectRemoveSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult> RejectRemoveSchoolImageContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -830,7 +833,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult<bool>> RejectSchoolContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult<bool>> RejectSchoolContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -934,7 +937,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         }
 
         [HttpPatch("issues/contributions/{contributionId:long}/reject"), Produces<ApiResponse<bool>>()]
-        public async Task<IActionResult<bool>> RejectSchoolIssuesContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectContributionRequestViewModel request)
+        public async Task<IActionResult<bool>> RejectSchoolIssuesContribution([FromRoute] long contributionId, [NotNull, FromBody] RejectSchoolContributionRequestViewModel request)
         {
             try
             {
@@ -953,6 +956,139 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 Logger.Value.LogException(exc);
 
                 return Ok(new ApiResponse<bool>(new Error { Message = exc.Message }));
+            }
+        }
+
+        #endregion
+
+        #region Site Map
+
+        [HttpGet("site-maps"), Produces<ApiResponse<ListDataSource<SiteMapListResponseViewModel>>>()]
+        [Display(Name = "Schools Site Maps List")]
+        public async Task<IActionResult<ListDataSource<SiteMapListResponseViewModel>>> GetSiteMapsList([NotNull, FromQuery] SiteMapListRequestViewModel request)
+        {
+            try
+            {
+                var result = await globalService.Value.GetSiteMapsAsync(new ListRequestDto<SiteMap>
+                {
+                    PagingDto = request.PagingDto,
+                    Specification = new ItemTypeEqualsSpecification(ItemType.School),
+                });
+                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok(new ApiResponse<ListDataSource<SiteMapListResponseViewModel>>(result.Errors));
+                }
+
+                if (result.Data.List is null)
+                {
+                    return Ok(new ApiResponse<ListDataSource<SiteMapListResponseViewModel>>());
+                }
+
+                var names = await schoolService.Value.GetSchoolsNameAsync(new IdContainsSpecification<School, long>(result.Data.List.Select(t => t.IdentifierId)));
+                if (names.OperationResult is not Constants.OperationResult.Succeeded)
+                {
+                    return Ok(new ApiResponse<ListDataSource<SiteMapListResponseViewModel>>(names.Errors));
+                }
+
+                var lst = result.Data.List.Select(t => new SiteMapListResponseViewModel
+                {
+                    Id = t.Id,
+                    IdentifierId = t.IdentifierId,
+                    ChangeFrequency = t.ChangeFrequency,
+                    Priority = t.Priority,
+                    Title = names.Data?.Find(s => s.Key == t.IdentifierId).Value,
+                });
+                return Ok(new ApiResponse<ListDataSource<SiteMapListResponseViewModel>>(result.Errors)
+                {
+                    Data = new()
+                    {
+                        List = lst,
+                        TotalRecordsCount = result.Data.TotalRecordsCount,
+                    }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok(new ApiResponse<ListDataSource<SiteMapListResponseViewModel>>(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpPost("{schoolId:long}/site-maps"), Produces<ApiResponse<ManageSiteMapResponseViewModel>>()]
+        [Display(Name = "Create School Site Maps")]
+        public async Task<IActionResult<ManageSiteMapResponseViewModel>> CreateSiteMap([FromRoute] long schoolId, [NotNull] ManageSiteMapRequestViewModel request)
+        {
+            try
+            {
+                var result = await globalService.Value.ManageSiteMapAsync(new()
+                {
+                    IdentifierId = schoolId,
+                    ItemType = ItemType.School,
+                    ChangeFrequency = request.ChangeFrequency,
+                    Priority = request.Priority,
+                });
+                return Ok<ManageSiteMapResponseViewModel>(new(result.Errors)
+                {
+                    Data = new() { Id = result.Data, },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<ManageSiteMapResponseViewModel>(new() { Errors = [new() { Message = exc.Message }] });
+            }
+        }
+
+        [HttpPut("{schoolId:long}/site-maps/{id:long}"), Produces(typeof(ApiResponse<ManageSiteMapResponseViewModel>))]
+        [Display(Name = "Edit School Site Maps")]
+        public async Task<IActionResult<ManageSiteMapResponseViewModel>> UpdateSiteMap([FromRoute] long schoolId, [FromRoute] long id, [NotNull] ManageSiteMapRequestViewModel request)
+        {
+            try
+            {
+                var result = await globalService.Value.ManageSiteMapAsync(new()
+                {
+                    Id = id,
+                    IdentifierId = schoolId,
+                    ItemType = ItemType.School,
+                    ChangeFrequency = request.ChangeFrequency,
+                    Priority = request.Priority,
+                });
+                return Ok<ManageSiteMapResponseViewModel>(new(result.Errors)
+                {
+                    Data = new() { Id = result.Data }
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok<ManageSiteMapResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
+        [HttpDelete("{schoolId:long}/site-maps/{id:long}"), Produces<ApiResponse<bool>>()]
+        [Display(Name = "Remove School Site Map")]
+        public async Task<IActionResult> RemoveSiteMap([FromRoute] long schoolId, [FromRoute] long id)
+        {
+            try
+            {
+                var specification = new IdEqualsSpecification<SiteMap, long>(id)
+                    .And(new ItemTypeEqualsSpecification(ItemType.School))
+                    .And(new IdentifierIdEqualsSpecification<SiteMap>(schoolId));
+                var result = await globalService.Value.RemoveSiteMapAsync(specification);
+                return Ok(new ApiResponse<bool>
+                {
+                    Errors = result.Errors,
+                    Data = result.Data
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+
+                return Ok(new ApiResponse<bool> { Errors = [new() { Message = exc.Message }] });
             }
         }
 
