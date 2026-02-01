@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="Resend" />
+    <PackageReference Include="Resend.FluentEmail" />
+    <PackageReference Include="Resend.Webhooks" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.QrCode" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />

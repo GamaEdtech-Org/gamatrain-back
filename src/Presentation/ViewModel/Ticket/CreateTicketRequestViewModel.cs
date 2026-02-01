@@ -1,8 +1,8 @@
-namespace GamaEdtech.Presentation.ViewModel.Contact
+namespace GamaEdtech.Presentation.ViewModel.Ticket
 {
     using GamaEdtech.Common.DataAnnotation;
 
-    public sealed class CreateContactRequestViewModel
+    public sealed class CreateTicketRequestViewModel
     {
         [Display]
         [Required]
