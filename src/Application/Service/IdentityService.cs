@@ -159,6 +159,25 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<List<string?>>> GetUsersEmailAsync([NotNull] ISpecification<ApplicationUser> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var emails = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => t.Email).ToListAsync();
+
+                return new(OperationResult.Succeeded)
+                {
+                    Data = emails,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogError(exc, nameof(GetUserAsync));
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
         public async Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId)
         {
             try
