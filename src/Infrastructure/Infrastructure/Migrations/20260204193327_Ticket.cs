@@ -88,7 +88,7 @@ namespace GamaEdtech.Infrastructure.Migrations
 
             migrationBuilder.Sql(@"
 INSERT INTO Tickets (FullName,CreationDate,Email,Subject,Body,IsReadByAdmin)
-    SELECT FullName,GETDATE(),Email,Subject,Body,IsRead FROM Contact
+    SELECT FullName,GETDATE(),Email,Subject,Body,IsRead FROM Contacts
 ");
 
             migrationBuilder.DropTable(
