@@ -50,7 +50,7 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPost, Produces<ApiResponse<Void>>()]
+        [HttpPost("inbound-webhook"), Produces<ApiResponse<Void>>()]
         public async Task<IActionResult<Void>> InboundWebHook()
         {
             try
