@@ -64,7 +64,9 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                return await FileProvider.RemoveFileAsync(requestDto);
+                return string.IsNullOrEmpty(requestDto.FileId)
+                    ? new(OperationResult.Succeeded) { Data = true }
+                    : await FileProvider.RemoveFileAsync(requestDto);
             }
             catch (Exception exc)
             {

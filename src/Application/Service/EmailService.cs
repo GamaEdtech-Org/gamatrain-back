@@ -12,12 +12,10 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.Service;
     using GamaEdtech.Common.Service.Factory;
     using GamaEdtech.Data.Dto.Email;
-    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Infrastructure.Interface;
 
     using Microsoft.AspNetCore.Http;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Localization;
     using Microsoft.Extensions.Logging;
@@ -41,16 +39,26 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
-                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                var emails = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(t => requestDto.Users.Contains(t.Id)).Select(t => t.Email!).ToListAsync();
-
                 return await EmailProvider.SendEmailAsync(new()
                 {
-                    Sender = requestDto.Sender,
+                    SenderName = requestDto.SenderName,
                     Body = requestDto.Body,
                     Subject = requestDto.Subject,
-                    Receivers = emails.Concat(requestDto.EmailAddresses ?? []),
+                    Receivers = requestDto.EmailAddresses,
                 });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<EmailDto>> ProccessInboundEmailAsync([NotNull] HttpRequest request)
+        {
+            try
+            {
+                return await EmailProvider.ProccessInboundEmailAsync(request);
             }
             catch (Exception exc)
             {
