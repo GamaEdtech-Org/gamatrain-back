@@ -55,7 +55,9 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
+                Logger.Value.LogException(new Exception("InboundWebHook 1"));
                 await ticketService.Value.ProccessInboundEmailAsync(Request);
+                Logger.Value.LogException(new Exception("InboundWebHook 2"));
                 return Ok<Void>(new());
             }
             catch (Exception exc)
