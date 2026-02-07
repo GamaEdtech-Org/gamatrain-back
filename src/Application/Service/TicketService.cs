@@ -2,6 +2,7 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
 
     using GamaEdtech.Application.Interface;
@@ -312,33 +313,42 @@ namespace GamaEdtech.Application.Service
 
         public async Task ProccessInboundEmailAsync(HttpRequest request)
         {
+            Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 1"));
             var result = await emailService.Value.ProccessInboundEmailAsync(request);
+            Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 2"));
             if (result.Data is null)
             {
                 return;
             }
 
+            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 3: {JsonSerializer.Serialize(result.Data)}"));
             var match = TicketRegex().Match(result.Data.Subject!);
             if (match.Success)
             {
+                Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 4"));
                 var ticketId = match.Groups[0].Value.ValueOf<long?>();
+                Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 5: {ticketId}"));
                 if (ticketId.HasValue)
                 {
+                    Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 6"));
                     var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                     var email = await uow.GetRepository<Ticket>().GetManyQueryable(t => t.Id == ticketId).Select(t => t.Email).FirstOrDefaultAsync();
                     if (result.Data.From!.Contains(email!, StringComparison.OrdinalIgnoreCase))
                     {
+                        Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 7"));
                         _ = await ReplyTicketAsync(new()
                         {
                             Body = result.Data.Body!,
                             TicketId = ticketId.Value,
                             ReplyByAdmin = false,
                         });
+                        Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 8"));
+                        return;
                     }
                 }
-                return;
             }
 
+            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 9"));
             _ = await CreateTicketAsync(new()
             {
                 Body = result.Data.Body,
@@ -346,6 +356,7 @@ namespace GamaEdtech.Application.Service
                 Email = result.Data.From,
                 FullName = "Customer",
             });
+            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 10"));
         }
 
         private static string GenerateSubject(long ticketId, string? subject) => $"Reply [Ticket-{ticketId}] {subject}";
