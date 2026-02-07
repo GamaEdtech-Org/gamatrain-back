@@ -1,6 +1,7 @@
 namespace GamaEdtech.Presentation.Api.Controllers
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Json;
 
     using Asp.Versioning;
 
@@ -56,6 +57,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
             try
             {
                 Logger.Value.LogException(new Exception("InboundWebHook 1"));
+
+                Logger.Value.LogException(new Exception($"InboundWebHook 3: {JsonSerializer.Serialize(Request.Headers)}"));
+                var from = await Request.ReadFormAsync();
+                Logger.Value.LogException(new Exception($"InboundWebHook 4: {JsonSerializer.Serialize(from)}"));
+
                 await ticketService.Value.ProccessInboundEmailAsync(Request);
                 Logger.Value.LogException(new Exception("InboundWebHook 2"));
                 return Ok<Void>(new());
