@@ -2,11 +2,8 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
-
-    using Azure.Core;
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
