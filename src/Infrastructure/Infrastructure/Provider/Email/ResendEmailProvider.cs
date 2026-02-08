@@ -2,8 +2,11 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
+
+    using Azure.Core;
 
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
@@ -67,16 +70,13 @@ namespace GamaEdtech.Infrastructure.Provider.Email
         {
             try
             {
-                logger.Value.LogException(new Exception("Resend 1"));
-
                 var options = Options.Create<WebhookValidatorOptions>(new()
                 {
                     Secret = configuration.Value.GetValue<string>("EmailProvider:Resend:Secret")!
                 });
 
-                logger.Value.LogException(new Exception("Resend 2"));
-
-                var validationResult = new WebhookValidator(options).Validate(request);
+                var payload = (await request.ReadFromJsonAsync<object>())?.ToString();
+                var validationResult = new WebhookValidator(options).Validate(request, payload!);
                 logger.Value.LogException(new Exception("Resend 3"));
                 if (!validationResult.IsValid)
                 {
