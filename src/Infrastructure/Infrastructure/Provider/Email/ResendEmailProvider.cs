@@ -135,7 +135,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                 logger.Value.LogException(new Exception($"Resend 14: {JsonSerializer.Serialize(data)}"));
                 var client = CreateClient();
                 logger.Value.LogException(new Exception($"Resend 15"));
-                var content = await client.EmailRetrieveAsync(data!.Data.EmailId);
+                var content = await client.ReceivedEmailRetrieveAsync(data!.Data.EmailId);
                 logger.Value.LogException(new Exception($"Resend 16: {JsonSerializer.Serialize(content)}"));
                 List<AttachmentDto>? lst = [];
                 if (data.Data.Attachments?.Any() == true)
