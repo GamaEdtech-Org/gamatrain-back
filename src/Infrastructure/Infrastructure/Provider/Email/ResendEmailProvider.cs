@@ -2,6 +2,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
 
@@ -67,54 +68,64 @@ namespace GamaEdtech.Infrastructure.Provider.Email
         {
             try
             {
-                logger.Value.LogException(new Exception("Resend 1"));
-                var options = Options.Create<WebhookValidatorOptions>(new()
+                request.EnableBuffering();
+
+                // Read raw payload
+                using var reader = new StreamReader(request.Body, Encoding.UTF8, leaveOpen: true);
+                var payload = await reader.ReadToEndAsync();
+                request.Body.Position = 0;
+
+                logger.Value.LogException(new Exception($"Resend Payload RAW => {payload}"));
+
+                var options = Options.Create(new WebhookValidatorOptions
                 {
                     Secret = configuration.Value.GetValue<string>("EmailProvider:Resend:Secret")!
                 });
-                logger.Value.LogException(new Exception("Resend 2"));
 
-                var payload = (await request.ReadFromJsonAsync<object>())?.ToString();
-                logger.Value.LogException(new Exception("Resend 3"));
-                var validationResult = new WebhookValidator(options).Validate(request, payload!);
-                logger.Value.LogException(new Exception("Resend 4"));
+                var validationResult = new WebhookValidator(options).Validate(request, payload);
+
                 if (!validationResult.IsValid)
                 {
-                    logger.Value.LogException(new Exception($"Resend 5: {JsonSerializer.Serialize(validationResult)}"));
-                    return new(OperationResult.Failed) { Errors = [new() { Message = validationResult.Exception?.Message, }] };
+                    logger.Value.LogException(new Exception($"Resend Validation Failed => {JsonSerializer.Serialize(validationResult)}"));
+
+                    return new(OperationResult.Failed)
+                    {
+                        Errors =
+                        [
+                            new() { Message = validationResult.Exception?.Message }
+                        ]
+                    };
                 }
 
-                logger.Value.LogException(new Exception("Resend 6"));
-                var data = await request.ReadFromJsonAsync<ResendEmailResponse>();
-                logger.Value.LogException(new Exception($"Resend 7: {JsonSerializer.Serialize(data)}"));
+                // Deserialize from same payload
+                var data = JsonSerializer.Deserialize<ResendEmailResponse>(payload);
+
+                logger.Value.LogException(new Exception($"Resend Webhook Data => {JsonSerializer.Serialize(data)}"));
+
                 var client = CreateClient();
-                logger.Value.LogException(new Exception($"Resend 8"));
                 var content = await client.EmailRetrieveAsync(data!.Data.EmailId);
-                logger.Value.LogException(new Exception($"Resend 9: {JsonSerializer.Serialize(content)}"));
-                List<AttachmentDto>? lst = [];
+
+                List<AttachmentDto> lst = [];
+
                 if (data.Data.Attachments?.Any() == true)
                 {
-                    logger.Value.LogException(new Exception($"Resend 10"));
                     foreach (var item in data.Data.Attachments)
                     {
-                        logger.Value.LogException(new Exception($"Resend 11"));
-                        var attachment = await client.EmailAttachmentRetrieveAsync(data!.Data.EmailId, item.Id);
-                        logger.Value.LogException(new Exception($"Resend 12: {JsonSerializer.Serialize(attachment)}"));
+                        var attachment = await client.EmailAttachmentRetrieveAsync(data.Data.EmailId, item.Id);
+
                         if (string.IsNullOrEmpty(attachment.Content?.DownloadUrl))
                         {
                             continue;
                         }
 
-                        logger.Value.LogException(new Exception($"Resend 13"));
                         var response = await httpProvider.Value.GetByteArrayAsync<IHttpRequest, IHttpRequest>(new()
                         {
                             Uri = attachment.Content.DownloadUrl,
                             Request = null,
                         });
-                        logger.Value.LogException(new Exception($"Resend 14"));
+
                         if (response is not null)
                         {
-                            logger.Value.LogException(new Exception($"Resend 15: {JsonSerializer.Serialize(response)}"));
                             lst.Add(new()
                             {
                                 File = response,
@@ -124,7 +135,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                         }
                     }
                 }
-                logger.Value.LogException(new Exception($"Resend 16"));
+
                 return new(OperationResult.Succeeded)
                 {
                     Data = new()
@@ -138,10 +149,15 @@ namespace GamaEdtech.Infrastructure.Provider.Email
             }
             catch (Exception exc)
             {
-                logger.Value.LogException(new Exception($"Resend 17"));
                 logger.Value.LogException(exc);
-                logger.Value.LogException(new Exception($"Resend 18"));
-                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+
+                return new(OperationResult.Failed)
+                {
+                    Errors =
+                    [
+                        new() { Message = exc.Message }
+                    ]
+                };
             }
         }
 
