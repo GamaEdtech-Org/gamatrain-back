@@ -126,7 +126,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 
                 logger.Value.LogException(new Exception("Resend 12"));
                 var data = await request.ReadFromJsonAsync<Data.Dto.Provider.Email.ResendResponse<ResendEmailReceivedWebhookDto>>();
-                if (!"email.received".Equals(data?.Type, StringComparison.OrdinalIgnoreCase))
+                if (!"email.received".Equals(data?.Type, StringComparison.OrdinalIgnoreCase) || data?.Data is null)
                 {
                     logger.Value.LogException(new Exception("Resend 13"));
                     return new(OperationResult.Succeeded);
