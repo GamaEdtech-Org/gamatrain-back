@@ -2,6 +2,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Net;
     using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -17,10 +18,10 @@ namespace GamaEdtech.Infrastructure.Provider.Email
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     using Resend;
-    using Resend.Webhooks;
+
+    using Svix.Exceptions;
 
     using static GamaEdtech.Common.Core.Constants;
     using static GamaEdtech.Data.Dto.Email.EmailDto;
@@ -68,64 +69,98 @@ namespace GamaEdtech.Infrastructure.Provider.Email
         {
             try
             {
-                request.EnableBuffering();
-
-                // Read raw payload
-                using var reader = new StreamReader(request.Body, Encoding.UTF8, leaveOpen: true);
-                var payload = await reader.ReadToEndAsync();
+                logger.Value.LogException(new Exception("Resend 1"));
+                if (!request.Body.CanSeek)
+                {
+                    logger.Value.LogException(new Exception("Resend 2"));
+                    request.EnableBuffering();
+                    logger.Value.LogException(new Exception("Resend 3"));
+                }
+                logger.Value.LogException(new Exception("Resend 4"));
                 request.Body.Position = 0;
+                logger.Value.LogException(new Exception("Resend 5"));
+                using var reader = new StreamReader(request.Body, Encoding.UTF8);
+                logger.Value.LogException(new Exception("Resend 6"));
+                var payload = await reader.ReadToEndAsync();
+                logger.Value.LogException(new Exception("Resend 7"));
+                request.Body.Position = 0;
+                logger.Value.LogException(new Exception("Resend 8"));
 
-                logger.Value.LogException(new Exception($"Resend Payload RAW => {payload}"));
-
-                var options = Options.Create(new WebhookValidatorOptions
+                if (!request.Headers.TryGetValue("svix-id", out var svixId))
                 {
-                    Secret = configuration.Value.GetValue<string>("EmailProvider:Resend:Secret")!
-                });
-
-                var validationResult = new WebhookValidator(options).Validate(request, payload);
-
-                if (!validationResult.IsValid)
-                {
-                    logger.Value.LogException(new Exception($"Resend Validation Failed => {JsonSerializer.Serialize(validationResult)}"));
-
-                    return new(OperationResult.Failed)
-                    {
-                        Errors =
-                        [
-                            new() { Message = validationResult.Exception?.Message }
-                        ]
-                    };
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Missing required header 'svix-id'", }] };
                 }
 
-                // Deserialize from same payload
-                var data = JsonSerializer.Deserialize<ResendEmailResponse>(payload);
+                if (!request.Headers.TryGetValue("svix-timestamp", out var svixTimestamp))
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Missing required header 'svix-timestamp'", }] };
+                }
 
-                logger.Value.LogException(new Exception($"Resend Webhook Data => {JsonSerializer.Serialize(data)}"));
+                if (!request.Headers.TryGetValue("svix-signature", out var svixSignature))
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Missing required header 'svix-signature'", }] };
+                }
 
+                if (!long.TryParse(svixTimestamp.ToString(), out _))
+                {
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Invalid value 'svix-timestamp', expected long", }] };
+                }
+
+                try
+                {
+                    logger.Value.LogException(new Exception("Resend 9"));
+                    var webhook = new Svix.Webhook(configuration.Value.GetValue<string>("EmailProvider:Resend:Secret")!);
+                    webhook.Verify(payload, new WebHeaderCollection
+                    {
+                        { "svix-id", svixId.ToString() },
+                        { "svix-timestamp", svixTimestamp.ToString() },
+                        { "svix-signature", svixSignature.ToString() }
+                    });
+                    logger.Value.LogException(new Exception("Resend 10"));
+                }
+                catch (WebhookVerificationException)
+                {
+                    logger.Value.LogException(new Exception("Resend 11"));
+                    return new(OperationResult.Failed) { Errors = [new() { Message = "Invalid Signature", }] };
+                }
+
+                logger.Value.LogException(new Exception("Resend 12"));
+                var data = await request.ReadFromJsonAsync<Data.Dto.Provider.Email.ResendResponse<ResendEmailReceivedWebhookDto>>();
+                if (!"email.received".Equals(data?.Type, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.Value.LogException(new Exception("Resend 13"));
+                    return new(OperationResult.Succeeded);
+                }
+
+                logger.Value.LogException(new Exception($"Resend 14: {JsonSerializer.Serialize(data)}"));
                 var client = CreateClient();
+                logger.Value.LogException(new Exception($"Resend 15"));
                 var content = await client.EmailRetrieveAsync(data!.Data.EmailId);
-
-                List<AttachmentDto> lst = [];
-
+                logger.Value.LogException(new Exception($"Resend 16: {JsonSerializer.Serialize(content)}"));
+                List<AttachmentDto>? lst = [];
                 if (data.Data.Attachments?.Any() == true)
                 {
+                    logger.Value.LogException(new Exception($"Resend 10"));
                     foreach (var item in data.Data.Attachments)
                     {
-                        var attachment = await client.EmailAttachmentRetrieveAsync(data.Data.EmailId, item.Id);
-
+                        logger.Value.LogException(new Exception($"Resend 11"));
+                        var attachment = await client.EmailAttachmentRetrieveAsync(data!.Data.EmailId, item.Id);
+                        logger.Value.LogException(new Exception($"Resend 12: {JsonSerializer.Serialize(attachment)}"));
                         if (string.IsNullOrEmpty(attachment.Content?.DownloadUrl))
                         {
                             continue;
                         }
 
+                        logger.Value.LogException(new Exception($"Resend 13"));
                         var response = await httpProvider.Value.GetByteArrayAsync<IHttpRequest, IHttpRequest>(new()
                         {
                             Uri = attachment.Content.DownloadUrl,
                             Request = null,
                         });
-
+                        logger.Value.LogException(new Exception($"Resend 14"));
                         if (response is not null)
                         {
+                            logger.Value.LogException(new Exception($"Resend 15: {JsonSerializer.Serialize(response)}"));
                             lst.Add(new()
                             {
                                 File = response,
@@ -135,7 +170,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                         }
                     }
                 }
-
+                logger.Value.LogException(new Exception($"Resend 17"));
                 return new(OperationResult.Succeeded)
                 {
                     Data = new()
@@ -149,15 +184,10 @@ namespace GamaEdtech.Infrastructure.Provider.Email
             }
             catch (Exception exc)
             {
+                logger.Value.LogException(new Exception($"Resend 18"));
                 logger.Value.LogException(exc);
-
-                return new(OperationResult.Failed)
-                {
-                    Errors =
-                    [
-                        new() { Message = exc.Message }
-                    ]
-                };
+                logger.Value.LogException(new Exception($"Resend 19"));
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
             }
         }
 
