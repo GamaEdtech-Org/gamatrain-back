@@ -14,6 +14,9 @@ namespace GamaEdtech.Domain.Enumeration
         [Display]
         public static readonly ContainerType Post = new(nameof(Post), 2);
 
+        [Display]
+        public static readonly ContainerType Ticket = new(nameof(Ticket), 3);
+
         public ContainerType()
         {
         }

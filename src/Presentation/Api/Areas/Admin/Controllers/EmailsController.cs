@@ -7,8 +7,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Application.Interface;
     using GamaEdtech.Common.Core;
     using GamaEdtech.Common.Data;
+    using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.Identity;
+    using GamaEdtech.Common.Resources;
+    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Presentation.ViewModel.Email;
 
@@ -20,7 +23,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
     [Display(Name = "Emails")]
-    public class EmailsController(Lazy<ILogger<EmailsController>> logger, Lazy<IEmailService> emailService, Lazy<IStringLocalizer<EmailsController>> localizer)
+    public class EmailsController(Lazy<ILogger<EmailsController>> logger, Lazy<IEmailService> emailService, Lazy<IStringLocalizer<EmailsController>> localizer, Lazy<IIdentityService> identityService)
         : LocalizableApiControllerBase<EmailsController>(logger, localizer)
     {
         [HttpPost, Produces(typeof(ApiResponse<Void>))]
@@ -29,15 +32,35 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
+                List<string> emails = [];
+                if (request.EmailAddresses is not null)
+                {
+                    emails.AddRange(request.EmailAddresses);
+                }
+
+                if (request.Users?.Any() == true)
+                {
+                    var data = await identityService.Value.GetUsersEmailAsync(new IdContainsSpecification<ApplicationUser, int>(request.Users));
+                    if (data.OperationResult is not Constants.OperationResult.Succeeded)
+                    {
+                        return Ok<Void>(new() { Errors = data.Errors });
+                    }
+
+                    emails.AddRange(data.Data!);
+                }
+
+                if (emails.Count == 0)
+                {
+                    var msg = GlobalResource.Validation_Required;
+                    return Ok<Void>(new() { Errors = new[] { new Error { Message = string.Format(msg, Globals.DisplayNameFor<SendEmailRequestViewModel>(t => t.EmailAddresses!)) } } });
+                }
+
                 var result = await emailService.Value.SendEmailAsync(new()
                 {
-                    Sender = request.Sender!,
+                    SenderName = request.SenderName!,
                     Subject = request.Subject!,
                     Body = request.Body!,
-                    Users = request.Users!,
-                    EmailAddresses = request.EmailAddresses,
-                    CreationUserId = User.UserId(),
-                    CreationDate = DateTimeOffset.UtcNow,
+                    EmailAddresses = emails,
                 });
                 return Ok<Void>(new(result.Errors));
             }

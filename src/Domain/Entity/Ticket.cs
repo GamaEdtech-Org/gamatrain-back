@@ -6,17 +6,26 @@ namespace GamaEdtech.Domain.Entity
     using GamaEdtech.Common.DataAccess.Entities;
     using GamaEdtech.Common.DataAnnotation;
     using GamaEdtech.Common.DataAnnotation.Schema;
+    using GamaEdtech.Domain.Entity.Identity;
 
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-    [Table(nameof(Contact))]
-    public class Contact : IEntity<Contact, long>
+    [Table(nameof(Ticket))]
+    public class Ticket : IEntity<Ticket, long>
     {
         [System.ComponentModel.DataAnnotations.Key]
         [Column(nameof(Id), DataType.Long)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Required]
         public long Id { get; set; }
+
+        [Column(nameof(CreationUserId), DataType.Int)]
+        public int? CreationUserId { get; set; }
+        public ApplicationUser? CreationUser { get; set; }
+
+        [Column(nameof(CreationDate), DataType.DateTimeOffset)]
+        [Required]
+        public DateTimeOffset CreationDate { get; set; }
 
         [Column(nameof(FullName), DataType.UnicodeString)]
         [StringLength(100)]
@@ -29,7 +38,7 @@ namespace GamaEdtech.Domain.Entity
         public string? Email { get; set; }
 
         [Column(nameof(Subject), DataType.UnicodeString)]
-        [StringLength(200)]
+        [StringLength(500)]
         [Required]
         public string? Subject { get; set; }
 
@@ -37,11 +46,15 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public string? Body { get; set; }
 
-        [Column(nameof(IsRead), DataType.Boolean)]
-        public bool IsRead { get; set; }
+        [Column(nameof(IsReadByAdmin), DataType.Boolean)]
+        public bool IsReadByAdmin { get; set; }
 
-        public void Configure([NotNull] EntityTypeBuilder<Contact> builder)
-        {
-        }
+        [Column(nameof(FileId), DataType.String)]
+        [StringLength(100)]
+        public string? FileId { get; set; }
+
+        public virtual ICollection<TicketReply> TicketReplys { get; set; } = [];
+
+        public void Configure([NotNull] EntityTypeBuilder<Ticket> builder) => _ = builder.HasIndex(t => t.Email);
     }
 }

@@ -6,8 +6,7 @@ namespace GamaEdtech.Presentation.ViewModel.Email
     {
         [Display]
         [Required]
-        [EmailAddress]
-        public string? Sender { get; set; }
+        public string? SenderName { get; set; }
 
         [Display]
         [Required]

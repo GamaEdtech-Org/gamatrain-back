@@ -18,6 +18,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<IEnumerable<ApplicationRoleDto>>> GetRolesAsync(ISpecification<ApplicationRoleDto>? specification = null);
         Task<ResultData<ApplicationUserDto>> GetUserAsync([NotNull] ISpecification<ApplicationUser> specification);
         Task<ResultData<List<int>>> GetUserIdsAsync([NotNull] ISpecification<ApplicationUser> specification);
+        Task<ResultData<List<string?>>> GetUsersEmailAsync([NotNull] ISpecification<ApplicationUser> specification);
         Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId);
         Task<ResultData<bool>> UserIsInRoleAsync([NotNull] int userId, [NotNull] string role);
         Task<ResultData<AuthenticationResponseDto>> AuthenticateAsync([NotNull] AuthenticationRequestDto requestDto);
