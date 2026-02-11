@@ -255,8 +255,8 @@ namespace GamaEdtech.Application.Service
             {
                 var timeZoneId = await GetTimeZoneIdAsync(requestDto.User.Id);
                 List<Claim> claims = [
-                    new Claim(ClaimTypes.Email, requestDto.User.EmailConfirmed ? requestDto.User.Email! : string.Empty),
-                    new Claim(ClaimTypes.MobilePhone, (requestDto.User.PhoneNumberConfirmed && !string.IsNullOrEmpty(requestDto.User.PhoneNumber)) ? requestDto.User.PhoneNumber : string.Empty),
+                    new Claim(ClaimTypes.Email, requestDto.User.Email ?? string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, requestDto.User.PhoneNumber ?? string.Empty),
                     new Claim(ClaimTypes.System, GenerateDeviceHash(HttpContextAccessor.Value.HttpContext) ?? string.Empty),
                     new Claim(TimeZoneIdClaim, timeZoneId),
                 ];
@@ -510,7 +510,7 @@ namespace GamaEdtech.Application.Service
                     new Claim(ClaimTypes.NameIdentifier, request.UserId ?? string.Empty),
                     new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
                     new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new Claim(ClaimTypes.MobilePhone, (user.PhoneNumberConfirmed && !string.IsNullOrEmpty(user.PhoneNumber)) ? user.PhoneNumber : string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
                     new Claim(TimeZoneIdClaim, timeZoneId ?? string.Empty),
                 ];
 

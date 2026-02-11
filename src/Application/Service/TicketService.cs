@@ -2,7 +2,6 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Text.Json;
     using System.Text.RegularExpressions;
 
     using GamaEdtech.Application.Interface;
@@ -42,6 +41,32 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = t.IsReadByAdmin,
                     Subject = t.Subject,
                     CreationDate = t.CreationDate,
+                    Receivers = t.Receivers,
+                }).ToListAsync();
+                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<ListDataSource<TicketsDto>>> GetUserTicketsAsync(ListRequestDto<Ticket>? requestDto = null)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var result = await uow.GetRepository<Ticket>().GetManyQueryable(requestDto?.Specification)
+                    .OrderBy(t => t.TicketReplys.Any(r => !r.IsRead)).ThenByDescending(t => t.CreationDate).FilterListAsync(requestDto?.PagingDto);
+                var users = await result.List.Select(t => new TicketsDto
+                {
+                    Id = t.Id,
+                    FullName = t.FullName,
+                    Email = t.Email,
+                    Subject = t.Subject,
+                    CreationDate = t.CreationDate,
+                    Receivers = t.Receivers,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -62,12 +87,13 @@ namespace GamaEdtech.Application.Service
                 {
                     t.Id,
                     t.FullName,
-                    CreationUser = t.CreationUser == null ? null : (t.CreationUser.FirstName + " " + t.CreationUser.LastName),
+                    CreationUser = t.User == null ? null : (t.User.FirstName + " " + t.User.LastName),
                     t.CreationDate,
                     t.Email,
                     t.Subject,
                     t.Body,
                     t.FileId,
+                    t.Receivers,
                 }).FirstOrDefaultAsync();
                 if (ticket is null)
                 {
@@ -86,6 +112,7 @@ namespace GamaEdtech.Application.Service
                     Email = ticket.Email,
                     Subject = ticket.Subject,
                     Body = ticket.Body,
+                    Receivers = ticket.Receivers,
                     FileUri = fileService.Value.GetFileUri(ticket.FileId, ContainerType.Ticket).Data,
                 };
 
@@ -118,25 +145,36 @@ namespace GamaEdtech.Application.Service
                 {
                     FullName = requestDto.FullName,
                     Body = requestDto.Body,
-                    Email = requestDto.Email,
+                    Email = requestDto.Email?.ToLowerInvariant(),
                     Subject = requestDto.Subject,
                     CreationDate = DateTimeOffset.UtcNow,
                     IsReadByAdmin = false,
-                    CreationUserId = requestDto.CreationUserId,
+                    UserId = requestDto.UserId,
                     FileId = fileId,
                 };
                 repository.Add(ticket);
                 _ = await uow.SaveChangesAsync();
 
-                _ = await emailService.Value.SendEmailAsync(new()
+                return new(OperationResult.Succeeded) { Data = ticket.Id };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<Common.Data.Void>> SendTicketConfirmationAsync([NotNull] SendTicketConfirmationRequestDto requestDto)
+        {
+            try
+            {
+                return await emailService.Value.SendEmailAsync(new()
                 {
-                    Subject = GenerateSubject(ticket.Id, "Your support request"),
+                    Subject = GenerateSubject(requestDto.TicketId, "Your support request"),
                     Body = $"Hi {requestDto.FullName},<br><br>We received your support request<br><br>{requestDto.Subject}<br><br>{requestDto.Body}",
                     EmailAddresses = [requestDto.Email!],
                     SenderName = "Gamatrain",
                 });
-
-                return new(OperationResult.Succeeded) { Data = ticket.Id };
             }
             catch (Exception exc)
             {
@@ -157,6 +195,7 @@ namespace GamaEdtech.Application.Service
                     t.Body,
                     CreationUser = t.CreationUser == null ? null : t.CreationUser.FirstName + " " + t.CreationUser.LastName,
                     t.FileId,
+                    t.Receivers,
                 }).ToListAsync();
 
                 var result = lst.Select(t => new TicketReplyDto
@@ -165,6 +204,7 @@ namespace GamaEdtech.Application.Service
                     Body = t.Body,
                     CreationDate = t.CreationDate,
                     CreationUser = t.CreationUser,
+                    Receivers = t.Receivers,
                     FileUri = fileService.Value.GetFileUri(t.FileId, ContainerType.Ticket).Data,
                 });
                 return new(OperationResult.Succeeded) { Data = result };
@@ -204,6 +244,7 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = !requestDto.ReplyByAdmin,
                     CreationUserId = requestDto.CreationUserId,
                     FileId = fileId,
+                    Receivers = requestDto.Operators?.ToList(),
                 };
                 repository.Add(reply);
                 _ = await uow.SaveChangesAsync();
@@ -221,7 +262,7 @@ namespace GamaEdtech.Application.Service
                         Body = requestDto.Body,
                         Subject = GenerateSubject(requestDto.TicketId, data!.Subject),
                         EmailAddresses = [data.Email!],
-                        SenderName = requestDto.SenderName ?? "Gamatrain",
+                        SenderName = requestDto.Operators?.FirstOrDefault() ?? "Gamatrain",
                     });
                 }
 
@@ -241,6 +282,28 @@ namespace GamaEdtech.Application.Service
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var rowAffected = await uow.GetRepository<TicketReply>().GetManyQueryable(specification)
                     .ExecuteUpdateAsync(t => t.SetProperty(p => p.IsReadByAdmin, true));
+
+                return rowAffected == 0
+                    ? new(OperationResult.NotFound)
+                    {
+                        Errors = [new() { Message = Localizer.Value["TicketReplyNotFound"] },],
+                    }
+                    : new(OperationResult.Succeeded) { Data = true };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
+            }
+        }
+
+        public async Task<ResultData<bool>> SetReplysAsReadedByUserAsync([NotNull] ISpecification<TicketReply> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var rowAffected = await uow.GetRepository<TicketReply>().GetManyQueryable(specification)
+                    .ExecuteUpdateAsync(t => t.SetProperty(p => p.IsRead, true));
 
                 return rowAffected == 0
                     ? new(OperationResult.NotFound)
@@ -326,27 +389,44 @@ namespace GamaEdtech.Application.Service
                 if (ticketId.HasValue)
                 {
                     var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                    var email = await uow.GetRepository<Ticket>().GetManyQueryable(t => t.Id == ticketId).Select(t => t.Email).FirstOrDefaultAsync();
-                    if (result.Data.From!.Contains(email!, StringComparison.OrdinalIgnoreCase))
+                    var info = await uow.GetRepository<Ticket>().GetManyQueryable(t => t.Id == ticketId).Select(t => new
+                    {
+                        t.Email,
+                        t.UserId,
+                    }).FirstOrDefaultAsync();
+                    if (info is not null && result.Data.From!.Contains(info.Email!, StringComparison.OrdinalIgnoreCase))
                     {
                         _ = await ReplyTicketAsync(new()
                         {
                             Body = result.Data.Body!,
                             TicketId = ticketId.Value,
                             ReplyByAdmin = false,
+                            CreationUserId = info.UserId,
+                            Operators = result.Data.To,
                         });
                         return;
                     }
                 }
             }
 
-            _ = await CreateTicketAsync(new()
+            var ticket = await CreateTicketAsync(new()
             {
                 Body = result.Data.Body,
                 Subject = result.Data.Subject,
                 Email = result.Data.From,
                 FullName = "Customer",
             });
+            if (ticket.OperationResult is OperationResult.Succeeded)
+            {
+                _ = await SendTicketConfirmationAsync(new()
+                {
+                    Body = result.Data.Body,
+                    Email = result.Data.From,
+                    FullName = "Customer",
+                    Subject = result.Data.Subject,
+                    TicketId = ticket.Data,
+                });
+            }
         }
 
         private static string GenerateSubject(long ticketId, string? subject) => $"Reply [Ticket-{ticketId}] {subject}";

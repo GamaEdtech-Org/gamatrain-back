@@ -5,6 +5,7 @@ namespace GamaEdtech.Data.Dto.Email
     public sealed class EmailDto
     {
         public string? From { get; set; }
+        public IEnumerable<string?>? To { get; set; }
         public string? Subject { get; set; }
         public string? Body { get; set; }
         public IReadOnlyList<AttachmentDto>? Attachments { get; set; }

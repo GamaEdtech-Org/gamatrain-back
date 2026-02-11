@@ -1,6 +1,10 @@
 namespace GamaEdtech.Domain.Entity
 {
+    using System.Collections.ObjectModel;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Encodings.Web;
+    using System.Text.Json;
+    using System.Text.Unicode;
 
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Entities;
@@ -19,9 +23,9 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public long Id { get; set; }
 
-        [Column(nameof(CreationUserId), DataType.Int)]
-        public int? CreationUserId { get; set; }
-        public ApplicationUser? CreationUser { get; set; }
+        [Column(nameof(UserId), DataType.Int)]
+        public int? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
         [Column(nameof(CreationDate), DataType.DateTimeOffset)]
         [Required]
@@ -42,6 +46,10 @@ namespace GamaEdtech.Domain.Entity
         [Required]
         public string? Subject { get; set; }
 
+        [Column(nameof(Receivers), DataType.UnicodeString)]
+        [StringLength(500)]
+        public ICollection<string?>? Receivers { get; set; }
+
         [Column(nameof(Body), DataType.UnicodeMaxString)]
         [Required]
         public string? Body { get; set; }
@@ -55,6 +63,19 @@ namespace GamaEdtech.Domain.Entity
 
         public virtual ICollection<TicketReply> TicketReplys { get; set; } = [];
 
-        public void Configure([NotNull] EntityTypeBuilder<Ticket> builder) => _ = builder.HasIndex(t => t.Email);
+        public void Configure([NotNull] EntityTypeBuilder<Ticket> builder)
+        {
+            _ = builder.HasIndex(t => t.Email);
+
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            };
+            _ = builder.Property(t => t.Receivers)
+                .HasConversion(
+                    t => JsonSerializer.Serialize(t, options),
+                    t => JsonSerializer.Deserialize<Collection<string?>?>(t, options)
+                );
+        }
     }
 }

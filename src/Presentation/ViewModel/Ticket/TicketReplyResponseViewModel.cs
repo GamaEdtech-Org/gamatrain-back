@@ -1,6 +1,7 @@
 namespace GamaEdtech.Presentation.ViewModel.Ticket
 {
     using System;
+    using System.Collections.Generic;
 
     public sealed class TicketReplyResponseViewModel
     {
@@ -9,5 +10,6 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
         public string? CreationUser { get; set; }
         public DateTimeOffset CreationDate { get; set; }
         public Uri? FileUri { get; set; }
+        public IEnumerable<string?>? Receivers { get; set; }
     }
 }

@@ -1,6 +1,10 @@
 namespace GamaEdtech.Domain.Entity
 {
+    using System.Collections.ObjectModel;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Encodings.Web;
+    using System.Text.Json;
+    using System.Text.Unicode;
 
     using GamaEdtech.Common.Data;
     using GamaEdtech.Common.DataAccess.Entities;
@@ -45,8 +49,21 @@ namespace GamaEdtech.Domain.Entity
         [StringLength(100)]
         public string? FileId { get; set; }
 
+        [Column(nameof(Receivers), DataType.UnicodeString)]
+        [StringLength(500)]
+        public ICollection<string?>? Receivers { get; set; }
+
         public void Configure([NotNull] EntityTypeBuilder<TicketReply> builder)
         {
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            };
+            _ = builder.Property(t => t.Receivers)
+                .HasConversion(
+                    t => JsonSerializer.Serialize(t, options),
+                    t => JsonSerializer.Deserialize<Collection<string?>?>(t, options)
+                );
         }
     }
 }
