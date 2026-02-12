@@ -40,11 +40,10 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                 {
                     var response = await client.EmailBatchAsync(item.Select(t => new EmailMessage
                     {
-                        From = $"{requestDto.SenderName} <{Email}>",
+                        From = requestDto.From,
                         HtmlBody = requestDto.Body,
                         Subject = requestDto.Subject,
                         To = EmailAddressList.From(t),
-                        ReplyTo = Email,
                     }));
                     if (!response.Success)
                     {
@@ -167,7 +166,5 @@ namespace GamaEdtech.Infrastructure.Provider.Email
         }
 
         private IResend CreateClient() => ResendClient.Create(configuration.Value.GetValue<string>("EmailProvider:Resend:ApiToken")!);
-
-        private string Email => configuration.Value.GetValue<string>("EmailProvider:Resend:Email")!;
     }
 }

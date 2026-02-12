@@ -165,27 +165,6 @@ namespace GamaEdtech.Presentation.Api.Controllers
             }
         }
 
-        [HttpPatch("{id:long}/toggle"), Produces<ApiResponse<bool>>()]
-        [Display(Name = "Toggle a Ticket as readed or not by Admin")]
-        [Permission(policy: null)]
-        public async Task<IActionResult<bool>> ToggleIsReadByAdmin([FromRoute] long id)
-        {
-            try
-            {
-                var result = await ticketService.Value.ToggleIsReadByAdminAsync(new IdEqualsSpecification<Ticket, long>(id));
-                return Ok<bool>(new(result.Errors)
-                {
-                    Data = result.Data
-                });
-            }
-            catch (Exception exc)
-            {
-                Logger.Value.LogException(exc);
-
-                return Ok<bool>(new() { Errors = [new() { Message = exc.Message }] });
-            }
-        }
-
         [HttpPost, Produces<ApiResponse<ManageTicketResponseViewModel>>()]
         public async Task<IActionResult<ManageTicketResponseViewModel>> CreateTicket([NotNull, FromForm] CreateTicketRequestViewModel request)
         {
@@ -212,8 +191,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
                     _ = await ticketService.Value.SendTicketConfirmationAsync(new()
                     {
                         Body = request.Body,
-                        Email = request.Email,
-                        FullName = request.FullName,
+                        ReceiverEmail = request.Email,
+                        ReceiverName = request.FullName,
                         Subject = request.Subject,
                         TicketId = result.Data,
                     });

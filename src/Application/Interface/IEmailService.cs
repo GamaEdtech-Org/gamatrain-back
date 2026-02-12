@@ -13,5 +13,8 @@ namespace GamaEdtech.Application.Interface
     {
         Task<ResultData<Void>> SendEmailAsync([NotNull] SendEmailRequestDto requestDto);
         Task<ResultData<EmailDto>> ProccessInboundEmailAsync([NotNull] HttpRequest request);
+        ResultData<bool> ValidateFromEmailAddress(string? from);
+        IReadOnlyList<string> GetAddresses();
+        string GetSupportEmail();
     }
 }

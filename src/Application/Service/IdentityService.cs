@@ -178,6 +178,30 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<(int Id, string? FullName)?>> GetUserFullNameAsync([NotNull] ISpecification<ApplicationUser> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new
+                {
+                    t.Id,
+                    t.FirstName,
+                    t.LastName,
+                }).FirstOrDefaultAsync();
+
+                return new(data is null ? OperationResult.NotFound : OperationResult.Succeeded)
+                {
+                    Data = data is not null ? (data.Id, $"{data.FirstName} {data.LastName}") : null,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogError(exc, nameof(GetUserAsync));
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
         public async Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId)
         {
             try

@@ -28,10 +28,16 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     {
         [HttpPost, Produces(typeof(ApiResponse<Void>))]
         [Display(Name = "Send Email")]
-        public async Task<IActionResult> SendEmail([NotNull] SendEmailRequestViewModel request)
+        public async Task<IActionResult<Void>> SendEmail([NotNull] SendEmailRequestViewModel request)
         {
             try
             {
+                var validationResult = emailService.Value.ValidateFromEmailAddress(request.From);
+                if (!validationResult.Data)
+                {
+                    return Ok<Void>(new() { Errors = validationResult.Errors });
+                }
+
                 List<string> emails = [];
                 if (request.EmailAddresses is not null)
                 {
@@ -57,7 +63,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 
                 var result = await emailService.Value.SendEmailAsync(new()
                 {
-                    SenderName = request.SenderName!,
+                    From = request.From,
                     Subject = request.Subject!,
                     Body = request.Body!,
                     EmailAddresses = emails,
@@ -67,8 +73,25 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-
                 return Ok<Void>(new() { Errors = new[] { new Error { Message = exc.Message } } });
+            }
+        }
+
+        [HttpGet("addresses"), Produces<ApiResponse<IEnumerable<string>>>()]
+        [Display(Name = "Get list of email addresses")]
+        public IActionResult<IEnumerable<string>> GetAddresses()
+        {
+            try
+            {
+                return Ok<IEnumerable<string>>(new()
+                {
+                    Data = emailService.Value.GetAddresses(),
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<IEnumerable<string>>(new() { Errors = [new() { Message = exc.Message }] });
             }
         }
     }
