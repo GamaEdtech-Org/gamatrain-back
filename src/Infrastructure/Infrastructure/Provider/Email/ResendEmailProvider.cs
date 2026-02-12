@@ -4,7 +4,6 @@ namespace GamaEdtech.Infrastructure.Provider.Email
     using System.Diagnostics.CodeAnalysis;
     using System.Net;
     using System.Text;
-    using System.Text.Json;
     using System.Threading.Tasks;
 
     using GamaEdtech.Common.Core;
@@ -177,6 +176,7 @@ namespace GamaEdtech.Infrastructure.Provider.Email
                     {
                         Body = content.Content.TextBody,
                         From = data.Data.From,
+                        To = data.Data.To,
                         Subject = data.Data.Subject,
                         Attachments = lst,
                     }

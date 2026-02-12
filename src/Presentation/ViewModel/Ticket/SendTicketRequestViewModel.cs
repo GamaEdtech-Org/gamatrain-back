@@ -5,8 +5,17 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
 
     using Microsoft.AspNetCore.Http;
 
-    public sealed class ReplyTicketRequestViewModel
+    public sealed class SendTicketRequestViewModel
     {
+        [Display]
+        [Required]
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        [Display]
+        [Required]
+        public string? Subject { get; set; }
+
         [Display]
         [Required]
         public string? Body { get; set; }
@@ -15,9 +24,5 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
         [FileSize(1024 * 1024 * 2)]//2MB
         [FileExtensions(Constants.ValidWebExtensions + "," + Constants.ValidImageExtensions)]
         public IFormFile? File { get; set; }
-
-        [Display]
-        [Required]
-        public string? SenderName { get; set; }
     }
 }
