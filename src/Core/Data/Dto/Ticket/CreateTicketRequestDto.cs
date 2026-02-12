@@ -10,5 +10,6 @@ namespace GamaEdtech.Data.Dto.Ticket
         public required string? Body { get; set; }
         public int? UserId { get; set; }
         public IFormFile? File { get; set; }
+        public ICollection<string?>? Receivers { get; set; }
     }
 }

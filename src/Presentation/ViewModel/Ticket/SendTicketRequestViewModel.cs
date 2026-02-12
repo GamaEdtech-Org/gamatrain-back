@@ -9,8 +9,16 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
     {
         [Display]
         [Required]
+        public string? From { get; set; }
+
+        [Display]
+        [Required]
+        public string? ReceiverName { get; set; }
+
+        [Display]
+        [Required]
         [EmailAddress]
-        public string? Email { get; set; }
+        public string? ReceiverEmail { get; set; }
 
         [Display]
         [Required]

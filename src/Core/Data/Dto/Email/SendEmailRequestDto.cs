@@ -5,7 +5,7 @@ namespace GamaEdtech.Data.Dto.Email
     public sealed class SendEmailRequestDto
     {
         public required string Body { get; set; }
-        public required string SenderName { get; set; }
+        public string? From { get; set; }
         public required string Subject { get; set; }
         public required IEnumerable<string> EmailAddresses { get; set; }
     }

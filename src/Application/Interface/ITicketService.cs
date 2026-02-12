@@ -25,5 +25,6 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> ToggleIsReadByAdminAsync([NotNull] ISpecification<Ticket> specification);
         Task<ResultData<bool>> RemoveTicketAsync([NotNull] ISpecification<Ticket> specification);
         Task ProccessInboundEmailAsync(HttpRequest request);
+        string GenerateSubject(long ticketId, string? subject);
     }
 }

@@ -18,6 +18,6 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
 
         [Display]
         [Required]
-        public string? SenderName { get; set; }
+        public string? From { get; set; }
     }
 }

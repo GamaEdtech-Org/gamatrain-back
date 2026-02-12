@@ -14,6 +14,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Data.Dto.Ticket;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Domain.Specification.Identity;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public partial class TicketService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<TicketService>> localizer
-        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService)
+        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService, Lazy<IIdentityService> identityService)
         : LocalizableServiceBase<TicketService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ITicketService
     {
         public async Task<ResultData<ListDataSource<TicketsDto>>> GetTicketsAsync(ListRequestDto<Ticket>? requestDto = null)
@@ -151,6 +152,7 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = false,
                     UserId = requestDto.UserId,
                     FileId = fileId,
+                    Receivers = requestDto.Receivers,
                 };
                 repository.Add(ticket);
                 _ = await uow.SaveChangesAsync();
@@ -170,10 +172,10 @@ namespace GamaEdtech.Application.Service
             {
                 return await emailService.Value.SendEmailAsync(new()
                 {
-                    Subject = GenerateSubject(requestDto.TicketId, "Your support request"),
-                    Body = $"Hi {requestDto.FullName},<br><br>We received your support request<br><br>{requestDto.Subject}<br><br>{requestDto.Body}",
-                    EmailAddresses = [requestDto.Email!],
-                    SenderName = "Gamatrain",
+                    Subject = GenerateSubject(requestDto.TicketId, requestDto.Subject),
+                    Body = $"Hi {requestDto.ReceiverName},<br><br>We received your request<hr><br><br>{requestDto.Body}",
+                    EmailAddresses = [requestDto.ReceiverEmail!],
+                    From = requestDto.From,
                 });
             }
             catch (Exception exc)
@@ -244,7 +246,7 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = !requestDto.ReplyByAdmin,
                     CreationUserId = requestDto.CreationUserId,
                     FileId = fileId,
-                    Receivers = requestDto.Operators?.ToList(),
+                    Receivers = requestDto.Receivers,
                 };
                 repository.Add(reply);
                 _ = await uow.SaveChangesAsync();
@@ -262,7 +264,7 @@ namespace GamaEdtech.Application.Service
                         Body = requestDto.Body,
                         Subject = GenerateSubject(requestDto.TicketId, data!.Subject),
                         EmailAddresses = [data.Email!],
-                        SenderName = requestDto.Operators?.FirstOrDefault() ?? "Gamatrain",
+                        From = requestDto.From,
                     });
                 }
 
@@ -402,34 +404,44 @@ namespace GamaEdtech.Application.Service
                             TicketId = ticketId.Value,
                             ReplyByAdmin = false,
                             CreationUserId = info.UserId,
-                            Operators = result.Data.To,
+                            Receivers = result.Data.To?.ToList(),
                         });
                         return;
                     }
                 }
             }
 
+            var data = await identityService.Value.GetUserFullNameAsync(new EmailEqualsSpecification(result.Data.From!));
+            var name = data.Data?.FullName ?? "Customer";
             var ticket = await CreateTicketAsync(new()
             {
                 Body = result.Data.Body,
                 Subject = result.Data.Subject,
                 Email = result.Data.From,
-                FullName = "Customer",
+                FullName = name,
+                UserId = data.Data?.Id,
+                Receivers = result.Data.To?.ToList(),
             });
             if (ticket.OperationResult is OperationResult.Succeeded)
             {
+                var supportEmail = emailService.Value.GetSupportEmail();
+                if (result.Data.To is null || !result.Data.To.Any(t => supportEmail.Contains(t!, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+
                 _ = await SendTicketConfirmationAsync(new()
                 {
                     Body = result.Data.Body,
-                    Email = result.Data.From,
-                    FullName = "Customer",
                     Subject = result.Data.Subject,
                     TicketId = ticket.Data,
+                    ReceiverEmail = result.Data.From,
+                    ReceiverName = name,
                 });
             }
         }
 
-        private static string GenerateSubject(long ticketId, string? subject) => $"Reply [Ticket-{ticketId}] {subject}";
+        public string GenerateSubject(long ticketId, string? subject) => $"[Ticket-{ticketId}] {subject}";
 
         private async Task<(string? FileId, IEnumerable<Error>? Errors)> SaveFileAsync(IFormFile? file)
         {
