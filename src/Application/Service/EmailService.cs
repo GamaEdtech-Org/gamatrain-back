@@ -41,11 +41,28 @@ namespace GamaEdtech.Application.Service
             {
                 return await EmailProvider.SendEmailAsync(new()
                 {
-                    SenderName = requestDto.SenderName,
+                    From = requestDto.From ?? GetSupportEmail(),
                     Body = requestDto.Body,
                     Subject = requestDto.Subject,
                     Receivers = requestDto.EmailAddresses,
                 });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public ResultData<bool> ValidateFromEmailAddress(string? from)
+        {
+            try
+            {
+                var valid = string.IsNullOrEmpty(from) || GetAddresses().Contains(from, StringComparer.OrdinalIgnoreCase);
+
+                return valid
+                    ? new(OperationResult.Succeeded) { Data = true, }
+                    : new(OperationResult.Failed) { Errors = [new() { Message = Localizer.Value["InvalidFromEmailAddress"] }] };
             }
             catch (Exception exc)
             {
@@ -66,5 +83,9 @@ namespace GamaEdtech.Application.Service
                 return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
             }
         }
+
+        public IReadOnlyList<string> GetAddresses() => configuration.Value.GetSection("EmailProvider:Emails").Get<List<string>>()!;
+
+        public string GetSupportEmail() => configuration.Value.GetValue<string>("EmailProvider:SupportEmail")!;
     }
 }

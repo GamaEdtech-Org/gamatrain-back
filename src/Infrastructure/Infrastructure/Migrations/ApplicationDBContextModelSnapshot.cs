@@ -1688,10 +1688,6 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("CreationDate");
 
-                    b.Property<int?>("CreationUserId")
-                        .HasColumnType("int")
-                        .HasColumnName("CreationUserId");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1713,17 +1709,26 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsReadByAdmin");
 
+                    b.Property<string>("Receivers")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Receivers");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Subject");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CreationUserId");
-
                     b.HasIndex("Email");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Tickets");
                 });
@@ -1762,6 +1767,11 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Property<bool>("IsReadByAdmin")
                         .HasColumnType("bit")
                         .HasColumnName("IsReadByAdmin");
+
+                    b.Property<string>("Receivers")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Receivers");
 
                     b.Property<long>("TicketId")
                         .HasColumnType("bigint")
@@ -2495,11 +2505,11 @@ namespace GamaEdtech.Infrastructure.Migrations
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.Ticket", b =>
                 {
-                    b.HasOne("GamaEdtech.Domain.Entity.Identity.ApplicationUser", "CreationUser")
+                    b.HasOne("GamaEdtech.Domain.Entity.Identity.ApplicationUser", "User")
                         .WithMany()
-                        .HasForeignKey("CreationUserId");
+                        .HasForeignKey("UserId");
 
-                    b.Navigation("CreationUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GamaEdtech.Domain.Entity.TicketReply", b =>
@@ -2509,7 +2519,7 @@ namespace GamaEdtech.Infrastructure.Migrations
                         .HasForeignKey("CreationUserId");
 
                     b.HasOne("GamaEdtech.Domain.Entity.Ticket", "Ticket")
-                        .WithMany()
+                        .WithMany("TicketReplys")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2626,6 +2636,11 @@ namespace GamaEdtech.Infrastructure.Migrations
                     b.Navigation("SchoolImages");
 
                     b.Navigation("SchoolTags");
+                });
+
+            modelBuilder.Entity("GamaEdtech.Domain.Entity.Ticket", b =>
+                {
+                    b.Navigation("TicketReplys");
                 });
 #pragma warning restore 612, 618
         }

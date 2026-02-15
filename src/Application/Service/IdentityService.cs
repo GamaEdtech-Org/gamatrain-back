@@ -178,6 +178,30 @@ namespace GamaEdtech.Application.Service
             }
         }
 
+        public async Task<ResultData<(int Id, string? FullName)?>> GetUserFullNameAsync([NotNull] ISpecification<ApplicationUser> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var data = await uow.GetRepository<ApplicationUser, int>().GetManyQueryable(specification).Select(t => new
+                {
+                    t.Id,
+                    t.FirstName,
+                    t.LastName,
+                }).FirstOrDefaultAsync();
+
+                return new(data is null ? OperationResult.NotFound : OperationResult.Succeeded)
+                {
+                    Data = data is not null ? (data.Id, $"{data.FirstName} {data.LastName}") : null,
+                };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogError(exc, nameof(GetUserAsync));
+                return new(OperationResult.Failed) { Errors = new[] { new Error { Message = exc.Message }, } };
+            }
+        }
+
         public async Task<ResultData<ICollection<string>>> GetUserRolesAsync([NotNull] int userId)
         {
             try
@@ -255,8 +279,8 @@ namespace GamaEdtech.Application.Service
             {
                 var timeZoneId = await GetTimeZoneIdAsync(requestDto.User.Id);
                 List<Claim> claims = [
-                    new Claim(ClaimTypes.Email, requestDto.User.EmailConfirmed ? requestDto.User.Email! : string.Empty),
-                    new Claim(ClaimTypes.MobilePhone, (requestDto.User.PhoneNumberConfirmed && !string.IsNullOrEmpty(requestDto.User.PhoneNumber)) ? requestDto.User.PhoneNumber : string.Empty),
+                    new Claim(ClaimTypes.Email, requestDto.User.Email ?? string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, requestDto.User.PhoneNumber ?? string.Empty),
                     new Claim(ClaimTypes.System, GenerateDeviceHash(HttpContextAccessor.Value.HttpContext) ?? string.Empty),
                     new Claim(TimeZoneIdClaim, timeZoneId),
                 ];
@@ -510,7 +534,7 @@ namespace GamaEdtech.Application.Service
                     new Claim(ClaimTypes.NameIdentifier, request.UserId ?? string.Empty),
                     new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
                     new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new Claim(ClaimTypes.MobilePhone, (user.PhoneNumberConfirmed && !string.IsNullOrEmpty(user.PhoneNumber)) ? user.PhoneNumber : string.Empty),
+                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
                     new Claim(TimeZoneIdClaim, timeZoneId ?? string.Empty),
                 ];
 

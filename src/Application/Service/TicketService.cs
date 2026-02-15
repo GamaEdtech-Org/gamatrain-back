@@ -2,7 +2,6 @@ namespace GamaEdtech.Application.Service
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Text.Json;
     using System.Text.RegularExpressions;
 
     using GamaEdtech.Application.Interface;
@@ -15,6 +14,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Data.Dto.Ticket;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
+    using GamaEdtech.Domain.Specification.Identity;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -24,7 +24,7 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public partial class TicketService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<TicketService>> localizer
-        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService)
+        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService, Lazy<IIdentityService> identityService)
         : LocalizableServiceBase<TicketService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ITicketService
     {
         public async Task<ResultData<ListDataSource<TicketsDto>>> GetTicketsAsync(ListRequestDto<Ticket>? requestDto = null)
@@ -42,6 +42,32 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = t.IsReadByAdmin,
                     Subject = t.Subject,
                     CreationDate = t.CreationDate,
+                    Receivers = t.Receivers,
+                }).ToListAsync();
+                return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message },] };
+            }
+        }
+
+        public async Task<ResultData<ListDataSource<TicketsDto>>> GetUserTicketsAsync(ListRequestDto<Ticket>? requestDto = null)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var result = await uow.GetRepository<Ticket>().GetManyQueryable(requestDto?.Specification)
+                    .OrderBy(t => t.TicketReplys.Any(r => !r.IsRead)).ThenByDescending(t => t.CreationDate).FilterListAsync(requestDto?.PagingDto);
+                var users = await result.List.Select(t => new TicketsDto
+                {
+                    Id = t.Id,
+                    FullName = t.FullName,
+                    Email = t.Email,
+                    Subject = t.Subject,
+                    CreationDate = t.CreationDate,
+                    Receivers = t.Receivers,
                 }).ToListAsync();
                 return new(OperationResult.Succeeded) { Data = new() { List = users, TotalRecordsCount = result.TotalRecordsCount } };
             }
@@ -62,12 +88,13 @@ namespace GamaEdtech.Application.Service
                 {
                     t.Id,
                     t.FullName,
-                    CreationUser = t.CreationUser == null ? null : (t.CreationUser.FirstName + " " + t.CreationUser.LastName),
+                    CreationUser = t.User == null ? null : (t.User.FirstName + " " + t.User.LastName),
                     t.CreationDate,
                     t.Email,
                     t.Subject,
                     t.Body,
                     t.FileId,
+                    t.Receivers,
                 }).FirstOrDefaultAsync();
                 if (ticket is null)
                 {
@@ -86,6 +113,7 @@ namespace GamaEdtech.Application.Service
                     Email = ticket.Email,
                     Subject = ticket.Subject,
                     Body = ticket.Body,
+                    Receivers = ticket.Receivers,
                     FileUri = fileService.Value.GetFileUri(ticket.FileId, ContainerType.Ticket).Data,
                 };
 
@@ -118,25 +146,37 @@ namespace GamaEdtech.Application.Service
                 {
                     FullName = requestDto.FullName,
                     Body = requestDto.Body,
-                    Email = requestDto.Email,
+                    Email = requestDto.Email?.ToLowerInvariant(),
                     Subject = requestDto.Subject,
                     CreationDate = DateTimeOffset.UtcNow,
                     IsReadByAdmin = false,
-                    CreationUserId = requestDto.CreationUserId,
+                    UserId = requestDto.UserId,
                     FileId = fileId,
+                    Receivers = requestDto.Receivers,
                 };
                 repository.Add(ticket);
                 _ = await uow.SaveChangesAsync();
 
-                _ = await emailService.Value.SendEmailAsync(new()
-                {
-                    Subject = GenerateSubject(ticket.Id, "Your support request"),
-                    Body = $"Hi {requestDto.FullName},<br><br>We received your support request<br><br>{requestDto.Subject}<br><br>{requestDto.Body}",
-                    EmailAddresses = [requestDto.Email!],
-                    SenderName = "Gamatrain",
-                });
-
                 return new(OperationResult.Succeeded) { Data = ticket.Id };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, }] };
+            }
+        }
+
+        public async Task<ResultData<Common.Data.Void>> SendTicketConfirmationAsync([NotNull] SendTicketConfirmationRequestDto requestDto)
+        {
+            try
+            {
+                return await emailService.Value.SendEmailAsync(new()
+                {
+                    Subject = GenerateSubject(requestDto.TicketId, requestDto.Subject),
+                    Body = $"Hi {requestDto.ReceiverName},<br><br>We received your request<hr><br><br>{requestDto.Body}",
+                    EmailAddresses = [requestDto.ReceiverEmail!],
+                    From = requestDto.From,
+                });
             }
             catch (Exception exc)
             {
@@ -157,6 +197,7 @@ namespace GamaEdtech.Application.Service
                     t.Body,
                     CreationUser = t.CreationUser == null ? null : t.CreationUser.FirstName + " " + t.CreationUser.LastName,
                     t.FileId,
+                    t.Receivers,
                 }).ToListAsync();
 
                 var result = lst.Select(t => new TicketReplyDto
@@ -165,6 +206,7 @@ namespace GamaEdtech.Application.Service
                     Body = t.Body,
                     CreationDate = t.CreationDate,
                     CreationUser = t.CreationUser,
+                    Receivers = t.Receivers,
                     FileUri = fileService.Value.GetFileUri(t.FileId, ContainerType.Ticket).Data,
                 });
                 return new(OperationResult.Succeeded) { Data = result };
@@ -204,6 +246,7 @@ namespace GamaEdtech.Application.Service
                     IsReadByAdmin = !requestDto.ReplyByAdmin,
                     CreationUserId = requestDto.CreationUserId,
                     FileId = fileId,
+                    Receivers = requestDto.Receivers,
                 };
                 repository.Add(reply);
                 _ = await uow.SaveChangesAsync();
@@ -221,7 +264,7 @@ namespace GamaEdtech.Application.Service
                         Body = requestDto.Body,
                         Subject = GenerateSubject(requestDto.TicketId, data!.Subject),
                         EmailAddresses = [data.Email!],
-                        SenderName = requestDto.SenderName ?? "Gamatrain",
+                        From = requestDto.From,
                     });
                 }
 
@@ -241,6 +284,28 @@ namespace GamaEdtech.Application.Service
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var rowAffected = await uow.GetRepository<TicketReply>().GetManyQueryable(specification)
                     .ExecuteUpdateAsync(t => t.SetProperty(p => p.IsReadByAdmin, true));
+
+                return rowAffected == 0
+                    ? new(OperationResult.NotFound)
+                    {
+                        Errors = [new() { Message = Localizer.Value["TicketReplyNotFound"] },],
+                    }
+                    : new(OperationResult.Succeeded) { Data = true };
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return new(OperationResult.Failed) { Errors = [new() { Message = exc.Message, },] };
+            }
+        }
+
+        public async Task<ResultData<bool>> SetReplysAsReadedByUserAsync([NotNull] ISpecification<TicketReply> specification)
+        {
+            try
+            {
+                var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
+                var rowAffected = await uow.GetRepository<TicketReply>().GetManyQueryable(specification)
+                    .ExecuteUpdateAsync(t => t.SetProperty(p => p.IsRead, true));
 
                 return rowAffected == 0
                     ? new(OperationResult.NotFound)
@@ -313,53 +378,70 @@ namespace GamaEdtech.Application.Service
 
         public async Task ProccessInboundEmailAsync(HttpRequest request)
         {
-            Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 1"));
             var result = await emailService.Value.ProccessInboundEmailAsync(request);
-            Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 2"));
             if (result.Data is null)
             {
                 return;
             }
 
-            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 3: {JsonSerializer.Serialize(result.Data)}"));
             var match = TicketRegex().Match(result.Data.Subject!);
             if (match.Success)
             {
-                Logger.Value.LogException(new Exception("ProccessInboundEmailAsync 4"));
                 var ticketId = match.Groups[0].Value.ValueOf<long?>();
-                Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 5: {ticketId}"));
                 if (ticketId.HasValue)
                 {
-                    Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 6"));
                     var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
-                    var email = await uow.GetRepository<Ticket>().GetManyQueryable(t => t.Id == ticketId).Select(t => t.Email).FirstOrDefaultAsync();
-                    if (result.Data.From!.Contains(email!, StringComparison.OrdinalIgnoreCase))
+                    var info = await uow.GetRepository<Ticket>().GetManyQueryable(t => t.Id == ticketId).Select(t => new
                     {
-                        Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 7"));
+                        t.Email,
+                        t.UserId,
+                    }).FirstOrDefaultAsync();
+                    if (info is not null && result.Data.From!.Contains(info.Email!, StringComparison.OrdinalIgnoreCase))
+                    {
                         _ = await ReplyTicketAsync(new()
                         {
                             Body = result.Data.Body!,
                             TicketId = ticketId.Value,
                             ReplyByAdmin = false,
+                            CreationUserId = info.UserId,
+                            Receivers = result.Data.To?.ToList(),
                         });
-                        Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 8"));
                         return;
                     }
                 }
             }
 
-            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 9"));
-            _ = await CreateTicketAsync(new()
+            var data = await identityService.Value.GetUserFullNameAsync(new EmailEqualsSpecification(result.Data.From!));
+            var name = data.Data?.FullName ?? "Customer";
+            var ticket = await CreateTicketAsync(new()
             {
                 Body = result.Data.Body,
                 Subject = result.Data.Subject,
                 Email = result.Data.From,
-                FullName = "Customer",
+                FullName = name,
+                UserId = data.Data?.Id,
+                Receivers = result.Data.To?.ToList(),
             });
-            Logger.Value.LogException(new Exception($"ProccessInboundEmailAsync 10"));
+            if (ticket.OperationResult is OperationResult.Succeeded)
+            {
+                var supportEmail = emailService.Value.GetSupportEmail();
+                if (result.Data.To is null || !result.Data.To.Any(t => supportEmail.Contains(t!, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+
+                _ = await SendTicketConfirmationAsync(new()
+                {
+                    Body = result.Data.Body,
+                    Subject = result.Data.Subject,
+                    TicketId = ticket.Data,
+                    ReceiverEmail = result.Data.From,
+                    ReceiverName = name,
+                });
+            }
         }
 
-        private static string GenerateSubject(long ticketId, string? subject) => $"Reply [Ticket-{ticketId}] {subject}";
+        public string GenerateSubject(long ticketId, string? subject) => $"[Ticket-{ticketId}] {subject}";
 
         private async Task<(string? FileId, IEnumerable<Error>? Errors)> SaveFileAsync(IFormFile? file)
         {

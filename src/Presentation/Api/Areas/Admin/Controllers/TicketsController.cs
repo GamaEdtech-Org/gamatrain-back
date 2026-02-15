@@ -18,15 +18,17 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 
     using Microsoft.AspNetCore.Mvc;
 
+    using static GamaEdtech.Common.Core.Constants;
+
     [Common.DataAnnotation.Area(nameof(Admin), "Admin")]
     [Route("api/v{version:apiVersion}/[area]/[controller]")]
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
-    public class TicketsController(Lazy<ILogger<TicketsController>> logger, Lazy<ITicketService> ticketService)
+    public class TicketsController(Lazy<ILogger<TicketsController>> logger, Lazy<ITicketService> ticketService, Lazy<IEmailService> emailService)
         : ApiControllerBase<TicketsController>(logger)
     {
         [HttpGet, Produces<ApiResponse<ListDataSource<TicketsResponseViewModel>>>()]
-        [Display(Name = "Get List of Tickets")]
+        [Display(Name = "Get list of tickets")]
         public async Task<IActionResult<ListDataSource<TicketsResponseViewModel>>> GetTickets([NotNull, FromQuery] TicketsRequestViewModel request)
         {
             try
@@ -47,6 +49,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                             Email = t.Email,
                             IsReadByAdmin = t.IsReadByAdmin,
                             CreationDate = t.CreationDate,
+                            Receivers = t.Receivers,
                         }),
                         TotalRecordsCount = result.Data.TotalRecordsCount,
                     }
@@ -60,6 +63,49 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost, Produces<ApiResponse<ManageTicketResponseViewModel>>()]
+        [Display(Name = "Send ticket to user")]
+        public async Task<IActionResult<ManageTicketResponseViewModel>> SendTicket([NotNull, FromForm] SendTicketRequestViewModel request)
+        {
+            try
+            {
+                var validationResult = emailService.Value.ValidateFromEmailAddress(request.From);
+                if (!validationResult.Data)
+                {
+                    return Ok<ManageTicketResponseViewModel>(new() { Errors = validationResult.Errors });
+                }
+
+                var result = await ticketService.Value.CreateTicketAsync(new()
+                {
+                    Body = request.Body,
+                    Email = request.ReceiverEmail,
+                    Subject = request.Subject,
+                    File = request.File,
+                    FullName = request.ReceiverName,
+                });
+                if (result.OperationResult is OperationResult.Succeeded)
+                {
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = ticketService.Value.GenerateSubject(result.Data, request.Subject),
+                        Body = request.Body!,
+                        EmailAddresses = [request.ReceiverEmail!],
+                        From = request.From,
+                    });
+                }
+
+                return Ok<ManageTicketResponseViewModel>(new(result.Errors)
+                {
+                    Data = new() { Id = result.Data },
+                });
+            }
+            catch (Exception exc)
+            {
+                Logger.Value.LogException(exc);
+                return Ok<ManageTicketResponseViewModel>(new(new Error { Message = exc.Message }));
+            }
+        }
+
         [HttpGet("{id:long}"), Produces<ApiResponse<TicketResponseViewModel>>()]
         [Display(Name = "Get a Ticket Details")]
         public async Task<IActionResult<TicketResponseViewModel>> GetTicket([FromRoute] long id)
@@ -68,7 +114,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var specification = new IdEqualsSpecification<Ticket, long>(id);
                 var result = await ticketService.Value.GetTicketAsync(specification);
-                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                if (result.OperationResult is not OperationResult.Succeeded)
                 {
                     return Ok<TicketResponseViewModel>(new(result.Errors));
                 }
@@ -85,6 +131,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         Email = result.Data.Email,
                         Subject = result.Data.Subject,
                         Body = result.Data.Body,
+                        Receivers = result.Data.Receivers,
                         CreationDate = result.Data.CreationDate,
                         FileUri = result.Data.FileUri,
                     }
@@ -104,9 +151,9 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
         {
             try
             {
-                var specification = new TicketIdEqualsSpecification<TicketReply>(id);
+                var specification = new TicketIdEqualsSpecification(id);
                 var result = await ticketService.Value.GetTicketReplysAsync(specification);
-                if (result.OperationResult is not Constants.OperationResult.Succeeded)
+                if (result.OperationResult is not OperationResult.Succeeded)
                 {
                     return Ok<IEnumerable<TicketReplyResponseViewModel>>(new(result.Errors));
                 }
@@ -122,6 +169,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         CreationDate = t.CreationDate,
                         CreationUser = t.CreationUser,
                         FileUri = t.FileUri,
+                        Receivers = t.Receivers,
                     }),
                 });
             }
@@ -135,17 +183,23 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
 
         [HttpPost("{id:long}/replys"), Produces(typeof(ApiResponse<Void>))]
         [Display(Name = "Reply a Ticket")]
-        public async Task<IActionResult> Reply([FromRoute] long id, [NotNull, FromForm] ReplyTicketRequestViewModel request)
+        public async Task<IActionResult<Void>> Reply([FromRoute] long id, [NotNull, FromForm] ReplyTicketByAdminRequestViewModel request)
         {
             try
             {
+                var validationResult = emailService.Value.ValidateFromEmailAddress(request.From);
+                if (!validationResult.Data)
+                {
+                    return Ok<Void>(new() { Errors = validationResult.Errors });
+                }
+
                 var result = await ticketService.Value.ReplyTicketAsync(new()
                 {
                     TicketId = id,
                     Body = request.Body!,
                     File = request.File,
                     CreationUserId = User.UserId(),
-                    SenderName = request.SenderName,
+                    From = request.From,
                     ReplyByAdmin = true,
                 });
                 return Ok<Void>(new(result.Errors));

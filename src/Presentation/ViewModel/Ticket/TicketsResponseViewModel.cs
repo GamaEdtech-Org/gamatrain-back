@@ -1,5 +1,7 @@
 namespace GamaEdtech.Presentation.ViewModel.Ticket
 {
+    using System.Collections.Generic;
+
     public sealed class TicketsResponseViewModel
     {
         public long Id { get; set; }
@@ -8,5 +10,6 @@ namespace GamaEdtech.Presentation.ViewModel.Ticket
         public string? Subject { get; set; }
         public bool IsReadByAdmin { get; set; }
         public DateTimeOffset CreationDate { get; set; }
+        public IEnumerable<string?>? Receivers { get; set; }
     }
 }
