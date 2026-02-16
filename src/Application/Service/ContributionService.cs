@@ -11,6 +11,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
@@ -24,7 +25,7 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public class ContributionService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<ContributionService>> localizer
-        , Lazy<ILogger<ContributionService>> logger, Lazy<IApplicationSettingsService> applicationSettingsService, Lazy<ITransactionService> transactionService)
+        , Lazy<ILogger<ContributionService>> logger, Lazy<IApplicationSettingsService> applicationSettingsService, Lazy<ITransactionService> transactionService, Lazy<IEmailService> emailService)
         : LocalizableServiceBase<ContributionService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IContributionService
     {
         public async Task<ResultData<ListDataSource<ContributionsDto<T>>>> GetContributionsAsync<T>(ListRequestDto<Contribution>? requestDto = null, bool includeData = false)
@@ -220,7 +221,18 @@ namespace GamaEdtech.Application.Service
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<Contribution>();
-                var contribution = await repository.GetAsync(specification.And(new StatusEqualsSpecification<Contribution>(Status.Review)));
+                var contribution = await repository.GetManyQueryable(specification.And(new StatusEqualsSpecification<Contribution>(Status.Review))).Select(t => new
+                {
+                    t.Id,
+                    t.CategoryType,
+                    t.Data,
+                    t.Comment,
+                    t.CreationDate,
+                    t.IdentifierId,
+                    t.CreationUserId,
+                    t.CreationUser.Email,
+                    FullName = t.CreationUser.FirstName + " " + t.CreationUser.LastName,
+                }).FirstOrDefaultAsync();
                 if (contribution is null)
                 {
                     return new(OperationResult.NotFound)
@@ -229,9 +241,7 @@ namespace GamaEdtech.Application.Service
                     };
                 }
 
-                contribution.Status = Status.Confirmed;
-                _ = repository.Update(contribution);
-                _ = await uow.SaveChangesAsync();
+                _ = await repository.GetManyQueryable(t => t.Id == contribution.Id).ExecuteUpdateAsync(t => t.SetProperty(p => p.Status, Status.Confirmed));
 
                 var points = await applicationSettingsService.Value.GetSettingAsync<long>(contribution.CategoryType.ApplicationSettingsName);
                 if (points.Data > 0)
@@ -244,6 +254,14 @@ namespace GamaEdtech.Application.Service
                         UserId = contribution.CreationUserId,
                     });
                 }
+
+                var template = await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.ContributionConfirmationEmailTemplate));
+                _ = await emailService.Value.SendEmailAsync(new()
+                {
+                    Subject = "Confirm Contribution",
+                    Body = template.Data!.Replace("[RECEIVER_NAME]", contribution.FullName, StringComparison.OrdinalIgnoreCase),
+                    EmailAddresses = [contribution.Email!],
+                });
 
                 return new(OperationResult.Succeeded)
                 {

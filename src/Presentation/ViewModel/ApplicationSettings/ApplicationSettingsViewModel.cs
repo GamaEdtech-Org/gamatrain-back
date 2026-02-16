@@ -1,5 +1,7 @@
 namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
 {
+    using GamaEdtech.Common.DataAnnotation;
+
     public sealed class ApplicationSettingsViewModel
     {
         public int GridPageSize { get; set; }
@@ -17,5 +19,11 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
         public long TestTimeIncorrectSubmissionPoints { get; set; }
         public long ExamCorrectTestSubmissionPoints { get; set; }
         public long ExamIncorrectTestSubmissionPoints { get; set; }
+
+        [RequiredTokens("[RECEIVER_NAME]", "[BODY]")]
+        public string? ContributionConfirmationEmailTemplate { get; set; }
+
+        [RequiredTokens("[RECEIVER_NAME]")]
+        public string? TicketConfirmationEmailTemplate { get; set; }
     }
 }

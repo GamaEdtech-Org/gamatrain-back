@@ -48,13 +48,14 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         TestTimeIncorrectSubmissionPoints = result.Data.TestTimeIncorrectSubmissionPoints,
                         ExamCorrectTestSubmissionPoints = result.Data.ExamCorrectTestSubmissionPoints,
                         ExamIncorrectTestSubmissionPoints = result.Data.ExamIncorrectTestSubmissionPoints,
+                        ContributionConfirmationEmailTemplate = result.Data.ContributionConfirmationEmailTemplate,
+                        TicketConfirmationEmailTemplate = result.Data.TicketConfirmationEmailTemplate,
                     }
                 });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-
                 return Ok(new ApiResponse<ApplicationSettingsViewModel> { Errors = new[] { new Error { Message = exc.Message } } });
             }
         }
@@ -82,13 +83,14 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                     TestTimeIncorrectSubmissionPoints = request.TestTimeIncorrectSubmissionPoints,
                     ExamCorrectTestSubmissionPoints = request.ExamCorrectTestSubmissionPoints,
                     ExamIncorrectTestSubmissionPoints = request.ExamIncorrectTestSubmissionPoints,
+                    ContributionConfirmationEmailTemplate = request.ContributionConfirmationEmailTemplate,
+                    TicketConfirmationEmailTemplate = request.TicketConfirmationEmailTemplate,
                 });
                 return Ok<bool>(new(result.Errors) { Data = result.Data });
             }
             catch (Exception exc)
             {
                 Logger.Value.LogException(exc);
-
                 return Ok<bool>(new(new Error { Message = exc.Message }));
             }
         }
