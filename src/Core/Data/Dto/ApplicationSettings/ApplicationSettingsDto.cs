@@ -17,5 +17,7 @@ namespace GamaEdtech.Data.Dto.ApplicationSettings
         public long TestTimeIncorrectSubmissionPoints { get; set; } = 10;
         public long ExamCorrectTestSubmissionPoints { get; set; } = 1000;
         public long ExamIncorrectTestSubmissionPoints { get; set; } = 1000;
+        public string? TicketConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>We received your request<hr><br><br>[BODY]";
+        public string? ContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution has been confiremd";
     }
 }

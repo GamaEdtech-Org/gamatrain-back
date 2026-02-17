@@ -11,6 +11,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Ticket;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
@@ -24,7 +25,7 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public partial class TicketService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<TicketService>> localizer
-        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService, Lazy<IIdentityService> identityService)
+        , Lazy<ILogger<TicketService>> logger, Lazy<IFileService> fileService, Lazy<IEmailService> emailService, Lazy<IIdentityService> identityService, Lazy<IApplicationSettingsService> applicationSettingsService)
         : LocalizableServiceBase<TicketService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ITicketService
     {
         public async Task<ResultData<ListDataSource<TicketsDto>>> GetTicketsAsync(ListRequestDto<Ticket>? requestDto = null)
@@ -170,10 +171,14 @@ namespace GamaEdtech.Application.Service
         {
             try
             {
+                var template = await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.TicketConfirmationEmailTemplate));
+
                 return await emailService.Value.SendEmailAsync(new()
                 {
                     Subject = GenerateSubject(requestDto.TicketId, requestDto.Subject),
-                    Body = $"Hi {requestDto.ReceiverName},<br><br>We received your request<hr><br><br>{requestDto.Body}",
+                    Body = template.Data!
+                        .Replace("[RECEIVER_NAME]", requestDto.ReceiverName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[BODY]", requestDto.Body, StringComparison.OrdinalIgnoreCase),
                     EmailAddresses = [requestDto.ReceiverEmail!],
                     From = requestDto.From,
                 });
@@ -387,7 +392,7 @@ namespace GamaEdtech.Application.Service
             var match = TicketRegex().Match(result.Data.Subject!);
             if (match.Success)
             {
-                var ticketId = match.Groups[0].Value.ValueOf<long?>();
+                var ticketId = match.Groups[1].Value.ValueOf<long?>();
                 if (ticketId.HasValue)
                 {
                     var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
