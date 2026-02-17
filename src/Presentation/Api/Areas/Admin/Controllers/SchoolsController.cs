@@ -345,6 +345,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await schoolService.Value.ConfirmSchoolCommentContributionAsync(new ConfirmSchoolCommentContributionRequestDto
                 {
                     ContributionId = contributionId,
+                    NotifyUser = true,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)
@@ -497,6 +498,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await schoolService.Value.ConfirmSchoolImageContributionAsync(new ConfirmSchoolImageContributionRequestDto
                 {
                     ContributionId = contributionId,
+                    NotifyUser = true,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)
@@ -681,6 +683,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await schoolService.Value.ConfirmRemoveSchoolImageContributionAsync(new()
                 {
                     ContributionId = contributionId,
+                    NotifyUser = true,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)
@@ -816,7 +819,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await schoolService.Value.ConfirmSchoolContributionAsync(new ConfirmSchoolContributionRequestDto
                 {
                     ContributionId = contributionId,
-                    SchoolId = request.SchoolId.GetValueOrDefault(),
+                    NotifyUser = true,
+                    SchoolId = request.SchoolId,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)
@@ -920,7 +924,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var result = await schoolService.Value.ConfirmSchoolIssuesContributionAsync(new()
                 {
-                    ContributionId = contributionId
+                    ContributionId = contributionId,
+                    NotifyUser = true,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)

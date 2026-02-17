@@ -215,13 +215,13 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task<ResultData<ContributionDto<T>>> ConfirmContributionAsync<T>([NotNull] ISpecification<Contribution> specification)
+        public async Task<ResultData<ContributionDto<T>>> ConfirmContributionAsync<T>([NotNull] ConfirmContributionRequestDto<Contribution> requestDto)
         {
             try
             {
                 var uow = UnitOfWorkProvider.Value.CreateUnitOfWork();
                 var repository = uow.GetRepository<Contribution>();
-                var contribution = await repository.GetManyQueryable(specification.And(new StatusEqualsSpecification<Contribution>(Status.Review))).Select(t => new
+                var contribution = await repository.GetManyQueryable(requestDto.Specification.And(new StatusEqualsSpecification<Contribution>(Status.Review))).Select(t => new
                 {
                     t.Id,
                     t.CategoryType,
@@ -255,13 +255,16 @@ namespace GamaEdtech.Application.Service
                     });
                 }
 
-                var template = await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.ContributionConfirmationEmailTemplate));
-                _ = await emailService.Value.SendEmailAsync(new()
+                if (requestDto.NotifyUser)
                 {
-                    Subject = "Confirm Contribution",
-                    Body = template.Data!.Replace("[RECEIVER_NAME]", contribution.FullName, StringComparison.OrdinalIgnoreCase),
-                    EmailAddresses = [contribution.Email!],
-                });
+                    var template = await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.ContributionConfirmationEmailTemplate));
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "Confirm Contribution",
+                        Body = template.Data!.Replace("[RECEIVER_NAME]", contribution.FullName, StringComparison.OrdinalIgnoreCase),
+                        EmailAddresses = [contribution.Email!],
+                    });
+                }
 
                 return new(OperationResult.Succeeded)
                 {
