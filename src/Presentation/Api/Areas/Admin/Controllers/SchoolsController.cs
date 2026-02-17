@@ -1137,6 +1137,8 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 Title = t.Title,
                 Code = t.Code,
+                Icon = t.Icon,
+                Id = t.Id,
             }),
         };
     }
