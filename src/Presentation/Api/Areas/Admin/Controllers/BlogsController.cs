@@ -120,6 +120,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 var result = await blogService.Value.ConfirmPostContributionAsync(new()
                 {
                     ContributionId = contributionId,
+                    NotifyUser = true,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)

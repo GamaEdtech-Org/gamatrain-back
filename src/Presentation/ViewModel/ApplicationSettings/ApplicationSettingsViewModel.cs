@@ -20,10 +20,10 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
         public long ExamCorrectTestSubmissionPoints { get; set; }
         public long ExamIncorrectTestSubmissionPoints { get; set; }
 
-        [RequiredTokens("[RECEIVER_NAME]", "[BODY]")]
+        [RequiredTokens("[RECEIVER_NAME]")]
         public string? ContributionConfirmationEmailTemplate { get; set; }
 
-        [RequiredTokens("[RECEIVER_NAME]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[BODY]")]
         public string? TicketConfirmationEmailTemplate { get; set; }
     }
 }
