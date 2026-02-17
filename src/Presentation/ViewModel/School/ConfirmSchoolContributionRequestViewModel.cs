@@ -5,7 +5,6 @@ namespace GamaEdtech.Presentation.ViewModel.School
     public sealed class ConfirmSchoolContributionRequestViewModel
     {
         [Display]
-        [Required]
-        public int? SchoolId { get; set; }
+        public long? SchoolId { get; set; }
     }
 }

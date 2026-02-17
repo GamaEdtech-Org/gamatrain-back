@@ -820,7 +820,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 {
                     ContributionId = contributionId,
                     NotifyUser = true,
-                    SchoolId = request.SchoolId.GetValueOrDefault(),
+                    SchoolId = request.SchoolId,
                 });
 
                 return Ok(new ApiResponse<bool>(result.Errors)
