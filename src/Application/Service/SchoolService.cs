@@ -741,6 +741,7 @@ namespace GamaEdtech.Application.Service
                     _ = await ConfirmSchoolCommentContributionAsync(new()
                     {
                         ContributionId = contributionResult.Data,
+                        NotifyUser = false,
                     });
                 }
 
@@ -782,7 +783,11 @@ namespace GamaEdtech.Application.Service
             {
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.SchoolComment));
-                var result = await contributionService.Value.ConfirmContributionAsync<SchoolCommentContributionDto>(contributionSpecification);
+                var result = await contributionService.Value.ConfirmContributionAsync<SchoolCommentContributionDto>(new()
+                {
+                    Specification = contributionSpecification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (result.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = result.Errors };
@@ -946,6 +951,7 @@ namespace GamaEdtech.Application.Service
                     _ = await ConfirmSchoolImageContributionAsync(new()
                     {
                         ContributionId = contributionResult.Data,
+                        NotifyUser = false,
                     });
                 }
 
@@ -992,7 +998,11 @@ namespace GamaEdtech.Application.Service
             {
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.SchoolImage));
-                var result = await contributionService.Value.ConfirmContributionAsync<SchoolImageContributionDto>(contributionSpecification);
+                var result = await contributionService.Value.ConfirmContributionAsync<SchoolImageContributionDto>(new()
+                {
+                    Specification = contributionSpecification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (result.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = result.Errors };
@@ -1206,6 +1216,7 @@ namespace GamaEdtech.Application.Service
                     _ = await ConfirmRemoveSchoolImageContributionAsync(new()
                     {
                         ContributionId = contributionResult.Data,
+                        NotifyUser = false,
                     });
                 }
 
@@ -1227,7 +1238,11 @@ namespace GamaEdtech.Application.Service
 
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.RemoveSchoolImage));
-                var result = await contributionService.Value.ConfirmContributionAsync<RemoveSchoolImageContributionDto?>(contributionSpecification);
+                var result = await contributionService.Value.ConfirmContributionAsync<RemoveSchoolImageContributionDto?>(new()
+                {
+                    Specification = contributionSpecification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (result.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = result.Errors };
@@ -1352,6 +1367,7 @@ namespace GamaEdtech.Application.Service
                     _ = await ConfirmSchoolContributionAsync(new()
                     {
                         ContributionId = contributionResult.Data,
+                        NotifyUser = false,
                         SchoolId = requestDto.SchoolId,
                     });
                 }
@@ -1387,7 +1403,11 @@ namespace GamaEdtech.Application.Service
                     contributionSpecification = contributionSpecification.And(new IdentifierIdEqualsSpecification<Contribution>(requestDto.SchoolId.Value));
                 }
 
-                var contributionResult = await contributionService.Value.ConfirmContributionAsync<SchoolContributionDto>(contributionSpecification);
+                var contributionResult = await contributionService.Value.ConfirmContributionAsync<SchoolContributionDto>(new()
+                {
+                    Specification = contributionSpecification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (contributionResult.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = contributionResult.Errors };
@@ -1524,6 +1544,7 @@ namespace GamaEdtech.Application.Service
                     _ = await ConfirmSchoolIssuesContributionAsync(new()
                     {
                         ContributionId = contributionResult.Data,
+                        NotifyUser = false,
                     });
                 }
 
@@ -1542,7 +1563,11 @@ namespace GamaEdtech.Application.Service
             {
                 var specification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.SchoolIssues));
-                var result = await contributionService.Value.ConfirmContributionAsync<string>(specification);
+                var result = await contributionService.Value.ConfirmContributionAsync<string>(new()
+                {
+                    Specification = specification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (result.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = result.Errors };

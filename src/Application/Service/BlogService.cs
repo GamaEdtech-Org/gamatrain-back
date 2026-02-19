@@ -274,6 +274,7 @@ namespace GamaEdtech.Application.Service
                         _ = await ConfirmPostContributionAsync(new()
                         {
                             ContributionId = contributionResult.Data,
+                            NotifyUser = false,
                         });
                     }
                 }
@@ -574,7 +575,11 @@ namespace GamaEdtech.Application.Service
 
                 var contributionSpecification = new IdEqualsSpecification<Contribution, long>(requestDto.ContributionId)
                     .And(new CategoryTypeEqualsSpecification<Contribution>(CategoryType.Post));
-                var result = await contributionService.Value.ConfirmContributionAsync<PostContributionDto>(contributionSpecification);
+                var result = await contributionService.Value.ConfirmContributionAsync<PostContributionDto>(new()
+                {
+                    Specification = contributionSpecification,
+                    NotifyUser = requestDto.NotifyUser,
+                });
                 if (result.Data is null)
                 {
                     return new(OperationResult.Failed) { Errors = result.Errors };
