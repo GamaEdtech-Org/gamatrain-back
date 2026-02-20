@@ -14,6 +14,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Board;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.School;
@@ -40,8 +41,8 @@ namespace GamaEdtech.Application.Service
 
     using static GamaEdtech.Common.Core.Constants;
 
-    public class SchoolService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer
-        , Lazy<ILogger<FileService>> logger, Lazy<IFileService> fileService, Lazy<IContributionService> contributionService, Lazy<IIdentityService> identityService
+    public class SchoolService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<FileService>> localizer, Lazy<IEmailService> emailService
+        , Lazy<ILogger<FileService>> logger, Lazy<IFileService> fileService, Lazy<IContributionService> contributionService, Lazy<IIdentityService> identityService, Lazy<IApplicationSettingsService> applicationSettingsService
         , Lazy<IConfiguration> configuration, Lazy<ITagService> tagService, Lazy<IReactionService> reactionService, Lazy<ILocationService> locationService, Lazy<IBoardService> boardService)
         : LocalizableServiceBase<FileService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), ISchoolService, ISiteMapHandler
     {
@@ -786,7 +787,6 @@ namespace GamaEdtech.Application.Service
                 var result = await contributionService.Value.ConfirmContributionAsync<SchoolCommentContributionDto>(new()
                 {
                     Specification = contributionSpecification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (result.Data is null)
                 {
@@ -797,6 +797,22 @@ namespace GamaEdtech.Application.Service
 
                 //this is temporary
                 _ = await UpdateSchoolScoreAsync(result.Data.Data!.SchoolId);
+
+                if (requestDto.NotifyUser)
+                {
+                    var name = await GetSchoolsNameAsync(new IdEqualsSpecification<School, long>(result.Data.Data!.SchoolId));
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolCommentContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[COMMENT]", result.Data.Data.Comment, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "School Image Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [result.Data.Email],
+                    });
+                }
 
                 return new(OperationResult.Succeeded) { Data = true };
             }
@@ -1001,7 +1017,6 @@ namespace GamaEdtech.Application.Service
                 var result = await contributionService.Value.ConfirmContributionAsync<SchoolImageContributionDto>(new()
                 {
                     Specification = contributionSpecification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (result.Data is null)
                 {
@@ -1034,6 +1049,21 @@ namespace GamaEdtech.Application.Service
                 }
 
                 await UpdateSchoolLastModifyDateAsync(uow, result.Data.CreationUserId, schoolImage.SchoolId);
+
+                if (requestDto.NotifyUser)
+                {
+                    var name = await GetSchoolsNameAsync(new IdEqualsSpecification<School, long>(result.Data.Data!.SchoolId));
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolImageContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "School Image Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [result.Data.Email],
+                    });
+                }
 
                 return new(OperationResult.Succeeded) { Data = true };
             }
@@ -1241,7 +1271,6 @@ namespace GamaEdtech.Application.Service
                 var result = await contributionService.Value.ConfirmContributionAsync<RemoveSchoolImageContributionDto?>(new()
                 {
                     Specification = contributionSpecification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (result.Data is null)
                 {
@@ -1276,6 +1305,21 @@ namespace GamaEdtech.Application.Service
                 _ = await uow.SaveChangesAsync();
 
                 await UpdateSchoolLastModifyDateAsync(uow, result.Data.CreationUserId, schoolImage.SchoolId);
+
+                if (requestDto.NotifyUser)
+                {
+                    var name = await GetSchoolsNameAsync(new IdEqualsSpecification<School, long>(schoolImage.SchoolId));
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.RemoveSchoolImageContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "Remove School Image Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [result.Data.Email],
+                    });
+                }
 
                 trn.Complete();
                 return new(OperationResult.Succeeded) { Data = true };
@@ -1406,7 +1450,6 @@ namespace GamaEdtech.Application.Service
                 var contributionResult = await contributionService.Value.ConfirmContributionAsync<SchoolContributionDto>(new()
                 {
                     Specification = contributionSpecification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (contributionResult.Data is null)
                 {
@@ -1489,6 +1532,21 @@ namespace GamaEdtech.Application.Service
                     await CreateSchoolCommentAsync(contributionResult.Data.Data.Comment);
                 }
 
+                if (requestDto.NotifyUser)
+                {
+                    var name = await GetSchoolsNameAsync(new IdEqualsSpecification<School, long>(manageSchoolResult.Data));
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", contributionResult.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "School Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [contributionResult.Data.Email],
+                    });
+                }
+
                 return new(OperationResult.Succeeded) { Data = true };
             }
             catch (Exception exc)
@@ -1566,7 +1624,6 @@ namespace GamaEdtech.Application.Service
                 var result = await contributionService.Value.ConfirmContributionAsync<string>(new()
                 {
                     Specification = specification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (result.Data is null)
                 {
@@ -1584,6 +1641,21 @@ namespace GamaEdtech.Application.Service
                 school.IsDeleted = true;
                 _ = repository.Update(school);
                 _ = await uow.SaveChangesAsync();
+
+                if (requestDto.NotifyUser)
+                {
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolIssuesContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_NAME]", school.Name, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[ISSUES]", school.Name, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "School Issue Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [result.Data.Email],
+                    });
+                }
 
                 return new(OperationResult.Succeeded) { Data = true };
             }

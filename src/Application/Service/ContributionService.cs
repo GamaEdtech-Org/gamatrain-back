@@ -11,7 +11,6 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
-    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Domain.Entity;
     using GamaEdtech.Domain.Enumeration;
@@ -25,7 +24,7 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public class ContributionService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<ContributionService>> localizer
-        , Lazy<ILogger<ContributionService>> logger, Lazy<IApplicationSettingsService> applicationSettingsService, Lazy<ITransactionService> transactionService, Lazy<IEmailService> emailService)
+        , Lazy<ILogger<ContributionService>> logger, Lazy<IApplicationSettingsService> applicationSettingsService, Lazy<ITransactionService> transactionService)
         : LocalizableServiceBase<ContributionService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IContributionService
     {
         public async Task<ResultData<ListDataSource<ContributionsDto<T>>>> GetContributionsAsync<T>(ListRequestDto<Contribution>? requestDto = null, bool includeData = false)
@@ -255,17 +254,6 @@ namespace GamaEdtech.Application.Service
                     });
                 }
 
-                if (requestDto.NotifyUser)
-                {
-                    var template = await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.ContributionConfirmationEmailTemplate));
-                    _ = await emailService.Value.SendEmailAsync(new()
-                    {
-                        Subject = "Confirm Contribution",
-                        Body = template.Data!.Replace("[RECEIVER_NAME]", contribution.FullName, StringComparison.OrdinalIgnoreCase),
-                        EmailAddresses = [contribution.Email!],
-                    });
-                }
-
                 return new(OperationResult.Succeeded)
                 {
                     Data = new ContributionDto<T>
@@ -274,6 +262,8 @@ namespace GamaEdtech.Application.Service
                         Data = string.IsNullOrEmpty(contribution.Data) ? default : JsonSerializer.Deserialize<T>(contribution.Data),
                         Comment = contribution.Comment,
                         CreationUserId = contribution.CreationUserId,
+                        Email = contribution.Email!,
+                        FullName = contribution.FullName,
                         CreationDate = contribution.CreationDate,
                         CategoryType = contribution.CategoryType,
                         IdentifierId = contribution.IdentifierId,

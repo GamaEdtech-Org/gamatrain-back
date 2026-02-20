@@ -16,6 +16,7 @@ namespace GamaEdtech.Application.Service
     using GamaEdtech.Common.DataAccess.Specification.Impl;
     using GamaEdtech.Common.DataAccess.UnitOfWork;
     using GamaEdtech.Common.Service;
+    using GamaEdtech.Data.Dto.ApplicationSettings;
     using GamaEdtech.Data.Dto.Blog;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Data.Dto.SiteMap;
@@ -35,8 +36,8 @@ namespace GamaEdtech.Application.Service
     using static GamaEdtech.Common.Core.Constants;
 
     public class BlogService(Lazy<IUnitOfWorkProvider> unitOfWorkProvider, Lazy<IHttpContextAccessor> httpContextAccessor, Lazy<IStringLocalizer<BlogService>> localizer
-        , Lazy<ILogger<BlogService>> logger, Lazy<IReactionService> reactionService, Lazy<IFileService> fileService, Lazy<IIdentityService> identityService
-        , Lazy<IContributionService> contributionService, Lazy<ITagService> tagService, Lazy<IConfiguration> configuration)
+        , Lazy<ILogger<BlogService>> logger, Lazy<IReactionService> reactionService, Lazy<IFileService> fileService, Lazy<IIdentityService> identityService, Lazy<IEmailService> emailService
+        , Lazy<IContributionService> contributionService, Lazy<ITagService> tagService, Lazy<IConfiguration> configuration, Lazy<IApplicationSettingsService> applicationSettingsService)
         : LocalizableServiceBase<BlogService>(unitOfWorkProvider, httpContextAccessor, localizer, logger), IBlogService, ISiteMapHandler
     {
         public async Task<ResultData<ListDataSource<PostsDto>>> GetPostsAsync(ListRequestDto<Post>? requestDto = null)
@@ -578,7 +579,6 @@ namespace GamaEdtech.Application.Service
                 var result = await contributionService.Value.ConfirmContributionAsync<PostContributionDto>(new()
                 {
                     Specification = contributionSpecification,
-                    NotifyUser = requestDto.NotifyUser,
                 });
                 if (result.Data is null)
                 {
@@ -632,7 +632,20 @@ namespace GamaEdtech.Application.Service
                     _ = await uow.SaveChangesAsync();
 
                     _ = await contributionService.Value.UpdateIdentifierIdAsync(requestDto.ContributionId, post.Id);
+                }
 
+                if (requestDto.NotifyUser)
+                {
+                    var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.PostContributionConfirmationEmailTemplate))).Data;
+                    template = template?
+                        .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[POST_TITLE]", result.Data.Data.Title, StringComparison.OrdinalIgnoreCase);
+                    _ = await emailService.Value.SendEmailAsync(new()
+                    {
+                        Subject = "Post Contribution Confirmation",
+                        Body = template!,
+                        EmailAddresses = [result.Data.Email],
+                    });
                 }
 
                 scope.Complete();
