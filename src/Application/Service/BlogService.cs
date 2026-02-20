@@ -585,7 +585,8 @@ namespace GamaEdtech.Application.Service
                     return new(OperationResult.Failed) { Errors = result.Errors };
                 }
 
-                if (result.Data.IdentifierId.HasValue)
+                var postId = result.Data.IdentifierId;
+                if (postId.HasValue)
                 {
                     _ = await ManagePostAsync(new()
                     {
@@ -602,7 +603,7 @@ namespace GamaEdtech.Application.Service
                         VisibilityType = result.Data.Data!.VisibilityType!,
                         Keywords = result.Data.Data!.Keywords,
                         Tags = result.Data.Data!.Tags,
-                        Id = result.Data.IdentifierId.Value,
+                        Id = postId.Value,
                     });
                 }
                 else
@@ -631,6 +632,7 @@ namespace GamaEdtech.Application.Service
                     postRepository.Add(post);
                     _ = await uow.SaveChangesAsync();
 
+                    postId = post.Id;
                     _ = await contributionService.Value.UpdateIdentifierIdAsync(requestDto.ContributionId, post.Id);
                 }
 
@@ -639,7 +641,8 @@ namespace GamaEdtech.Application.Service
                     var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.PostContributionConfirmationEmailTemplate))).Data;
                     template = template?
                         .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
-                        .Replace("[POST_TITLE]", result.Data.Data.Title, StringComparison.OrdinalIgnoreCase);
+                        .Replace("[POST_TITLE]", result.Data.Data.Title, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[POST_ID]", postId?.ToString(), StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {
                         Subject = "Post Contribution Confirmation",

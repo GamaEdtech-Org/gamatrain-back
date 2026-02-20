@@ -15,9 +15,11 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     using GamaEdtech.Data.Dto.Blog;
     using GamaEdtech.Data.Dto.Contribution;
     using GamaEdtech.Domain.Entity;
+    using GamaEdtech.Domain.Entity.Identity;
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Domain.Specification;
     using GamaEdtech.Domain.Specification.ApplicationSetting;
+    using GamaEdtech.Domain.Specification.Identity;
     using GamaEdtech.Presentation.ViewModel.ApplicationSettings;
     using GamaEdtech.Presentation.ViewModel.Blog;
 
@@ -27,7 +29,7 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
     [Route("api/v{version:apiVersion}/[area]/[controller]")]
     [ApiVersion("1.0")]
     [Permission(Roles = [nameof(Role.Admin)])]
-    public class BlogsController(Lazy<ILogger<BlogsController>> logger, Lazy<IBlogService> blogService
+    public class BlogsController(Lazy<ILogger<BlogsController>> logger, Lazy<IBlogService> blogService, Lazy<IIdentityService> identityService
         , Lazy<IContributionService> contributionService, Lazy<IFileService> fileService, Lazy<IGlobalService> globalService)
         : ApiControllerBase<BlogsController>(logger)
     {
@@ -40,6 +42,29 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                 if (request.Status is not null)
                 {
                     specification = specification.And(new StatusEqualsSpecification<Contribution>(request.Status));
+                }
+
+                if (request.StartDate.HasValue || request.EndDate.HasValue)
+                {
+                    specification = new CreationDateBetweenSpecification<Contribution>(request.StartDate, request.EndDate);
+                }
+
+                if (!string.IsNullOrEmpty(request.Email))
+                {
+                    var userIds = await identityService.Value.GetUserIdsAsync(new EmailEqualsSpecification(request.Email));
+                    if (userIds.Data?.Count > 0)
+                    {
+                        specification = specification.And(new CreationUserIdContainsSpecification<Contribution, ApplicationUser, int>(userIds.Data));
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(request.Username))
+                {
+                    var userIds = await identityService.Value.GetUserIdsAsync(new UsernameEqualsSpecification(request.Username));
+                    if (userIds.Data?.Count > 0)
+                    {
+                        specification = specification.And(new CreationUserIdContainsSpecification<Contribution, ApplicationUser, int>(userIds.Data));
+                    }
                 }
 
                 var result = await contributionService.Value.GetContributionsAsync<PostContributionDto>(new ListRequestDto<Contribution>

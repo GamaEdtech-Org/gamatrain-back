@@ -66,32 +66,32 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[COMMENT]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]", "[COMMENT]")]
         public string? SchoolCommentContributionConfirmationEmailTemplate { get; set; }
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
         public string? SchoolImageContributionConfirmationEmailTemplate { get; set; }
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
         public string? RemoveSchoolImageContributionConfirmationEmailTemplate { get; set; }
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
         public string? SchoolContributionConfirmationEmailTemplate { get; set; }
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[ISSUES]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]", "[ISSUES]")]
         public string? SchoolIssuesContributionConfirmationEmailTemplate { get; set; }
 
         [Display]
         [Required]
-        [RequiredTokens("[RECEIVER_NAME]", "[POST_TITLE]")]
+        [RequiredTokens("[RECEIVER_NAME]", "[POST_TITLE]", "[POST_ID]")]
         public string? PostContributionConfirmationEmailTemplate { get; set; }
 
         [Display]

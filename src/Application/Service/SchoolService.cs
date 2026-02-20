@@ -805,6 +805,7 @@ namespace GamaEdtech.Application.Service
                     template = template?
                         .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
                         .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_ID]", result.Data.Data.SchoolId.ToString(), StringComparison.OrdinalIgnoreCase)
                         .Replace("[COMMENT]", result.Data.Data.Comment, StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {
@@ -1056,7 +1057,8 @@ namespace GamaEdtech.Application.Service
                     var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolImageContributionConfirmationEmailTemplate))).Data;
                     template = template?
                         .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
-                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_ID]", result.Data.Data.SchoolId.ToString(), StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {
                         Subject = "School Image Contribution Confirmation",
@@ -1312,7 +1314,8 @@ namespace GamaEdtech.Application.Service
                     var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.RemoveSchoolImageContributionConfirmationEmailTemplate))).Data;
                     template = template?
                         .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
-                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_ID]", schoolImage.SchoolId.ToString(), StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {
                         Subject = "Remove School Image Contribution Confirmation",
@@ -1538,7 +1541,8 @@ namespace GamaEdtech.Application.Service
                     var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.SchoolContributionConfirmationEmailTemplate))).Data;
                     template = template?
                         .Replace("[RECEIVER_NAME]", contributionResult.Data.FullName, StringComparison.OrdinalIgnoreCase)
-                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase);
+                        .Replace("[SCHOOL_NAME]", name.Data?[0].Value, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_ID]", manageSchoolResult.Data.ToString(), StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {
                         Subject = "School Contribution Confirmation",
@@ -1648,6 +1652,7 @@ namespace GamaEdtech.Application.Service
                     template = template?
                         .Replace("[RECEIVER_NAME]", result.Data.FullName, StringComparison.OrdinalIgnoreCase)
                         .Replace("[SCHOOL_NAME]", school.Name, StringComparison.OrdinalIgnoreCase)
+                        .Replace("[SCHOOL_ID]", school.Id.ToString(), StringComparison.OrdinalIgnoreCase)
                         .Replace("[ISSUES]", school.Name, StringComparison.OrdinalIgnoreCase);
                     _ = await emailService.Value.SendEmailAsync(new()
                     {

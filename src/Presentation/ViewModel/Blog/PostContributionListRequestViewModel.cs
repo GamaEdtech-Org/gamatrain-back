@@ -15,5 +15,17 @@ namespace GamaEdtech.Presentation.ViewModel.Blog
         [Display]
         [JsonConverter(typeof(EnumerationConverter<Status, byte>))]
         public Status Status { get; set; }
+
+        [Display]
+        public DateTimeOffset? StartDate { get; set; }
+
+        [Display]
+        public DateTimeOffset? EndDate { get; set; }
+
+        [Display]
+        public string? Email { get; set; }
+
+        [Display]
+        public string? Username { get; set; }
     }
 }
