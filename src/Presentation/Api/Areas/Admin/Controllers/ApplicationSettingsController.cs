@@ -48,8 +48,13 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
                         TestTimeIncorrectSubmissionPoints = result.Data.TestTimeIncorrectSubmissionPoints,
                         ExamCorrectTestSubmissionPoints = result.Data.ExamCorrectTestSubmissionPoints,
                         ExamIncorrectTestSubmissionPoints = result.Data.ExamIncorrectTestSubmissionPoints,
-                        ContributionConfirmationEmailTemplate = result.Data.ContributionConfirmationEmailTemplate,
                         TicketConfirmationEmailTemplate = result.Data.TicketConfirmationEmailTemplate,
+                        SchoolCommentContributionConfirmationEmailTemplate = result.Data.SchoolCommentContributionConfirmationEmailTemplate,
+                        SchoolImageContributionConfirmationEmailTemplate = result.Data.SchoolImageContributionConfirmationEmailTemplate,
+                        RemoveSchoolImageContributionConfirmationEmailTemplate = result.Data.RemoveSchoolImageContributionConfirmationEmailTemplate,
+                        SchoolContributionConfirmationEmailTemplate = result.Data.SchoolContributionConfirmationEmailTemplate,
+                        SchoolIssuesContributionConfirmationEmailTemplate = result.Data.SchoolIssuesContributionConfirmationEmailTemplate,
+                        PostContributionConfirmationEmailTemplate = result.Data.PostContributionConfirmationEmailTemplate,
                     }
                 });
             }
@@ -68,23 +73,28 @@ namespace GamaEdtech.Presentation.Api.Areas.Admin.Controllers
             {
                 var result = await applicationSettingsService.Value.ModifyApplicationSettingsAsync(new()
                 {
-                    GridPageSize = request.GridPageSize,
+                    GridPageSize = request.GridPageSize.GetValueOrDefault(),
                     DefaultTimeZoneId = request.DefaultTimeZoneId,
-                    SchoolContributionPoints = request.SchoolContributionPoints,
-                    SchoolImageContributionPoints = request.SchoolImageContributionPoints,
-                    SchoolCommentContributionPoints = request.SchoolCommentContributionPoints,
-                    PostContributionPoints = request.PostContributionPoints,
-                    SchoolIssuesContributionPoints = request.SchoolIssuesContributionPoints,
-                    RemoveSchoolImageContributionPoints = request.RemoveSchoolImageContributionPoints,
-                    EasterEggBronzePoints = request.EasterEggBronzePoints,
-                    EasterEggSilverPoints = request.EasterEggSilverPoints,
-                    EasterEggGoldPoints = request.EasterEggGoldPoints,
-                    TestTimeCorrectSubmissionPoints = request.TestTimeCorrectSubmissionPoints,
-                    TestTimeIncorrectSubmissionPoints = request.TestTimeIncorrectSubmissionPoints,
-                    ExamCorrectTestSubmissionPoints = request.ExamCorrectTestSubmissionPoints,
-                    ExamIncorrectTestSubmissionPoints = request.ExamIncorrectTestSubmissionPoints,
-                    ContributionConfirmationEmailTemplate = request.ContributionConfirmationEmailTemplate,
+                    SchoolContributionPoints = request.SchoolContributionPoints.GetValueOrDefault(),
+                    SchoolImageContributionPoints = request.SchoolImageContributionPoints.GetValueOrDefault(),
+                    SchoolCommentContributionPoints = request.SchoolCommentContributionPoints.GetValueOrDefault(),
+                    PostContributionPoints = request.PostContributionPoints.GetValueOrDefault(),
+                    SchoolIssuesContributionPoints = request.SchoolIssuesContributionPoints.GetValueOrDefault(),
+                    RemoveSchoolImageContributionPoints = request.RemoveSchoolImageContributionPoints.GetValueOrDefault(),
+                    EasterEggBronzePoints = request.EasterEggBronzePoints.GetValueOrDefault(),
+                    EasterEggSilverPoints = request.EasterEggSilverPoints.GetValueOrDefault(),
+                    EasterEggGoldPoints = request.EasterEggGoldPoints.GetValueOrDefault(),
+                    TestTimeCorrectSubmissionPoints = request.TestTimeCorrectSubmissionPoints.GetValueOrDefault(),
+                    TestTimeIncorrectSubmissionPoints = request.TestTimeIncorrectSubmissionPoints.GetValueOrDefault(),
+                    ExamCorrectTestSubmissionPoints = request.ExamCorrectTestSubmissionPoints.GetValueOrDefault(),
+                    ExamIncorrectTestSubmissionPoints = request.ExamIncorrectTestSubmissionPoints.GetValueOrDefault(),
                     TicketConfirmationEmailTemplate = request.TicketConfirmationEmailTemplate,
+                    SchoolCommentContributionConfirmationEmailTemplate = request.SchoolCommentContributionConfirmationEmailTemplate,
+                    SchoolImageContributionConfirmationEmailTemplate = request.SchoolImageContributionConfirmationEmailTemplate,
+                    RemoveSchoolImageContributionConfirmationEmailTemplate = request.RemoveSchoolImageContributionConfirmationEmailTemplate,
+                    SchoolContributionConfirmationEmailTemplate = request.SchoolContributionConfirmationEmailTemplate,
+                    SchoolIssuesContributionConfirmationEmailTemplate = request.SchoolIssuesContributionConfirmationEmailTemplate,
+                    PostContributionConfirmationEmailTemplate = request.PostContributionConfirmationEmailTemplate,
                 });
                 return Ok<bool>(new(result.Errors) { Data = result.Data });
             }

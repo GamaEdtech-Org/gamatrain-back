@@ -4,25 +4,98 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
 
     public sealed class ApplicationSettingsViewModel
     {
-        public int GridPageSize { get; set; }
+        [Display]
+        [Required]
+        public int? GridPageSize { get; set; }
+
+        [Display]
+        [Required]
         public string? DefaultTimeZoneId { get; set; }
-        public long SchoolContributionPoints { get; set; }
-        public long SchoolImageContributionPoints { get; set; }
-        public long SchoolCommentContributionPoints { get; set; }
-        public long PostContributionPoints { get; set; }
-        public long SchoolIssuesContributionPoints { get; set; }
-        public long RemoveSchoolImageContributionPoints { get; set; }
-        public long EasterEggBronzePoints { get; set; }
-        public long EasterEggSilverPoints { get; set; }
-        public long EasterEggGoldPoints { get; set; }
-        public long TestTimeCorrectSubmissionPoints { get; set; }
-        public long TestTimeIncorrectSubmissionPoints { get; set; }
-        public long ExamCorrectTestSubmissionPoints { get; set; }
-        public long ExamIncorrectTestSubmissionPoints { get; set; }
 
-        [RequiredTokens("[RECEIVER_NAME]")]
-        public string? ContributionConfirmationEmailTemplate { get; set; }
+        [Display]
+        [Required]
+        public long? SchoolContributionPoints { get; set; }
 
+        [Display]
+        [Required]
+        public long? SchoolImageContributionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? SchoolCommentContributionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? PostContributionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? SchoolIssuesContributionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? RemoveSchoolImageContributionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? EasterEggBronzePoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? EasterEggSilverPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? EasterEggGoldPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? TestTimeCorrectSubmissionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? TestTimeIncorrectSubmissionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? ExamCorrectTestSubmissionPoints { get; set; }
+
+        [Display]
+        [Required]
+        public long? ExamIncorrectTestSubmissionPoints { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]", "[COMMENT]")]
+        public string? SchoolCommentContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
+        public string? SchoolImageContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
+        public string? RemoveSchoolImageContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]")]
+        public string? SchoolContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[SCHOOL_NAME]", "[SCHOOL_ID]", "[ISSUES]")]
+        public string? SchoolIssuesContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]", "[POST_TITLE]", "[POST_ID]")]
+        public string? PostContributionConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
         [RequiredTokens("[RECEIVER_NAME]", "[BODY]")]
         public string? TicketConfirmationEmailTemplate { get; set; }
     }

@@ -18,6 +18,11 @@ namespace GamaEdtech.Data.Dto.ApplicationSettings
         public long ExamCorrectTestSubmissionPoints { get; set; } = 1000;
         public long ExamIncorrectTestSubmissionPoints { get; set; } = 1000;
         public string? TicketConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>We received your request<hr><br><br>[BODY]";
-        public string? ContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution has been confirmed";
+        public string? SchoolCommentContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Comment Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed<br>[COMMENT]";
+        public string? SchoolImageContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Image Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed";
+        public string? RemoveSchoolImageContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Remove Image Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed";
+        public string? SchoolContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed";
+        public string? SchoolIssuesContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed<br>[ISSUES]";
+        public string? PostContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Post Contribution has been confirmed<br>[POST_TITLE]([POST_ID])";
     }
 }
