@@ -145,7 +145,7 @@ namespace GamaEdtech.Infrastructure.Migrations
             modelBuilder.Entity("GamaEdtech.Domain.Entity.ApplicationSettings", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(50)
+                        .HasMaxLength(100)
                         .HasColumnType("varchar")
                         .HasColumnName("Id");
 
