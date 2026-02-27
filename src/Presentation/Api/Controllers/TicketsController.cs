@@ -15,6 +15,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Domain.Specification.Ticket;
     using GamaEdtech.Presentation.ViewModel.Ticket;
 
+    using Hangfire;
+
     using Microsoft.AspNetCore.Mvc;
 
     using static GamaEdtech.Common.Core.Constants;
@@ -188,14 +190,14 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 });
                 if (result.OperationResult is OperationResult.Succeeded)
                 {
-                    _ = await ticketService.Value.SendTicketConfirmationAsync(new()
+                    _ = BackgroundJob.Enqueue<ITicketService>(t => t.SendTicketConfirmationAsync(new()
                     {
                         Body = request.Body,
                         ReceiverEmail = request.Email,
                         ReceiverName = request.FullName,
                         Subject = request.Subject,
                         TicketId = result.Data,
-                    });
+                    }));
                 }
 
                 return Ok<ManageTicketResponseViewModel>(new(result.Errors)

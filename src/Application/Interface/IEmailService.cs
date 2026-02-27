@@ -16,5 +16,6 @@ namespace GamaEdtech.Application.Interface
         ResultData<bool> ValidateFromEmailAddress(string? from);
         IReadOnlyList<string> GetAddresses();
         string GetSupportEmail();
+        string GetNoReplyEmail();
     }
 }
