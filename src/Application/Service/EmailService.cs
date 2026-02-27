@@ -87,5 +87,7 @@ namespace GamaEdtech.Application.Service
         public IReadOnlyList<string> GetAddresses() => configuration.Value.GetSection("EmailProvider:Emails").Get<List<string>>()!;
 
         public string GetSupportEmail() => configuration.Value.GetValue<string>("EmailProvider:SupportEmail")!;
+
+        public string GetNoReplyEmail() => configuration.Value.GetValue<string>("EmailProvider:NoReplyEmail")!;
     }
 }

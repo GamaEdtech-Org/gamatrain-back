@@ -24,5 +24,6 @@ namespace GamaEdtech.Data.Dto.ApplicationSettings
         public string? SchoolContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed";
         public string? SchoolIssuesContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Contribution for [SCHOOL_NAME]([SCHOOL_ID]) has been confirmed<br>[ISSUES]";
         public string? PostContributionConfirmationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>your Post Contribution has been confirmed<br>[POST_TITLE]([POST_ID])";
+        public string? RegistrationEmailTemplate { get; set; } = "Hi [RECEIVER_NAME],<br><br>welcome to Gamatrain";
     }
 }

@@ -24,6 +24,7 @@ namespace GamaEdtech.Application.Interface
         Task<ResultData<bool>> UserIsInRoleAsync([NotNull] int userId, [NotNull] string role);
         Task<ResultData<AuthenticationResponseDto>> AuthenticateAsync([NotNull] AuthenticationRequestDto requestDto);
         Task<ResultData<bool>> RegisterAsync([NotNull] RegistrationRequestDto requestDto);
+        Task SendRegistrationEmailAsync([NotNull] RegistrationRequestDto requestDto);
         Task<ResultData<SignInResponseDto>> SignInAsync([NotNull] SignInRequestDto requestDto);
         Task<ResultData<Void>> SignOutAsync();
         Task<ResultData<bool>> CreateUserAsync([NotNull] CreateUserRequestDto requestDto);
