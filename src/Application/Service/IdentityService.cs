@@ -274,7 +274,7 @@ namespace GamaEdtech.Application.Service
             }
         }
 
-        public async Task SendRegistrationEmailAsync([NotNull] RegistrationRequestDto requestDto)
+        public async Task SendRegistrationEmailAsync([NotNull] RegistrationEmailRequestDto requestDto)
         {
             var template = (await applicationSettingsService.Value.GetSettingAsync<string?>(nameof(ApplicationSettingsDto.RegistrationEmailTemplate))).Data;
             template = template?
@@ -1283,3 +1283,4 @@ namespace GamaEdtech.Application.Service
         }
     }
 }
+
