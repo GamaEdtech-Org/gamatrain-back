@@ -79,7 +79,11 @@ namespace GamaEdtech.Presentation.Api.Controllers
                 var result = await identityService.Value.RegisterAsync(data);
                 if (result.OperationResult is OperationResult.Succeeded)
                 {
-                    _ = BackgroundJob.Enqueue<IIdentityService>(t => t.SendRegistrationEmailAsync(data));
+                    _ = BackgroundJob.Enqueue<IIdentityService>(t => t.SendRegistrationEmailAsync(new()
+                    {
+                        Email = data.Email,
+                        Username = data.Username,
+                    }));
                 }
 
                 return Ok<Void>(new(result.Errors));
@@ -398,3 +402,4 @@ namespace GamaEdtech.Presentation.Api.Controllers
         }
     }
 }
+
