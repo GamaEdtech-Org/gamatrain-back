@@ -98,5 +98,10 @@ namespace GamaEdtech.Presentation.ViewModel.ApplicationSettings
         [Required]
         [RequiredTokens("[RECEIVER_NAME]", "[BODY]")]
         public string? TicketConfirmationEmailTemplate { get; set; }
+
+        [Display]
+        [Required]
+        [RequiredTokens("[RECEIVER_NAME]")]
+        public string? RegistrationEmailTemplate { get; set; }
     }
 }

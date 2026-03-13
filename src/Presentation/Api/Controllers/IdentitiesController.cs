@@ -16,6 +16,8 @@ namespace GamaEdtech.Presentation.Api.Controllers
     using GamaEdtech.Domain.Enumeration;
     using GamaEdtech.Presentation.ViewModel.Identity;
 
+    using Hangfire;
+
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -68,12 +70,21 @@ namespace GamaEdtech.Presentation.Api.Controllers
         {
             try
             {
-                var result = await identityService.Value.RegisterAsync(new()
+                RegistrationRequestDto data = new()
                 {
                     Username = request.Email!,
                     Password = request.Password!,
                     Email = request.Email!,
-                });
+                };
+                var result = await identityService.Value.RegisterAsync(data);
+                if (result.OperationResult is OperationResult.Succeeded)
+                {
+                    _ = BackgroundJob.Enqueue<IIdentityService>(t => t.SendRegistrationEmailAsync(new()
+                    {
+                        Email = data.Email,
+                        Username = data.Username,
+                    }));
+                }
 
                 return Ok<Void>(new(result.Errors));
             }
@@ -391,3 +402,4 @@ namespace GamaEdtech.Presentation.Api.Controllers
         }
     }
 }
+
